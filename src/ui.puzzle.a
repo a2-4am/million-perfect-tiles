@@ -4,90 +4,23 @@
 ; drawing routines for the puzzle board
 ;
 
-kLeftColors
-kBlackColorLeft
-         !byte %10000000
-kWhiteColorLeft
-         !byte %11111100
-kBlueColorLeft
-         !byte %11010100
-kRightColors
-kBlackColorRight
-         !byte %10000000
-kWhiteColorRight
-         !byte %10001111
-kBlueColorRight
-         !byte %10001010
-
 DrawEntireBoard
          jsr   Home
-         lda   #<gCurrentBoard
+         lda   #$FF                  ; /!\ assumes gCurrentBoard is page-aligned
          sta   @a+1
-         lda   #>gCurrentBoard
-         sta   @a+2
-         ldx   #0
--        ldy   #0
+         ldx   #$0F
+-        ldy   #$0F
 @a       lda   gCurrentBoard
          and   #$7F
-         jsr   DrawLargeCharacter
-         inc   @a+1
-         bne   +
-         inc   @a+2
-+        iny
-         cpy   #16
-         bne   @a
-         inx
-         cpx   #16
-         bne   -
+         cmp   #$01
+         beq   @draw
+         cmp   #$02
+         bne   @nodraw
+@draw    jsr   DrawLargeCharacter
+@nodraw  dec   @a+1                  ; /!\ assumes gCurrentBoard is page-aligned
+         dey
+         bpl   @a
+         dex
+         bpl   -
          bit   GFXMODE
-         rts
-;DrawEntireBoard
-         lda   #$B7
-         sta   absolute_hgr_row
-         lda   board_size_minus_1
-         sta   tile_row
-         lda   #<(gCurrentBoard+$F0) ; FIXME assumes 16x16
-         sta   board_base_ptr
-         lda   #>(gCurrentBoard+$F0) ; FIXME
-         sta   board_base_ptr+1
-.DrawTileRow
-         lda   #$07
-         sta   hgr_row_within_tile
-.DrawHGRRow
-         ldx   absolute_hgr_row
-         lda   HGRLO, x
-         sta   hgr_base_ptr
-         lda   HGRHI, x
-         sta   hgr_base_ptr+1
-         lda   #$23                  ; FIXME
-         sta   absolute_hgr_column
-         lda   board_size_minus_1
-         sta   tile_column
-.DrawTileColumn
-         ldy   tile_column
-         lda   (board_base_ptr), y
-         and   #$7F
-         tay
-         ldx   kLeftColors, y
-         lda   kRightColors, y
-         ldy   absolute_hgr_column
-         sta   (hgr_base_ptr), y
-         dey
-         txa
-         sta   (hgr_base_ptr), y
-         dey
-         sty   absolute_hgr_column
-         dec   tile_column
-         bpl   .DrawTileColumn
-
-         dec   absolute_hgr_row
-         dec   hgr_row_within_tile
-         bpl   .DrawHGRRow
-
-         jsr   move_to_previous_row
-         dec   absolute_hgr_row
-         dec   absolute_hgr_row
-         dec   absolute_hgr_row
-         dec   tile_row
-         bpl   .DrawTileRow
          rts

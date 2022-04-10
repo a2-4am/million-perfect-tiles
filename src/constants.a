@@ -45,24 +45,19 @@ HTAB         = $24        ; byte
 VTAB         = $25        ; byte
 
 ; application-specific addresses
-PARAM        = $00        ; word (used by PARAMS_ON_STACK macro)
 HGRLO        = $0100      ; 0x00C0 bytes
 HGRHI        = $0300      ; 0x00C0 bytes
 
-char         = $EE        ; byte
-charrow      = $EF        ; byte
+logical_board_size        = $00      ; byte
+char                      = $EE      ; byte
+charrow                   = $EF      ; byte
 hgr_base_ptr              = $F0      ; word
-colorcount1               = $F0      ; byte
-colorcount2               = $F1      ; byte
-absolute_hgr_row          = $F2      ; byte
-board_base_ptr            = $F3      ; word
-tile_row                  = $F5      ; byte
-absolute_hgr_column       = $F6      ; byte
-tile_column               = $F7      ; byte
-hgr_row_within_tile       = $F8      ; byte
-string_ptr                = $F9      ; word
-string_len                = $FB      ; word
-board_size_minus_1        = $FC      ; byte
-board_size                = $FD      ; byte
+board_base_ptr            = $F2      ; word
+colorcount1               = $F4      ; byte
+colorcount2               = $F5      ; byte
+tile_column               = $F6      ; byte
+
+string_len                = $FB      ; byte
+string_ptr                = $FC      ; word
 tmpx                      = $FE      ; byte
 tmpy                      = $FF      ; byte

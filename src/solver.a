@@ -11,15 +11,13 @@ FindValidMove
 ;          X=tile row (0..15)
 ;          Y=tile column (0..15)
 ;        C=1 if no valid move was found
-         lda   #<(gCurrentBoard+$F0) ; FIXME
+         lda   #<(gCurrentBoard+$F0)
          sta   board_base_ptr
-         lda   #>(gCurrentBoard+$F0) ; FIXME
+         lda   #>(gCurrentBoard+$F0)
          sta   board_base_ptr+1
-         ldx   board_size_minus_1    ; tile row
+         ldx   #$0F                  ; tile row
 .CheckRow
-         ldy   board_size_minus_1
-         dey
-         dey
+         ldy   #$0D
          sty   tile_column
 .CheckTile
          ldy   tile_column
@@ -41,7 +39,7 @@ FindValidMove
          bne   .nomatch
          ;found 022, valid move to change 0 -> 1
          lda   #$01
-         bne   -          ; always branches
+         bne   -                     ; always branches
 .not0xx
          jsr   iny_and_cmp_0
          bne   .notx0x
@@ -64,7 +62,7 @@ FindValidMove
          bne   .nomatch
          ;found 202, valid move to change 0 -> 1
          lda   #$01
-         bne   -          ; always branches
+         bne   -                     ; always branches
 .notx0x
          jsr   iny_and_cmp_0
          bne   .nomatch
@@ -85,73 +83,68 @@ FindValidMove
          bne   .nomatch
          ;found 220, valid move to change 0 -> 1
          lda   #$01
-         bne   -          ; always branches
+         bne   -                     ; always branches
 .nomatch
          dec   tile_column
          bpl   .CheckTile
-         jsr   .IsRowFullOfOneColor
-         bcs   +
-         rts
-+        jsr   move_to_previous_row
+         jsr   IsRowFullOfOneColorButNotTheOther
+         bcc   @exit
+         lda   board_base_ptr
+         ;C=1 here
+         sbc   #$10
+         sta   board_base_ptr        ; /!\ assumes gCurrentBoard is page-aligned (never changes high byte)
          dex
          bpl   .CheckRow
          ;TODO check for duplicate rows
          sec
-         rts
-.IsRowFullOfOneColor
+@exit    rts
+
+IsRowFullOfOneColorButNotTheOther
          lda   #$00
          sta   colorcount1
          sta   colorcount2
-         lda   board_size_minus_1
-         sta   tile_column
--        ldy   tile_column
-         jsr   cmp_0
-         beq   ++
+         ldy   #$0F
+-        jsr   cmp_0
          cmp   #$01
-         bne   +
-         inc   colorcount1
-         bne   ++         ; always branches
-+        inc   colorcount2
-++       dec   tile_column
+         beq   .inc1
+         cmp   #$02
+         beq   .inc2
+         +HIDE_NEXT_2_BYTES
+.inc1    inc   colorcount1
+         +HIDE_NEXT_2_BYTES
+.inc2    inc   colorcount2
+         dey
          bpl   -
          lda   colorcount1
+         eor   colorcount2
+         beq   .no                   ; if color counts are the same, we're done (and the answer is no)
+         lda   colorcount1
          asl
-         cmp   board_size
-         bne   .notFullOf1
-         ldy   board_size_minus_1
--        lda   (board_base_ptr), y
-         bne   +
-         lda   #$02
-         clc
-         rts
-+        dey
-         bpl   -
-.notFull
-         sec
-         rts
-.notFullOf1
+         cmp   logical_board_size
+         beq   .fullOf1
          lda   colorcount2
          asl
-         cmp   board_size
-         bne   .notFull
-         ldy   board_size_minus_1
--        lda   (board_base_ptr), y
-         bne   +
+         cmp   logical_board_size
+         beq   .fullOf2
+.no
+         sec
+         rts
+.fullOf1
+         lda   #$02
+         +HIDE_NEXT_2_BYTES
+.fullOf2
          lda   #$01
+         pha
+         ldy   #$0F
+-        lda   (board_base_ptr), y
+         beq   .yes
+         dey
+         bpl   -                     ; always branches
+.yes
+         pla                         ; A=1 or 2, X/Y contain row/column
          clc
          rts
-+        dey
-         bpl   -
-         sec
-         rts
-move_to_previous_row
-         lda   board_base_ptr
-         sec
-         sbc   #$10
-         sta   board_base_ptr
-         bcs   +
-         dec   board_base_ptr+1
-+        rts
+
 iny_and_cmp_0
          iny
 cmp_0    lda   (board_base_ptr), y

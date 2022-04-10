@@ -12,15 +12,12 @@
 FirstMover
 !pseudopc $4000 {
 Start
-
-         ldx   #$10
-         stx   board_size
-         dex
-         stx   board_size_minus_1
+         lda   #$10
+         sta   logical_board_size
          jsr   DrawEntireBoard
 loop
          jsr   FindValidMove
-         bcc   +
+         bcc   @draw
          jsr   TransposeBoard
          jsr   FindValidMove
          jsr   TransposeBoard
@@ -29,7 +26,7 @@ loop
          sty   tmpy
          ldx   tmpy
          ldy   tmpx
-+        jsr   DrawLargeCharacter
+@draw    jsr   DrawLargeCharacter
          bcc   +          ; always branches
 -        jsr   iny16
 +        dex
@@ -67,7 +64,7 @@ iny4     iny
          !source "src/ui.font.tile.wide.a"
          !source "src/ui.font.tile.wide.data.a"
 
-!align $FF,0,0           ; align to page
+!align $FF,0,0           ; align to page (DrawEntireBoard relies on this)
 gCurrentBoard
          !byte $00,$00,$81,$81,$00,$81,$00,$82,$82,$00,$00,$00,$81,$00,$81,$81
          !byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$82,$00,$00,$81,$00,$00,$81
@@ -87,99 +84,3 @@ gCurrentBoard
          !byte $82,$00,$00,$00,$00,$00,$00,$00,$00,$00,$82,$00,$00,$82,$00,$00
 }
 LastMover
-
-
-
-!if 0 {
-         ldx   #2
-titley=3
-         ldy   #titley
--        lda   sTitle1-titley, y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   #(titley+7)
-         bcc   -
-         inx
-         inx
-         ldy   #titley+3
--        lda   sTitle2-titley-3, y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   #(titley+3+7)
-         bcc   -
-         inx
-         ldy   #titley+4
-         lda   #"S"
-         jsr   DrawLargeCharacter
-         dex
-         dex
-         lda   #"L"
-         jsr   DrawLargeCharacter
-         dex
-         dex
-         lda   #"T"
-         jsr   DrawLargeCharacter
-         ldy   #6
--        ldx   #8
-         lda   sMainMenuPlay-6, y
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         lda   sMainMenuHelp-6, y
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         lda   sMainMenuDemo-6, y
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         lda   sMainMenuQuit-6, y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   #10
-         bcc   -
-         ldx   #0
-         ldy   #7
-         lda   #0
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #2
-         jsr   DrawLargeCharacter
-         ldy   #10
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #5
-         jsr   DrawLargeCharacter
-         ldy   #13
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #7
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #5
-         jsr   DrawLargeCharacter
-         ldy   #10
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #5
-         jsr   DrawLargeCharacter
-         ldy   #10
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #5
-         jsr   DrawLargeCharacter
-         ldy   #10
-         jsr   DrawLargeCharacter
-         inx
-         inx
-         ldy   #5
-         jsr   DrawLargeCharacter
-         ldy   #10
-         jsr   DrawLargeCharacter
-}
