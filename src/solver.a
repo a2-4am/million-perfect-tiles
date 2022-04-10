@@ -116,9 +116,8 @@ IsRowFullOfOneColorButNotTheOther
          dey
          bpl   -
          lda   colorcount1
-         eor   colorcount2
+         cmp   colorcount2
          beq   .no                   ; if color counts are the same, we're done (and the answer is no)
-         lda   colorcount1
          asl
          cmp   logical_board_size
          beq   .fullOf1
