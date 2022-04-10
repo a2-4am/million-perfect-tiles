@@ -1,0 +1,38 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; initialize program, generate lookup tables and dynamically generated code
+;
+
+         ldx   #$FF
+         txs
+         +READ_ROM_NO_WRITE
+         sta   PRIMARYCHARSET
+         sta   CLR80VID
+         sta   STOREOFF
+         sta   READMAINMEM
+         sta   WRITEMAINMEM
+         jsr   ROM_TEXT
+         jsr   ROM_HOME
+         jsr   ROM_NORMAL
+         jsr   ROM_IN0
+         jsr   ROM_PR0
+         +BUILD_HGR_LOOKUP_TABLES HGRLO, HGRHI
+
+-        inc   FM+2                  ; relocate program code to $4000
+         inc   FMDEST+2
+         lda   FM+2
+         cmp   #>LastMover
+         bcc   -
+         ldx   #$00
+FM       lda   FirstMover, x
+FMDEST   sta   $4000, x
+         inx
+         bne   FM
+         dec   FM+2
+         dec   FMDEST+2
+         lda   FMDEST+2
+         cmp   #$40
+         bcs   FM
+
+         jmp   Start

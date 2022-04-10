@@ -1,0 +1,68 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+
+;------------------------------------------------------------------------------
+; YE OLDE GRAND UNIFIED MEMORY MAP
+;
+; MAIN MEMORY
+;------------------------------------------------------------------------------
+
+; soft switches
+KBD =          $C000      ; last key pressed (if any)
+STOREOFF =     $C000      ; STA then use the following 4 flags:
+READMAINMEM =  $C002      ; STA to read from main mem
+READAUXMEM =   $C003      ; STA to read from aux mem
+WRITEMAINMEM = $C004      ; STA to write to main mem
+WRITEAUXMEM =  $C005      ; STA to write to aux mem
+CLRC3ROM =     $C00A      ; STA to use internal Slot 3 ROM (required to use 128K and DHGR)
+SETC3ROM =     $C00B      ; STA to use external Slot 3 ROM (required to detect VidHD in slot 3)
+CLR80VID =     $C00C      ; 40 columns (also used to get out of DHGR mode)
+SET80VID =     $C00D      ; 80 columns (also used to get into DHGR mode)
+PRIMARYCHARSET= $C00E     ; no mousetext for you
+CLEARKBD =     $C010      ; clear last key pressed
+SPEAKER =      $C030      ; chirp chirp
+CLOCKCTL =     $C034      ; bits 0-3 are IIgs border color (also VidHD)
+GFXMODE =      $C050
+TEXTMODE =     $C051
+FULLGFX =      $C052
+MIXGFX =       $C053
+PAGE1 =        $C054      ; page 1 (affects text, HGR, DHGR)
+PAGE2 =        $C055      ; page 2 (affects text, HGR, DHGR)
+LORES =        $C056
+HIRES =        $C057
+
+; ROM routines and addresses
+ROM_TEXT =     $FB2F
+ROM_MACHINEID =$FBB3
+ROM_HOME =     $FC58
+ROM_WAIT =     $FCA8
+ROM_COUT =     $FDED
+ROM_NORMAL =   $FE84      ; NORMAL text (instead of INVERSE or FLASH)
+ROM_IN0 =      $FE89      ; SETKBD
+ROM_PR0 =      $FE93      ; SETVID
+HTAB         = $24        ; byte
+VTAB         = $25        ; byte
+
+; application-specific addresses
+PARAM        = $00        ; word (used by PARAMS_ON_STACK macro)
+HGRLO        = $0100      ; 0x00C0 bytes
+HGRHI        = $0300      ; 0x00C0 bytes
+
+char         = $EE        ; byte
+charrow      = $EF        ; byte
+hgr_base_ptr              = $F0      ; word
+colorcount1               = $F0      ; byte
+colorcount2               = $F1      ; byte
+absolute_hgr_row          = $F2      ; byte
+board_base_ptr            = $F3      ; word
+tile_row                  = $F5      ; byte
+absolute_hgr_column       = $F6      ; byte
+tile_column               = $F7      ; byte
+hgr_row_within_tile       = $F8      ; byte
+string_ptr                = $F9      ; word
+string_len                = $FB      ; word
+board_size_minus_1        = $FC      ; byte
+board_size                = $FD      ; byte
+tmpx                      = $FE      ; byte
+tmpy                      = $FF      ; byte

@@ -1,0 +1,132 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; font drawing routines
+;
+; Public functions:
+; - DrawLargeCharacter
+;
+
+!macro COMPUTE_DRAW_ADDRESSES {
+         ldx   charrow
+         lda   HGRLO, x
+         sta   hgr_base_ptr
+         lda   HGRHI, x
+         sta   hgr_base_ptr+1        ; -> base address of top row to draw (used for upper-left block of each character)
+         ldx   char                  ; X = 0-based index into LeftFontRow0 array for the character we're drawing
+         ldy   HTAB
+}
+
+!macro INC_AND_RECOMPUTE_DRAW_ADDRESSES {
+         inc   charrow
+         +COMPUTE_DRAW_ADDRESSES
+}
+
+;------------------------------------------------------------------------------
+; LogicalColumnToPhysicalColumn
+;
+; in:    Y contains logical column number
+; out:   Y contains physical byte offset to use against an HGR base address
+;        A clobbered
+;        X preserved
+;------------------------------------------------------------------------------
+LogicalColumnToPhysicalColumn
+         iny
+         iny
+         tya
+         asl
+         tay
+         rts
+
+;------------------------------------------------------------------------------
+; DrawLargeCharacter
+;
+; in:    A contains character (0x41..0x5A) or 0x00
+;        X contains logical line number (0x00..0x11)
+;        Y contains logical column number (0x00..0x13)
+;        HGR row is (11 * X)
+;        character will be drawn on HGR row, byte offset 2 * Y
+; out:   preserves all registers & flags
+;------------------------------------------------------------------------------
+DrawLargeCharacter
+         php
+         pha
+         and   #$7F
+         cmp   #$03
+         bcc   +
+         sec
+         sbc   #$3E
++        sta   char
+         stx   tmpx
+         sty   tmpy
+         jsr   LogicalColumnToPhysicalColumn
+         sty   HTAB
+         lda   #11
+         clc
+         bcc   +
+-        adc   #11
++        dex
+         bpl   -
+         sta   charrow
+
+         +COMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow0, x       ; draw row 0, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow0, x      ; draw row 0, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow1, x       ; draw row 1, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow1, x      ; draw row 1, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow2, x       ; draw row 2, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow2, x      ; draw row 2, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow3, x       ; draw row 3, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow3, x      ; draw row 3, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow4, x       ; draw row 4, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow4, x      ; draw row 4, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow5, x       ; draw row 5, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow5, x      ; draw row 5, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow6, x       ; draw row 6, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow6, x      ; draw row 6, byte 1
+         sta   (hgr_base_ptr), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow7, x       ; draw row 7, byte 0
+         sta   (hgr_base_ptr), y
+         iny
+         lda   RightFontRow7, x      ; draw row 7, byte 1
+         sta   (hgr_base_ptr), y
+
+         ldx   tmpx
+         ldy   tmpy
+         pla
+         plp
+         rts

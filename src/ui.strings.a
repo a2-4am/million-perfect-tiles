@@ -1,0 +1,106 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+
+sMM0
+         !byte 3
+         !byte 0,0,0
+
+sMM1
+         !byte 9
+         !byte 0,0,0,0,0
+         !raw  "T"
+         !byte 0,0,0
+
+sMM2
+         !byte 9
+         !byte 0
+         !raw  "MILLION"
+         !byte 0
+
+sMM3
+         !byte 12
+         !byte 0,0,0,0,0
+         !raw  "L"
+         !byte 0,0,0,0,0,0
+
+sMM4
+         !byte 9
+         !byte 0
+         !raw "PERFECT"
+         !byte 0
+
+sMM5
+         !byte 9
+         !byte 0,0
+         !raw  "S"
+         !byte 0,0,0,0,0,0
+
+sMM6
+         !byte 3
+         !byte 0,0,0
+
+sMM7
+         !byte 6
+         !byte 0,0,0,0,0,0
+
+sMM8
+         !byte 6
+         !byte 0
+         !raw  "PLAY"
+         !byte 0
+
+sMM9=sMM7
+
+sMM10
+         !byte 6
+         !byte 0
+         !raw  "HELP"
+         !byte 0
+
+sMM11=sMM7
+
+sMM12
+         !byte 6
+         !byte 0
+         !raw  "DEMO"
+         !byte 0
+
+sMM13=sMM7
+
+sMM14
+         !byte 6
+         !byte 0
+         !raw  "QUIT"
+         !byte 0
+
+sMM15=sMM7
+
+!if 0 {
+sBadThree1
+         !byte 15
+         !raw  "3 BLUE IN A ROW"
+
+sBadThree2
+         !byte 16
+         !raw  "3 WHITE IN A ROW"
+
+sBadUnequalRow
+         !byte 20
+         !raw  ""
+
+sHintThree1
+         !byte 17
+         !raw  "2 BLUE THEN WHITE"
+
+sHintThree2
+         !byte 17
+         !raw  "2 WHITE THEN BLUE"
+
+sBadTooManyInRow
+         !byte 40
+         !raw  "ROWS NEED AN EQUAL NUMBER OF BLUE & WHIT"
+sBadTooManyInColumn
+         !byte 40
+         !raw  "COLUMNS NEED THE SAME NUMBER OF BLUE & W"
+}

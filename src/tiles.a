@@ -1,0 +1,185 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+!cpu 6502
+!to "build/TILES.SYSTEM",plain
+*=$2000
+
+         !source "src/constants.a"              ; no code
+         !source "src/macros.a"                 ; no code
+         !source "src/tiles.init.a"             ; one-time initialization code, exits via Start
+
+FirstMover
+!pseudopc $4000 {
+Start
+
+         ldx   #$10
+         stx   board_size
+         dex
+         stx   board_size_minus_1
+         jsr   DrawEntireBoard
+loop
+         jsr   FindValidMove
+         bcc   +
+         jsr   TransposeBoard
+         jsr   FindValidMove
+         jsr   TransposeBoard
+         bcs   exit
+         stx   tmpx
+         sty   tmpy
+         ldx   tmpy
+         ldy   tmpx
++        jsr   DrawLargeCharacter
+         bcc   +          ; always branches
+-        jsr   iny16
++        dex
+         bpl   -
+         sta   gCurrentBoard, y
+         bne   loop       ; always branches
+exit
+         +PRINT_AT sMM0, 1, 6
+         +PRINT_AT sMM1, 2, 2
+         +PRINT_AT sMM2, 3, 2
+         +PRINT_AT sMM3, 4, 2
+         +PRINT_AT sMM4, 5, 5
+         +PRINT_AT sMM5, 6, 5
+         +PRINT_AT sMM6, 7, 6
+         +PRINT_AT sMM7, 9, 5
+         +PRINT_AT sMM8, 10, 5
+         +PRINT_AT sMM10, 11, 5
+         +PRINT_AT sMM12, 12, 5
+         +PRINT_AT sMM14, 13, 5
+         +PRINT_AT sMM7, 14, 5
+         +DEBUGWAIT
+         jmp   $ff59
+iny16    jsr   iny8
+iny8     jsr   iny4
+iny4     iny
+         iny
+         iny
+         iny
+         rts
+
+         !source "src/solver.a"
+         !source "src/ui.puzzle.a"
+         !source "src/ui.common.a"
+         !source "src/ui.strings.a"
+         !source "src/ui.font.tile.wide.a"
+         !source "src/ui.font.tile.wide.data.a"
+
+!align $FF,0,0           ; align to page
+gCurrentBoard
+         !byte $00,$00,$81,$81,$00,$81,$00,$82,$82,$00,$00,$00,$81,$00,$81,$81
+         !byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$82,$00,$00,$81,$00,$00,$81
+         !byte $81,$00,$00,$00,$81,$00,$00,$00,$00,$00,$00,$00,$00,$81,$00,$00
+         !byte $81,$00,$00,$00,$00,$00,$82,$00,$82,$00,$82,$82,$00,$81,$00,$00
+         !byte $00,$00,$82,$00,$00,$82,$82,$00,$00,$00,$82,$82,$00,$00,$00,$00
+         !byte $82,$00,$00,$00,$82,$00,$00,$00,$00,$00,$00,$00,$00,$81,$00,$00
+         !byte $00,$00,$00,$81,$00,$00,$00,$82,$00,$00,$81,$00,$00,$00,$82,$00
+         !byte $00,$82,$00,$00,$82,$00,$00,$00,$00,$00,$00,$82,$00,$00,$00,$00
+         !byte $00,$00,$00,$00,$00,$82,$00,$00,$81,$00,$00,$81,$81,$00,$81,$81
+         !byte $00,$00,$00,$81,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $00,$00,$00,$81,$00,$00,$81,$00,$81,$00,$00,$82,$00,$00,$00,$81
+         !byte $82,$00,$00,$00,$00,$82,$00,$00,$00,$82,$81,$00,$00,$00,$00,$00
+         !byte $00,$00,$00,$00,$82,$82,$00,$81,$00,$00,$81,$00,$00,$81,$00,$00
+         !byte $00,$00,$81,$81,$00,$00,$00,$00,$00,$82,$00,$00,$00,$00,$00,$00
+         !byte $00,$00,$81,$00,$00,$81,$00,$00,$00,$00,$00,$82,$00,$81,$81,$00
+         !byte $82,$00,$00,$00,$00,$00,$00,$00,$00,$00,$82,$00,$00,$82,$00,$00
+}
+LastMover
+
+
+
+!if 0 {
+         ldx   #2
+titley=3
+         ldy   #titley
+-        lda   sTitle1-titley, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   #(titley+7)
+         bcc   -
+         inx
+         inx
+         ldy   #titley+3
+-        lda   sTitle2-titley-3, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   #(titley+3+7)
+         bcc   -
+         inx
+         ldy   #titley+4
+         lda   #"S"
+         jsr   DrawLargeCharacter
+         dex
+         dex
+         lda   #"L"
+         jsr   DrawLargeCharacter
+         dex
+         dex
+         lda   #"T"
+         jsr   DrawLargeCharacter
+         ldy   #6
+-        ldx   #8
+         lda   sMainMenuPlay-6, y
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         lda   sMainMenuHelp-6, y
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         lda   sMainMenuDemo-6, y
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         lda   sMainMenuQuit-6, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   #10
+         bcc   -
+         ldx   #0
+         ldy   #7
+         lda   #0
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #2
+         jsr   DrawLargeCharacter
+         ldy   #10
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #5
+         jsr   DrawLargeCharacter
+         ldy   #13
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #7
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #5
+         jsr   DrawLargeCharacter
+         ldy   #10
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #5
+         jsr   DrawLargeCharacter
+         ldy   #10
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #5
+         jsr   DrawLargeCharacter
+         ldy   #10
+         jsr   DrawLargeCharacter
+         inx
+         inx
+         ldy   #5
+         jsr   DrawLargeCharacter
+         ldy   #10
+         jsr   DrawLargeCharacter
+}

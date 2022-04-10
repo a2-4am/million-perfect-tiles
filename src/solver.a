@@ -1,0 +1,220 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; puzzle solving routines
+;
+
+FindValidMove
+; in:    none
+; out:   C=0 if found valid move, then
+;          A=tile value (1 or 2)
+;          X=tile row (0..15)
+;          Y=tile column (0..15)
+;        C=1 if no valid move was found
+         lda   #<(gCurrentBoard+$F0) ; FIXME
+         sta   board_base_ptr
+         lda   #>(gCurrentBoard+$F0) ; FIXME
+         sta   board_base_ptr+1
+         ldx   board_size_minus_1    ; tile row
+.CheckRow
+         ldy   board_size_minus_1
+         dey
+         dey
+         sty   tile_column
+.CheckTile
+         ldy   tile_column
+         jsr   cmp_0
+         bne   .not0xx
+         jsr   iny_and_cmp_1
+         bne   .not01x
+         jsr   iny_and_cmp_1
+         bne   .nomatch
+         ;found 011, valid move to change 0 -> 2
+         lda   #$02
+-        ldy   tile_column
+         clc
+         rts
+.not01x
+         cmp   #$02
+         bne   .nomatch
+         jsr   iny_and_cmp_2
+         bne   .nomatch
+         ;found 022, valid move to change 0 -> 1
+         lda   #$01
+         bne   -          ; always branches
+.not0xx
+         jsr   iny_and_cmp_0
+         bne   .notx0x
+         dey
+         jsr   cmp_1
+         bne   .not10x
+         iny
+         jsr   iny_and_cmp_1
+         bne   .nomatch
+         ;found 101, valid move to change 0 -> 2
+         lda   #$02
+-        dey
+         clc
+         rts
+.not10x
+         cmp   #$02
+         bne   .nomatch
+         iny
+         jsr   iny_and_cmp_2
+         bne   .nomatch
+         ;found 202, valid move to change 0 -> 1
+         lda   #$01
+         bne   -          ; always branches
+.notx0x
+         jsr   iny_and_cmp_0
+         bne   .nomatch
+         jsr   dey_and_cmp_1
+         bne   .notx10
+         jsr   dey_and_cmp_1
+         bne   .nomatch
+         ;found 110, valid move to change 0 -> 2
+         lda   #$02
+-        iny
+         iny
+         clc
+         rts
+.notx10
+         cmp   #$02
+         bne   .nomatch
+         jsr   dey_and_cmp_2
+         bne   .nomatch
+         ;found 220, valid move to change 0 -> 1
+         lda   #$01
+         bne   -          ; always branches
+.nomatch
+         dec   tile_column
+         bpl   .CheckTile
+         jsr   .IsRowFullOfOneColor
+         bcs   +
+         rts
++        jsr   move_to_previous_row
+         dex
+         bpl   .CheckRow
+         ;TODO check for duplicate rows
+         sec
+         rts
+.IsRowFullOfOneColor
+         lda   #$00
+         sta   colorcount1
+         sta   colorcount2
+         lda   board_size_minus_1
+         sta   tile_column
+-        ldy   tile_column
+         jsr   cmp_0
+         beq   ++
+         cmp   #$01
+         bne   +
+         inc   colorcount1
+         bne   ++         ; always branches
++        inc   colorcount2
+++       dec   tile_column
+         bpl   -
+         lda   colorcount1
+         asl
+         cmp   board_size
+         bne   .notFullOf1
+         ldy   board_size_minus_1
+-        lda   (board_base_ptr), y
+         bne   +
+         lda   #$02
+         clc
+         rts
++        dey
+         bpl   -
+.notFull
+         sec
+         rts
+.notFullOf1
+         lda   colorcount2
+         asl
+         cmp   board_size
+         bne   .notFull
+         ldy   board_size_minus_1
+-        lda   (board_base_ptr), y
+         bne   +
+         lda   #$01
+         clc
+         rts
++        dey
+         bpl   -
+         sec
+         rts
+move_to_previous_row
+         lda   board_base_ptr
+         sec
+         sbc   #$10
+         sta   board_base_ptr
+         bcs   +
+         dec   board_base_ptr+1
++        rts
+iny_and_cmp_0
+         iny
+cmp_0    lda   (board_base_ptr), y
+         and   #$7F
+         rts
+dey_and_cmp_1
+         dey
+         +HIDE_NEXT_BYTE
+iny_and_cmp_1
+         iny
+cmp_1    lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #$01
+         rts
+dey_and_cmp_2
+         dey
+         +HIDE_NEXT_BYTE
+iny_and_cmp_2
+         iny
+cmp_2    lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #$02
+         rts
+
+TransposeBoard
+; out:   all flags & registers preserved
+         php
+         pha
+         txa
+         pha
+         tya
+         pha
+
+         ldy   #$00
+         ldx   #$00
+-        lda   gCurrentBoard, y
+         pha
+         lda   gCurrentBoard, x
+         sta   gCurrentBoard, y
+         pla
+         sta   gCurrentBoard, x
+         txa
+         clc
+         adc   #$10
+         tax
+         bcc   +
+         iny
+         beq   ++
+         sty   tmpy
+         inx
+         txa
+         clc
+         adc   tmpy
+         tax
+         tay
+         dey
++        iny
+         bne   -
+++
+         pla
+         tay
+         pla
+         tax
+         pla
+         plp
+         rts
