@@ -1,0 +1,87 @@
+;license:MIT
+;(c) 2022 by qkumba
+;
+
+; Public functions:
+; - Unpack
+;
+;------------------------------------------------------------------------------
+; Unpack
+; unpack compressed board into tile format
+;
+; in:    tmpx/tmpy (lo/hi) set to output board size
+;        string_ptr set to compressed buffer
+;        board_base_ptr set to uncompressed buffer (page-aligned)
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+
+Unpack
+         ldy   #0
+         lda   #$80
+
+.checkmode
+         jsr   .fetchbit
+         ldx   #0
+         bcs   .store                ; 1=store n zeroes
+                                     ; 0=copy next encoded value
+
+.checkend
+         cpy   tmpy
+         bne   .notdone
+         cpy   tmpx
+         beq   .done
+
+.notdone
+         jsr   .fetchbit
+         bcc   .zero                 ; 0=00
+         ldx   #$41                  ; encoded value starts with 1
+         jsr   .fetchbit
+
+.zero
+         pha
+         txa
+         rol                         ; now 10 (2) or 11 (3) [+ possibly fixed bit]
+         jsr   .write
+         pla
+         bne   .checkmode            ; always
+
+.store
+         inx
+         jsr   .fetchbit             ; n is sequence of 1s
+         bcs   .store                ; as index of odd numbers
+         pha
+         txa
+         asl
+         tax
+         dex                         ; 1=1, 2=3, 3=5, 4=7, 5=9...
+         tya
+
+.loop
+         jsr   .write
+         dex
+         bne   .loop
+         pla
+         bne   .checkend             ; always
+
+.fetchbit
+         asl
+         bne   .done
+         lda   (string_ptr), y
+         rol
+         inc   string_ptr
+         bne   .done
+         inc   string_ptr + 1
+
+.done
+         rts
+
+.write
+         sta   (board_base_ptr), y
+         inc   board_base_ptr
+         cpy   tmpx
+         bne   .skipleft
+         dec   tmpy
+
+.skipleft
+         dec   tmpx
+         rts
