@@ -2,79 +2,75 @@
 ;(c) 2022 by 4am
 ;
 
-sMM0
+sMainMenuLine1
          !byte 3
          !byte 0,0,0
 
-sMM1
+sMainMenuLine2
          !byte 9
          !byte 0,0,0,0,0
          !raw  "T"
          !byte 0,0,0
 
-sMM2
+sMainMenuLine3
          !byte 9
          !byte 0
          !raw  "MILLION"
          !byte 0
 
-sMM3
+sMainMenuLine4
          !byte 12
          !byte 0,0,0,0,0
          !raw  "L"
          !byte 0,0,0,0,0,0
 
-sMM4
+sMainMenuLine5
          !byte 9
          !byte 0
          !raw "PERFECT"
          !byte 0
 
-sMM5
+sMainMenuLine6
          !byte 9
          !byte 0,0
          !raw  "S"
          !byte 0,0,0,0,0,0
 
-sMM6
+sMainMenuLine7
          !byte 3
          !byte 0,0,0
 
-sMM7
+sMainMenuLine8
          !byte 6
          !byte 0,0,0,0,0,0
 
-sMM8
+; nothing on line 9
+
+sMainMenuLine10
          !byte 6
          !byte 0
          !raw  "PLAY"
          !byte 0
 
-sMM9=sMM7
-
-sMM10
+sMainMenuLine11
          !byte 6
          !byte 0
          !raw  "HELP"
          !byte 0
 
-sMM11=sMM7
-
-sMM12
+sMainMenuLine12
          !byte 6
          !byte 0
          !raw  "DEMO"
          !byte 0
 
-sMM13=sMM7
-
-sMM14
+sMainMenuLine13
          !byte 6
          !byte 0
          !raw  "QUIT"
          !byte 0
 
-sMM15=sMM7
+sMainMenuLine14=sMainMenuLine8
 
 sSelectSize
          !byte 11

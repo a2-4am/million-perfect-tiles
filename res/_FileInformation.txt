@@ -1,1 +1,2 @@
 TILES.SYSTEM=Type(FF),AuxType(2000),Access(C3)
+PUZZLES.BIN=Type(06),AuxType(0000),Access(C3)

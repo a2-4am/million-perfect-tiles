@@ -4,6 +4,7 @@
 ; font drawing routines
 ;
 ; Public functions:
+; - DrawLargeString
 ; - DrawLargeCharacter
 ;
 
@@ -37,6 +38,33 @@
          asl
          tay
 }
+
+;------------------------------------------------------------------------------
+; DrawLargeString
+;
+; in:    A/Y points to length-prefixed string (Pascal style)
+;        X contains logical column number (0x00..0x0F)
+;        VTAB contains logical line number (0x00..0x0F)
+; out:   clobbers all registers & flags
+;------------------------------------------------------------------------------
+DrawLargeString
+         +ST16 string_ptr
+         stx   tile_column
+         ldy   #0
+         lda   (string_ptr), y
+         sta   string_len
+         clc
+         adc   tile_column
+         sta   tile_column
+         ldx   VTAB
+-        ldy   string_len
+         lda   (string_ptr), y
+         dec   tile_column
+         ldy   tile_column
+         jsr   DrawLargeCharacter
+         dec   string_len
+         bne   -
+         rts
 
 ;------------------------------------------------------------------------------
 ; DrawLargeCharacter

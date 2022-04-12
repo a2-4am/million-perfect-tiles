@@ -1,0 +1,101 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; main menu display and event loop
+;
+
+; len(kMainMenuVTABs) == len(kMainMenuHTABs) == len(kMainMenuStringsLo) == len(kMainMenuStringsHi)
+; or you will regret this
+kMainMenuVTABs
+         !byte 1,2,3,4,5,6,7,9,10,11,12,13,14
+kMainMenuHTABs
+         !byte 6,2,2,2,5,5,6,5,5,5,5,5,5
+kMainMenuStringsLo
+         !byte <sMainMenuLine1
+         !byte <sMainMenuLine2
+         !byte <sMainMenuLine3
+         !byte <sMainMenuLine4
+         !byte <sMainMenuLine5
+         !byte <sMainMenuLine6
+         !byte <sMainMenuLine7
+         !byte <sMainMenuLine8
+         ; nothing on line 9
+         !byte <sMainMenuLine10
+         !byte <sMainMenuLine11
+         !byte <sMainMenuLine12
+         !byte <sMainMenuLine13
+         !byte <sMainMenuLine14
+kMainMenuStringsHi
+         !byte >sMainMenuLine1
+         !byte >sMainMenuLine2
+         !byte >sMainMenuLine3
+         !byte >sMainMenuLine4
+         !byte >sMainMenuLine5
+         !byte >sMainMenuLine6
+         !byte >sMainMenuLine7
+         !byte >sMainMenuLine8
+         ; nothing on line 9
+         !byte >sMainMenuLine10
+         !byte >sMainMenuLine11
+         !byte >sMainMenuLine12
+         !byte >sMainMenuLine13
+         !byte >sMainMenuLine14
+
+MainMenuEventLoop
+         jsr   DrawMainMenuBackground
+         jsr   DrawMainMenuText
+         +DEBUGWAIT
+         jmp   $ff59
+
+DrawMainMenuBackground
+         jsr   OneTimeLoadRandomBoardForTitle   ; SMC opcode
+         lda   #$10
+         sta   logical_board_size
+         lda   #>kTitleBoard
+         sta   board_base_ptr+1
+         jsr   DrawEntireBoard
+@loop    jsr   FindValidMove
+         bcc   @draw
+         jsr   TransposeBoard
+         jsr   FindValidMove
+         jsr   TransposeBoard
+         bcs   @exit
+         stx   tmpx
+         sty   tmpy
+         ldx   tmpy
+         ldy   tmpx
+@draw    jsr   DrawLargeCharacter
+         pha
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         pla
+         sta   (board_base_ptr), y
+         bne   @loop                 ; always branches
+@exit    rts
+
+OneTimeLoadRandomBoardForTitle
+         +LD16 RNDSEED
+         ldx   #>kTitleBoard
+         jsr   nth
+         lda   #$2C       ; BIT opcode
+         sta   DrawMainMenuBackground
+         bit   $ff58
+         rts
+
+DrawMainMenuText
+         lda   #12
+         sta   row1
+-        ldy   row1
+         lda   kMainMenuVTABs, y
+         sta   VTAB
+         lda   kMainMenuHTABs, y
+         tax
+         lda   kMainMenuStringsLo, y
+         pha
+         lda   kMainMenuStringsHi, y
+         tay
+         pla
+         jsr   DrawLargeString
+         dec   row1
+         bpl   -
+         rts

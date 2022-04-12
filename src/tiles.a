@@ -12,80 +12,15 @@
 FirstMover
 !pseudopc $4000 {
 Start
-         lda   #$10
-         sta   logical_board_size
-         lda   #>kTitleBoard
-         sta   board_base_ptr+1
-         jsr   DrawEntireBoard
-loop
-         jsr   FindValidMove
-         bcc   @draw
-         jsr   TransposeBoard
-         jsr   FindValidMove
-         jsr   TransposeBoard
-         bcs   exit
-         stx   tmpx
-         sty   tmpy
-         ldx   tmpy
-         ldy   tmpx
-@draw    jsr   DrawLargeCharacter
-         pha
-         jsr   CalculateRowBase
-         sta   board_base_ptr
-         pla
-         sta   (board_base_ptr), y
-         bne   loop       ; always branches
-exit
-         +DEBUGWAIT
-         jsr   FindValidMove
-         +PRINT_AT sMM0, 1, 6
-         +PRINT_AT sMM1, 2, 2
-         +PRINT_AT sMM2, 3, 2
-         +PRINT_AT sMM3, 4, 2
-         +PRINT_AT sMM4, 5, 5
-         +PRINT_AT sMM5, 6, 5
-         +PRINT_AT sMM6, 7, 6
-         +PRINT_AT sMM7, 9, 5
-         +PRINT_AT sMM8, 10, 5
-         +PRINT_AT sMM10, 11, 5
-         +PRINT_AT sMM12, 12, 5
-         +PRINT_AT sMM14, 13, 5
-         +PRINT_AT sMM7, 14, 5
-         +DEBUGWAIT
-         jmp   $ff59
-iny16    jsr   iny8
-iny8     jsr   iny4
-iny4     iny
-         iny
-         iny
-         iny
-         rts
+         jmp   MainMenuEventLoop
 
-         !source "src/solver.a"
+         !source "src/ui.strings.a"
+         !source "src/ui.main.menu.a"
          !source "src/ui.puzzle.a"
          !source "src/ui.common.a"
-         !source "src/ui.strings.a"
          !source "src/ui.font.tile.wide.a"
          !source "src/ui.font.tile.wide.data.a"
-
-!align $FF,0,0           ; align to page (DrawEntireBoard relies on this)
-kTitleBoard
-         ; this board exercises all of the possible solver cases
-         !byte $81,$81,$00,$00,$00,$00,$00,$00,$82,$82,$00,$00,$82,$00,$81,$00
-         !byte $00,$00,$00,$00,$00,$00,$00,$81,$00,$00,$81,$81,$00,$00,$00,$00
-         !byte $81,$00,$00,$00,$81,$00,$00,$00,$00,$00,$00,$00,$00,$00,$81,$00
-         !byte $81,$00,$82,$00,$00,$00,$81,$00,$00,$00,$81,$81,$00,$00,$00,$82
-         !byte $00,$00,$82,$81,$00,$81,$82,$00,$82,$81,$00,$00,$00,$81,$00,$00
-         !byte $00,$81,$00,$00,$00,$00,$00,$00,$00,$81,$00,$00,$00,$82,$00,$82
-         !byte $00,$00,$00,$81,$00,$00,$00,$00,$00,$00,$00,$00,$82,$00,$81,$00
-         !byte $00,$00,$00,$00,$00,$00,$00,$82,$81,$00,$00,$00,$82,$00,$00,$00
-         !byte $00,$82,$00,$82,$00,$00,$00,$00,$81,$00,$00,$82,$00,$82,$00,$00
-         !byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$81,$00,$82,$00,$00,$81
-         !byte $00,$00,$00,$00,$00,$00,$82,$00,$00,$00,$00,$00,$82,$00,$82,$00
-         !byte $81,$00,$81,$00,$00,$81,$00,$00,$00,$00,$82,$00,$00,$81,$00,$00
-         !byte $81,$00,$00,$82,$82,$00,$00,$00,$00,$82,$00,$00,$81,$00,$00,$82
-         !byte $00,$00,$00,$00,$81,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-         !byte $00,$00,$82,$00,$00,$00,$00,$82,$00,$82,$82,$00,$00,$00,$82,$00
-         !byte $00,$00,$00,$00,$00,$81,$81,$00,$00,$00,$82,$00,$00,$00,$00,$00
+         !source "src/solver.a"
+         !source "src/unpack.a"
 }
 LastMover

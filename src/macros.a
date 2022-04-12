@@ -159,25 +159,3 @@
          bpl   -
          bit   $c010
 }
-
-; clobbers all registers & flags
-!macro   PRINT_AT .str, .vtab, .htab {
-         +LDADDR .str
-         +ST16 string_ptr
-         ldx   #.vtab
-         ldy   #.htab
-         sty   tile_column
-         ldy   #0
-         lda   (string_ptr), y
-         sta   string_len
-         clc
-         adc   tile_column
-         sta   tile_column
--        ldy   string_len
-         lda   (string_ptr), y
-         dec   tile_column
-         ldy   tile_column
-         jsr   DrawLargeCharacter
-         dec   string_len
-         bne   -
-}

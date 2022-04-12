@@ -6,8 +6,16 @@
 ; YE OLDE GRAND UNIFIED MEMORY MAP
 ;
 ; MAIN MEMORY
-; 0800..08FF - unpacking buffer before final transformation
-; 0900..0BFF - ProDOS file buffer
+; 0100..01BF - HGR base address table (lo)
+; 0300..03BF - HGR base address table (hi)
+; 03C0..03EC - used by nth() when reading puzzles from disk
+; 0400..07FF - text page (kept black for switching)
+;
+; 1A00..1AFF - board buffer for main menu
+; 1B00..1BFF - used by nth() when decompressing puzzles read from disk
+; 1C00..1FFF - ProDOS file buffer
+; 2000..3FFF - hi-res page
+; 4000+      - program code (relocated to here at startup)
 ;------------------------------------------------------------------------------
 
 ; soft switches
@@ -45,34 +53,29 @@ ROM_IN0 =      $FE89      ; SETKBD
 ROM_PR0 =      $FE93      ; SETVID
 HTAB         = $24        ; byte
 VTAB         = $25        ; byte
+RNDSEED      = $4E        ; word
 
 ; application-specific addresses
-HGRLO        = $0100      ; 0xC0 bytes
-HGRHI        = $0300      ; 0xC0 bytes
-read_buffer  = $03C0      ; 0x002D bytes
-unpack_base  = $0800      ; 0x0100 bytes, page-aligned
-file_buffer  = $0900      ; 0x0400 bytes
-
-; application-specific constants
-logical_board_size        = $DF      ; byte
-row_empty_counts          = $E0      ; 0x10 bytes
-
-; font drawing
-hgr_base_ptr              = $F0      ; word
-char_index                = $F2      ; byte
-char_row                  = $F3      ; byte
-
-; solver
-board_base_ptr            = $F4      ; word
-colorcount1               = $F6      ; byte
-row1                      = $F6      ; byte
-colorcount2               = $F7      ; byte
-row2                      = $F7      ; byte
-tile_column               = $F8      ; byte
-board_base_ptr2           = $F9      ; word
-
-unpack_ptr                = $F9      ; word
-string_len                = $FB      ; byte
-string_ptr                = $FC      ; word
-tmpx                      = $FE      ; byte
-tmpy                      = $FF      ; byte
+logical_board_size        = $DF      ; byte (used by FindValidMove)
+row_empty_counts          = $E0      ; 0x10 bytes (used by FindValidMove)
+hgr_base_ptr              = $F0      ; word (used by DrawLargeCharacter)
+char_index                = $F2      ; byte (used by DrawLargeCharacter)
+char_row                  = $F3      ; byte (used by DrawLargeCharacter)
+board_base_ptr            = $F4      ; word (used by FindValidMove)
+colorcount1               = $F6      ; byte (used by FindValidMove)
+row1                      = $F6      ; byte (used by FindValidMove)
+colorcount2               = $F7      ; byte (used by FindValidMove)
+row2                      = $F7      ; byte (used by FindValidMove)
+tile_column               = $F8      ; byte (used by FindValidMove)
+board_base_ptr2           = $F9      ; word (used by FindValidMove)
+unpack_ptr                = $F9      ; word (used by nth)
+string_len                = $FB      ; byte (used by DrawLargeString)
+string_ptr                = $FC      ; word (used by DrawLargeString)
+tmpx                      = $FE      ; byte (used by DrawLargeCharacter)
+tmpy                      = $FF      ; byte (used by DrawLargeCharacter)
+HGRLO                     = $0100    ; 0xC0 bytes (used by DrawLargeCharacter)
+HGRHI                     = $0300    ; 0xC0 bytes (used by DrawLargeCharacter)
+read_buffer               = $03C0    ; 0x2D bytes (used by nth)
+kTitleBoard               = $1A00    ; 0x0100 bytes, page-aligned (used by DrawMainMenuBackground)
+unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth)
+file_buffer               = $1C00    ; 0x0400 bytes (used by nth)
