@@ -27,6 +27,8 @@ nth
          sty   tmpy
          ora   tmpy
          cmp   #1
+         ldy   #0
+         sty   .offset + 2
          ldx   logical_board_size
          lda   .packed_length - 6, x
          sta   .readsize
@@ -37,6 +39,8 @@ nth
          adc   .readsize
          bcc   +
          iny
+         bne   +
+         inc   .offset + 2
 +        tax
          lda   tmpx
          bne   +
