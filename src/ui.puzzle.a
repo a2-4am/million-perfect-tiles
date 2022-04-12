@@ -5,19 +5,23 @@
 ;
 
 DrawEntireBoard
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+; out:   all flags and registers clobbered
          jsr   Home
-         lda   #$FF                  ; /!\ assumes gCurrentBoard is page-aligned
+         lda   #$FF
          sta   @a+1
+         lda   board_base_ptr+1
+         sta   @a+2
          ldx   #$0F
 -        ldy   #$0F
-@a       lda   gCurrentBoard
+@a       lda   $FDFD                 ; SMC
          and   #$7F
          cmp   #$01
          beq   @draw
          cmp   #$02
          bne   @nodraw
 @draw    jsr   DrawLargeCharacter
-@nodraw  dec   @a+1                  ; /!\ assumes gCurrentBoard is page-aligned
+@nodraw  dec   @a+1
          dey
          bpl   @a
          dex

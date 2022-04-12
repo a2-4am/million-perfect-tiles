@@ -45,17 +45,26 @@ HTAB         = $24        ; byte
 VTAB         = $25        ; byte
 
 ; application-specific addresses
-HGRLO        = $0100      ; 0x00C0 bytes
-HGRHI        = $0300      ; 0x00C0 bytes
+HGRLO        = $0100      ; 0xC0 bytes
+HGRHI        = $0300      ; 0xC0 bytes
 
-logical_board_size        = $00      ; byte
-char                      = $EE      ; byte
-charrow                   = $EF      ; byte
+; application-specific constants
+logical_board_size        = $DF      ; byte
+row_empty_counts          = $E0      ; 0x10 bytes
+
+; font drawing
 hgr_base_ptr              = $F0      ; word
-board_base_ptr            = $F2      ; word
-colorcount1               = $F4      ; byte
-colorcount2               = $F5      ; byte
-tile_column               = $F6      ; byte
+char_index                = $F2      ; byte
+char_row                  = $F3      ; byte
+
+; solver
+board_base_ptr            = $F4      ; word
+colorcount1               = $F6      ; byte
+row1                      = $F6      ; byte
+colorcount2               = $F7      ; byte
+row2                      = $F7      ; byte
+tile_column               = $F8      ; byte
+board_base_ptr2           = $F9      ; word
 
 string_len                = $FB      ; byte
 string_ptr                = $FC      ; word

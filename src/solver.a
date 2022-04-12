@@ -5,18 +5,16 @@
 ;
 
 FindValidMove
-; in:    none
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
 ; out:   C=0 if found valid move, then
 ;          A=tile value (1 or 2)
 ;          X=tile row (0..15)
 ;          Y=tile column (0..15)
 ;        C=1 if no valid move was found
-         lda   #<(gCurrentBoard+$F0)
-         sta   board_base_ptr
-         lda   #>(gCurrentBoard+$F0)
-         sta   board_base_ptr+1
          ldx   #$0F                  ; tile row
 .CheckRow
+         jsr   CalculateRowBase
+         sta   board_base_ptr
          ldy   #$0D
          sty   tile_column
 .CheckTile
@@ -75,7 +73,7 @@ FindValidMove
 -        iny
          iny
          clc
-         rts
+.exit    rts
 .notx10
          cmp   #$02
          bne   .nomatch
@@ -88,16 +86,92 @@ FindValidMove
          dec   tile_column
          bpl   .CheckTile
          jsr   IsRowFullOfOneColorButNotTheOther
-         bcc   @exit
-         lda   board_base_ptr
-         ;C=1 here
-         sbc   #$10
-         sta   board_base_ptr        ; /!\ assumes gCurrentBoard is page-aligned (never changes high byte)
+         bcc   .exit
          dex
          bpl   .CheckRow
-         ;TODO check for duplicate rows
+;IsAnyRowAlmostADuplicateOfAnotherRow
+         ldx   #$0E
+         stx   row1
+         inx
+         ; count number of empty tiles in each row
+         ldy   #$00
+-        sty   row_empty_counts, x
+         dex
+         bpl   -
+         inx
+         ;X=0
+         stx   board_base_ptr
+         ;Y=0
+--       lda   #$10
+         sta   tile_column
+-        lda   (board_base_ptr), y
+         bne   +
+         inc   row_empty_counts, x
++        iny
+         dec   tile_column
+         bne   -
+         inx
+         tya
+         bne   --
+         lda   board_base_ptr+1
+         sta   board_base_ptr2+1
+@row1loop
+         ldx   row1
+         lda   row_empty_counts, x
+         bne   @nextrow1
+         ; found a full row
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         lda   #$0F
+         sta   row2
+@row2loop
+         ldx   row2
+         lda   row_empty_counts, x
+         cmp   #$02
+         bne   @nextrow2
+         ; found a row with 2 empty tiles
+         jsr   CalculateRowBase
+         sta   board_base_ptr2
+         ldy   #$0F
+@comparerowsloop
+         lda   (board_base_ptr2), y
+         beq   +
+         and   #$7F
+         sta   tmpx
+         lda   (board_base_ptr), y
+         and   #$7F
+         cmp   tmpx
+         bne   @nextrow2
++        dey
+         bpl   @comparerowsloop
+         ; row with 2 empty tiles is identical to the full row (except for the 2 empty tiles)
+         ; so we can fill one of the empty tiles with the opposite of that column in the full row
+         ; since no two rows can be completely identical
+         ldy   #$0F
+@findemptyloop
+         lda   (board_base_ptr2), y
+         bne   +
+         lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #$01
+         beq   @makeit2
+         lda   #$01
+         +HIDE_NEXT_2_BYTES
+@makeit2 lda   #$02
+         clc
+         rts
++        dey
+         bpl   @findemptyloop
+@nextrow2
+         dec   row2
+         lda   row1
+         cmp   row2
+         bcc   @row2loop
+@nextrow1
+         dec   row1
+         bpl   @row1loop
          sec
-@exit    rts
+         rts
 
 IsRowFullOfOneColorButNotTheOther
          lda   #$00
@@ -169,6 +243,7 @@ cmp_2    lda   (board_base_ptr), y
          rts
 
 TransposeBoard
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
 ; out:   all flags & registers preserved
          php
          pha
@@ -177,14 +252,20 @@ TransposeBoard
          tya
          pha
 
+         lda   board_base_ptr+1
+         sta   @a+2
+         sta   @b+2
+         sta   @c+2
+         sta   @d+2
+
          ldy   #$00
          ldx   #$00
--        lda   gCurrentBoard, y
+@a       lda   $FD00, y              ; SMC
          pha
-         lda   gCurrentBoard, x
-         sta   gCurrentBoard, y
+@b       lda   $FD00, x              ; SMC
+@c       sta   $FD00, y              ; SMC
          pla
-         sta   gCurrentBoard, x
+@d       sta   $FD00, x              ; SMC
          txa
          clc
          adc   #$10
@@ -201,7 +282,7 @@ TransposeBoard
          tay
          dey
 +        iny
-         bne   -
+         bne   @a
 ++
          pla
          tay
@@ -209,4 +290,14 @@ TransposeBoard
          tax
          pla
          plp
+         rts
+
+CalculateRowBase
+; in:    X = row (0..15)
+; out:   A = low byte of address of board buffer for this row
+         txa
+         asl
+         asl
+         asl
+         asl
          rts

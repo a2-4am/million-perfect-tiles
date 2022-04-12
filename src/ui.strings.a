@@ -76,6 +76,62 @@ sMM14
 
 sMM15=sMM7
 
+sSelectSize
+         !byte 11
+         !raw  "SELECT"
+         !byte 0
+         !raw  "SIZE"
+
+sSelectSize06
+         !byte 7
+         !byte 0
+         !raw  "6"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "6"
+
+sSelectSize08
+         !byte 7
+         !byte 0
+         !raw  "8"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "8"
+
+sSelectSize10
+         !byte 7
+         !raw  "10"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "10"
+
+sSelectSize12
+         !byte 7
+         !raw  "12"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "12"
+
+sSelectSize14
+         !byte 7
+         !raw  "14"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "14"
+
+sSelectSize16
+         !byte 7
+         !raw  "16"
+         !byte 0
+         !raw  "X"
+         !byte 0
+         !raw  "16"
+
 !if 0 {
 sBadThree1
          !byte 15

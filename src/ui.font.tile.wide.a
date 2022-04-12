@@ -8,17 +8,17 @@
 ;
 
 !macro COMPUTE_DRAW_ADDRESSES {
-         ldx   charrow
+         ldx   char_row
          lda   HGRLO, x
          sta   hgr_base_ptr
          lda   HGRHI, x
          sta   hgr_base_ptr+1        ; -> base address of top row to draw (used for upper-left block of each character)
-         ldx   char                  ; X = 0-based index into LeftFontRow0 array for the character we're drawing
+         ldx   char_index            ; X = 0-based index into LeftFontRow0 array for the character we're drawing
          ldy   HTAB
 }
 
 !macro INC_AND_RECOMPUTE_DRAW_ADDRESSES {
-         inc   charrow
+         inc   char_row
          +COMPUTE_DRAW_ADDRESSES
 }
 
@@ -30,22 +30,23 @@
 ;        A clobbered
 ;        X preserved
 ;------------------------------------------------------------------------------
-LogicalColumnToPhysicalColumn
+!macro LogicalColumnToPhysicalColumn {
          iny
          iny
          tya
          asl
          tay
-         rts
+}
 
 ;------------------------------------------------------------------------------
 ; DrawLargeCharacter
 ;
-; in:    A contains character (0x41..0x5A) or 0x00
-;        X contains logical line number (0x00..0x11)
-;        Y contains logical column number (0x00..0x13)
-;        HGR row is (11 * X)
-;        character will be drawn on HGR row, byte offset 2 * Y
+; in:    A contains 0x41..0x5A (for letters) or 0x00..0x02 (for tiles)
+;          high bit is stripped internally, so A=0x81 on entry is same as A=0x01
+;        X contains logical line number (0x00..0x0F)
+;        Y contains logical column number (0x00..0x0F)
+;        top HGR row = 8 + (11 * X)
+;        character will be drawn at byte offset = 2 + (2 * Y)
 ; out:   preserves all registers & flags
 ;------------------------------------------------------------------------------
 DrawLargeCharacter
@@ -54,20 +55,19 @@ DrawLargeCharacter
          and   #$7F
          cmp   #$03
          bcc   +
-         sec
          sbc   #$3E
-+        sta   char
++        sta   char_index
          stx   tmpx
          sty   tmpy
-         jsr   LogicalColumnToPhysicalColumn
+         +LogicalColumnToPhysicalColumn
          sty   HTAB
-         lda   #11
+         lda   #8
          clc
          bcc   +
 -        adc   #11
 +        dex
          bpl   -
-         sta   charrow
+         sta   char_row
 
          +COMPUTE_DRAW_ADDRESSES
          lda   LeftFontRow0, x       ; draw row 0, byte 0

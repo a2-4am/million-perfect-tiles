@@ -27,7 +27,6 @@ asm:
 	cp res/work.po "$(BUILDDISK)".po >>build/log
 	cp res/_FileInformation.txt build/ >>build/log
 	$(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "build/TILES.SYSTEM" >>build/log
-	for f in res/levels/*; do $(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "$$f" >>build/log; done
 	bin/po2do.py build/ build/
 	rm "$(BUILDDISK)".po
 
