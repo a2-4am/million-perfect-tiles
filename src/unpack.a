@@ -2,21 +2,179 @@
 ;(c) 2022 by qkumba
 ;
 
+!cpu 6502
+!to "unpack#061000",plain
+*=$1000
+!source "constants.a"
+
 ; Public functions:
-; - Unpack
+; - nth
 ;
 ;------------------------------------------------------------------------------
-; Unpack
-; unpack compressed board into tile format
+; nth
 ;
-; in:    tmpx/tmpy (lo/hi) set to output board size
-;        string_ptr set to compressed buffer
-;        board_base_ptr set to uncompressed buffer (page-aligned)
-; out:   all registers and flags clobbered
+; finds and returns nth board
+;
+; in:    X = target page to write board
+;        A/Y (lo/hi) set to value of n
+; out:   page X filled with centered board and appropriate padding
+;        all registers and flags clobbered
 ;------------------------------------------------------------------------------
 
-Unpack
+nth
+         stx   .target_page + 1
+         sta   tmpx
+         sty   tmpy
+         ora   tmpy
+         cmp   #1
+         ldx   logical_board_size
+         lda   .packed_length - 6, x
+         sta   .readsize
+         lda   .board_base - 6, x
+         ldy   .board_base - 5, x
+         bcc   .found
+-        clc
+         adc   .readsize
+         bcc   +
+         iny
++        tax
+         lda   tmpx
+         bne   +
+         dec   tmpy
++        dec   tmpx
+         lda   tmpx
+         ora   tmpy
+         cmp   #1
+         txa
+         bcs   -
+
+.found
+         sta   .offset
+         sty   .offset + 1
+         jsr   $bf00
+         !byte $c8
+         !word .c8_parms
+         jsr   $bf00
+         !byte $ce
+         !word .ce_parms
+         jsr   $bf00
+         !byte $ca
+         !word .ca_parms
+         jsr   $bf00
+         !byte $cc
+         !word .cc_parms
+         jsr   .unpack
+         sty   unpack_ptr
+
+.target_page
+         lda   #0                    ; SMC
+         sta   unpack_ptr + 1
+         lda   logical_board_size
+         sta   tmpy
+         jsr   .padvert        
+--       jsr   .padhorz
+         lda   logical_board_size
+         sta   tmpx
+-        lda   unpack_base, y
+         sta   (unpack_ptr, x)
+         iny
+         inc   unpack_ptr
+         dec   tmpx
+         bne   -
+         jsr   .padhorz
+         dec   tmpy
+         bne   --
+
+.padvert
+         sec
+         lda   #16
+         sbc   logical_board_size
+         beq   +
+         lsr
+         sta   tmpx
+-        ldx   #16
+         jsr   .fillline
+         dec   tmpx
+         bne   -
++        rts
+
+.padhorz
+         sec
+         lda   #16
+         sbc   logical_board_size
+         lsr
+         tax
+         beq   +
+         tya
+         pha
+         jsr   .fillline
+         pla
+         tay
++        rts
+
+.fillline
          ldy   #0
+         lda   #$FF
+-        sta   (unpack_ptr), y
+         inc   unpack_ptr
+         dex
+         bne   -
+         rts
+
+.packed_length
+         !word 8, 13, 20, 26, 34, 45
+
+.board_base
+         !word 0, 5600, 9100, 14000, 18200, 23800
+
+.c8_parms
+         !byte	3
+         !word .filename
+         !word file_buffer
+         !byte 0
+
+.ca_parms
+         !byte 4
+         !byte 1
+         !word read_buffer
+.readsize
+         !word $0000
+         !word $ffff
+
+.ce_parms
+         !byte 2
+         !byte 1
+.offset
+         !byte 0, 0, 0
+
+.cc_parms
+         !byte 1
+         !byte 0
+
+.filename
+         !byte .filename_e - .filename_b
+.filename_b
+         !text  "PUZZLES.BIN"
+.filename_e
+
+;------------------------------------------------------------------------------
+; .unpack
+; unpack compressed board into tile format
+;
+; in:    compressed board in read_buffer
+; out:   board unpacked to unpack_base
+;        all registers and flags clobbered
+;------------------------------------------------------------------------------
+
+.unpack
+         ldy   #0
+         sty   unpack_ptr
+         lda   #>unpack_base
+         sta   unpack_ptr + 1
+         lda   #<read_buffer
+         sta   string_ptr
+         lda   #>read_buffer
+         sta   string_ptr + 1
          lda   #$80
 
 .checkmode
@@ -26,12 +184,8 @@ Unpack
                                      ; 0=copy next encoded value
 
 .checkend
-         cpy   tmpy
-         bne   .notdone
-         cpy   tmpx
-         beq   .done
-
-.notdone
+         bit   .readsize
+         bmi   .done
          jsr   .fetchbit
          bcc   .zero                 ; 0=00
          ldx   #$41                  ; encoded value starts with 1
@@ -68,6 +222,7 @@ Unpack
          bne   .done
          lda   (string_ptr), y
          rol
+         dec   .readsize
          inc   string_ptr
          bne   .done
          inc   string_ptr + 1
@@ -76,12 +231,6 @@ Unpack
          rts
 
 .write
-         sta   (board_base_ptr), y
-         inc   board_base_ptr
-         cpy   tmpx
-         bne   .skipleft
-         dec   tmpy
-
-.skipleft
-         dec   tmpx
+         sta   (unpack_ptr), y
+         inc   unpack_ptr
          rts

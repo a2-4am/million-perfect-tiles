@@ -6,6 +6,8 @@
 ; YE OLDE GRAND UNIFIED MEMORY MAP
 ;
 ; MAIN MEMORY
+; 0800..08FF - unpacking buffer before final transformation
+; 0900..0BFF - ProDOS file buffer
 ;------------------------------------------------------------------------------
 
 ; soft switches
@@ -47,6 +49,9 @@ VTAB         = $25        ; byte
 ; application-specific addresses
 HGRLO        = $0100      ; 0xC0 bytes
 HGRHI        = $0300      ; 0xC0 bytes
+read_buffer  = $03C0      ; 0x002D bytes
+unpack_base  = $0800      ; 0x0100 bytes, page-aligned
+file_buffer  = $0900      ; 0x0400 bytes
 
 ; application-specific constants
 logical_board_size        = $DF      ; byte
@@ -66,6 +71,7 @@ row2                      = $F7      ; byte
 tile_column               = $F8      ; byte
 board_base_ptr2           = $F9      ; word
 
+unpack_ptr                = $F9      ; word
 string_len                = $FB      ; byte
 string_ptr                = $FC      ; word
 tmpx                      = $FE      ; byte
