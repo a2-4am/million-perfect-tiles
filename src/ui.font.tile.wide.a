@@ -69,8 +69,8 @@ DrawLargeString
 ;------------------------------------------------------------------------------
 ; DrawLargeCharacter
 ;
-; in:    A contains 0x41..0x5A (for letters) or 0x00..0x02 (for tiles)
-;          high bit is stripped internally, so A=0x81 on entry is same as A=0x01
+; in:    A contains 0x41..0x5A (for letters) or 0x00, 0x02, or 0x03 (for tiles)
+;          high bit is stripped internally, so A=0x82 on entry is same as A=0x02
 ;        X contains logical line number (0x00..0x0F)
 ;        Y contains logical column number (0x00..0x0F)
 ;        top HGR row = 8 + (11 * X)
@@ -81,10 +81,14 @@ DrawLargeCharacter
          php
          pha
          and   #$7F
-         cmp   #$03
-         bcc   +
-         sbc   #$3E
-+        sta   char_index
+         beq   ++
+         cmp   #$04
+         bcs   +
+         sec
+         sbc   #$01
+         +HIDE_NEXT_2_BYTES
++        sbc   #$3E
+++       sta   char_index
          stx   tmpx
          sty   tmpy
          +LogicalColumnToPhysicalColumn

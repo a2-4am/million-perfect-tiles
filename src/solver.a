@@ -21,66 +21,66 @@ FindValidMove
          ldy   tile_column
          jsr   cmp_0
          bne   .not0xx
-         jsr   iny_and_cmp_1
-         bne   .not01x
-         jsr   iny_and_cmp_1
+         jsr   iny_and_cmp_2
+         bne   .not02x
+         jsr   iny_and_cmp_2
          bne   .nomatch
-         ;found 011, valid move to change 0 -> 2
-         lda   #$02
+         ;found 022, valid move to change 0 -> 3
+         lda   #$03
 -        ldy   tile_column
          clc
          rts
-.not01x
-         cmp   #$02
+.not02x
+         cmp   #$03
          bne   .nomatch
-         jsr   iny_and_cmp_2
+         jsr   iny_and_cmp_3
          bne   .nomatch
-         ;found 022, valid move to change 0 -> 1
-         lda   #$01
+         ;found 033, valid move to change 0 -> 2
+         lda   #$02
          bne   -                     ; always branches
 .not0xx
          jsr   iny_and_cmp_0
          bne   .notx0x
          dey
-         jsr   cmp_1
-         bne   .not10x
-         iny
-         jsr   iny_and_cmp_1
-         bne   .nomatch
-         ;found 101, valid move to change 0 -> 2
-         lda   #$02
--        dey
-         clc
-         rts
-.not10x
-         cmp   #$02
-         bne   .nomatch
+         jsr   cmp_2
+         bne   .not20x
          iny
          jsr   iny_and_cmp_2
          bne   .nomatch
-         ;found 202, valid move to change 0 -> 1
-         lda   #$01
+         ;found 202, valid move to change 0 -> 3
+         lda   #$03
+-        dey
+         clc
+         rts
+.not20x
+         cmp   #$03
+         bne   .nomatch
+         iny
+         jsr   iny_and_cmp_3
+         bne   .nomatch
+         ;found 303, valid move to change 0 -> 2
+         lda   #$02
          bne   -                     ; always branches
 .notx0x
          jsr   iny_and_cmp_0
          bne   .nomatch
-         jsr   dey_and_cmp_1
-         bne   .notx10
-         jsr   dey_and_cmp_1
+         jsr   dey_and_cmp_2
+         bne   .notx20
+         jsr   dey_and_cmp_2
          bne   .nomatch
-         ;found 110, valid move to change 0 -> 2
-         lda   #$02
+         ;found 220, valid move to change 0 -> 3
+         lda   #$03
 -        iny
          iny
          clc
 .exit    rts
-.notx10
-         cmp   #$02
+.notx20
+         cmp   #$03
          bne   .nomatch
-         jsr   dey_and_cmp_2
+         jsr   dey_and_cmp_3
          bne   .nomatch
-         ;found 220, valid move to change 0 -> 1
-         lda   #$01
+         ;found 330, valid move to change 0 -> 2
+         lda   #$02
          bne   -                     ; always branches
 .nomatch
          dec   tile_column
@@ -153,11 +153,11 @@ FindValidMove
          bne   +
          lda   (board_base_ptr), y
          and   #$7F
-         cmp   #$01
-         beq   @makeit2
-         lda   #$01
+         cmp   #$02
+         beq   @makeit3
+         lda   #$02
          +HIDE_NEXT_2_BYTES
-@makeit2 lda   #$02
+@makeit3 lda   #$03
          clc
          rts
 +        dey
@@ -175,38 +175,38 @@ FindValidMove
 
 IsRowFullOfOneColorButNotTheOther
          lda   #$00
-         sta   colorcount1
          sta   colorcount2
+         sta   colorcount3
          ldy   #$0F
 -        jsr   cmp_0
-         cmp   #$01
-         beq   .inc1
          cmp   #$02
          beq   .inc2
-         +HIDE_NEXT_2_BYTES
-.inc1    inc   colorcount1
+         cmp   #$03
+         beq   .inc3
          +HIDE_NEXT_2_BYTES
 .inc2    inc   colorcount2
+         +HIDE_NEXT_2_BYTES
+.inc3    inc   colorcount3
          dey
          bpl   -
-         lda   colorcount1
-         cmp   colorcount2
+         lda   colorcount2
+         cmp   colorcount3
          beq   .no                   ; if color counts are the same, we're done (and the answer is no)
          asl
          cmp   logical_board_size
-         beq   .fullOf1
-         lda   colorcount2
+         beq   .fullOf2
+         lda   colorcount3
          asl
          cmp   logical_board_size
-         beq   .fullOf2
+         beq   .fullOf3
 .no
          sec
          rts
-.fullOf1
-         lda   #$02
-         +HIDE_NEXT_2_BYTES
 .fullOf2
-         lda   #$01
+         lda   #$03
+         +HIDE_NEXT_2_BYTES
+.fullOf3
+         lda   #$02
          pha
          ldy   #$0F
 -        lda   (board_base_ptr), y
@@ -223,15 +223,6 @@ iny_and_cmp_0
 cmp_0    lda   (board_base_ptr), y
          and   #$7F
          rts
-dey_and_cmp_1
-         dey
-         +HIDE_NEXT_BYTE
-iny_and_cmp_1
-         iny
-cmp_1    lda   (board_base_ptr), y
-         and   #$7F
-         cmp   #$01
-         rts
 dey_and_cmp_2
          dey
          +HIDE_NEXT_BYTE
@@ -240,6 +231,15 @@ iny_and_cmp_2
 cmp_2    lda   (board_base_ptr), y
          and   #$7F
          cmp   #$02
+         rts
+dey_and_cmp_3
+         dey
+         +HIDE_NEXT_BYTE
+iny_and_cmp_3
+         iny
+cmp_3    lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #$03
          rts
 
 TransposeBoard

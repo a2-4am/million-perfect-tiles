@@ -16,9 +16,9 @@ DrawEntireBoard
 -        ldy   #$0F
 @a       lda   $FDFD                 ; SMC
          and   #$7F
-         cmp   #$01
-         beq   @draw
          cmp   #$02
+         beq   @draw
+         cmp   #$03
          bne   @nodraw
 @draw    jsr   DrawLargeCharacter
 @nodraw  dec   @a+1

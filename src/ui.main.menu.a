@@ -48,11 +48,12 @@ MainMenuEventLoop
          jmp   $ff59
 
 DrawMainMenuBackground
-         jsr   OneTimeLoadRandomBoardForTitle   ; SMC opcode
          lda   #$10
          sta   logical_board_size
          lda   #>kTitleBoard
          sta   board_base_ptr+1
+OneTimeLoad
+         jsr   LoadRandomBoardForTitle ; SMC opcode
          jsr   DrawEntireBoard
 @loop    jsr   FindValidMove
          bcc   @draw
@@ -73,13 +74,15 @@ DrawMainMenuBackground
          bne   @loop                 ; always branches
 @exit    rts
 
-OneTimeLoadRandomBoardForTitle
-         +LD16 RNDSEED
+LoadRandomBoardForTitle
+         lda   RNDSEED+1
+         and   #1
+         tay
+         lda   RNDSEED
          ldx   #>kTitleBoard
          jsr   nth
          lda   #$2C       ; BIT opcode
-         sta   DrawMainMenuBackground
-         bit   $ff58
+         sta   OneTimeLoad
          rts
 
 DrawMainMenuText
