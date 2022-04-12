@@ -2,11 +2,6 @@
 ;(c) 2022 by qkumba
 ;
 
-!cpu 6502
-!to "unpack#061000",plain
-*=$1000
-!source "constants.a"
-
 ; Public functions:
 ; - nth
 ;
@@ -26,10 +21,13 @@ nth
          sta   tmpx
          sty   tmpy
          ora   tmpy
-         cmp   #1
          ldy   #0
-         sty   .offset + 2
          ldx   logical_board_size
+         cpx   #16
+         bne   +
+         iny
++        sty   .offset + 2
+         cmp   #1
          lda   .packed_length - 6, x
          sta   .readsize
          lda   .board_base - 6, x
@@ -129,7 +127,7 @@ nth
          !word 8, 13, 20, 26, 34, 45
 
 .board_base
-         !word 0, 5600, 9100, 14000, 18200, 23800
+         !word 0, 5600, 14700, 28700, 46900, 70700 and 65535
 
 .c8_parms
          !byte	3
@@ -187,9 +185,7 @@ nth
          bcs   .store                ; 1=store n zeroes
                                      ; 0=copy next encoded value
 
-.checkend
-         bit   .readsize
-         bmi   .done
+.copy
          jsr   .fetchbit
          bcc   .zero                 ; 0=00
          ldx   #$41                  ; encoded value starts with 1
@@ -219,14 +215,13 @@ nth
          dex
          bne   .loop
          pla
-         bne   .checkend             ; always
+         bne   .copy                 ; always
 
 .fetchbit
          asl
          bne   .done
          lda   (string_ptr), y
          rol
-         dec   .readsize
          inc   string_ptr
          bne   .done
          inc   string_ptr + 1
@@ -237,4 +232,8 @@ nth
 .write
          sta   (unpack_ptr), y
          inc   unpack_ptr
-         rts
+         bne   +
+         pla
+         pla
+         pla
++        rts
