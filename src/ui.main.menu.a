@@ -1,8 +1,50 @@
 ;license:MIT
 ;(c) 2022 by 4am
 ;
-; main menu display and event loop
+; main menu screen display and event loop
 ;
+
+; Codes returned by event handlers
+kStayOnMainMenu = 0
+kQuit = 1
+
+kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandlersLo/Hi arrays
+                                     ; except for last byte ($00) which doesn't need an associated handler
+         !byte $8D                   ; Return
+         !byte $D0                   ; P
+         !byte $F0                   ; p
+         !byte $C4                   ; D
+         !byte $E4                   ; D
+         !byte $C6                   ; F
+         !byte $E6                   ; f
+         !byte $D1                   ; Q
+         !byte $F1                   ; q
+         !byte $9B                   ; Esc
+         !byte $00
+
+kMainMenuKeyHandlersLo
+         !byte <MainMenuEventReturn
+         !byte <MainMenuEventP
+         !byte <MainMenuEventP
+         !byte <MainMenuEventD
+         !byte <MainMenuEventD
+         !byte <MainMenuEventF
+         !byte <MainMenuEventF
+         !byte <MainMenuEventQ
+         !byte <MainMenuEventQ
+         !byte <MainMenuEventQ
+
+kMainMenuKeyHandlersHi
+         !byte >MainMenuEventReturn
+         !byte >MainMenuEventP
+         !byte >MainMenuEventP
+         !byte >MainMenuEventD
+         !byte >MainMenuEventD
+         !byte >MainMenuEventF
+         !byte >MainMenuEventF
+         !byte >MainMenuEventQ
+         !byte >MainMenuEventQ
+         !byte >MainMenuEventQ
 
 ; len(kMainMenuVTABs) == len(kMainMenuHTABs) == len(kMainMenuStringsLo) == len(kMainMenuStringsHi)
 ; or you will regret this
@@ -44,8 +86,16 @@ kMainMenuStringsHi
 MainMenuEventLoop
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
+         bit   GFXMODE
          +DEBUGWAIT
+         jsr   SelectSizeEventLoop
          jmp   $ff59
+
+MainMenuEventReturn
+MainMenuEventP
+MainMenuEventD
+MainMenuEventF
+MainMenuEventQ
 
 DrawMainMenuBackground
          lda   #$10
@@ -54,6 +104,8 @@ DrawMainMenuBackground
          sta   board_base_ptr+1
 OneTimeLoad
          jsr   LoadRandomBoardForTitle ; SMC opcode
+AutoSolve
+         bit   TEXTMODE
          jsr   DrawEntireBoard
 @loop    jsr   FindValidMove
          bcc   @draw
@@ -65,14 +117,17 @@ OneTimeLoad
          sty   tmpy
          ldx   tmpy
          ldy   tmpx
-@draw    jsr   DrawLargeCharacter
+@draw
+         bit   GFXMODE
+         jsr   DrawLargeCharacter
          pha
          jsr   CalculateRowBase
          sta   board_base_ptr
          pla
          sta   (board_base_ptr), y
          bne   @loop                 ; always branches
-@exit    rts
+@exit
+         rts
 
 LoadRandomBoardForTitle
          lda   RNDSEED+1

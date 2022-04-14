@@ -1,0 +1,108 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; 'select size' screen display and event loop
+;
+
+; Codes returned by event handlers
+kStayOnSelectSize = 0
+kReturnToMainMenu = 1
+
+kSelectSizeKeys                      ; must keep in sync with kSelectSizeKeyHandlersLo/Hi arrays
+                                     ; except for last byte ($00) which doesn't need an associated handler
+         !byte $8D                   ; Return
+         !byte $8B                   ; up arrow
+         !byte $88                   ; left arrow
+         !byte $8A                   ; down arrow
+         !byte $95                   ; right arrow
+         !byte $9B                   ; Esc
+         !byte $00
+
+kSelectSizeKeyHandlersLo
+         !byte <SelectSizeEventReturn
+         !byte <SelectSizeEventUp
+         !byte <SelectSizeEventUp
+         !byte <SelectSizeEventDown
+         !byte <SelectSizeEventDown
+         !byte <SelectSizeEventEsc
+
+kSelectSizeKeyHandlersHi
+         !byte >SelectSizeEventReturn
+         !byte >SelectSizeEventUp
+         !byte >SelectSizeEventUp
+         !byte >SelectSizeEventDown
+         !byte >SelectSizeEventDown
+         !byte >SelectSizeEventEsc
+
+; len(kSelectSizeVTABs) == len(kSelectSizeHTABs) == len(kSelectSizeStringsLo) == len(kSelectSizeStringsHi)
+; or you will regret this
+kSelectSizeVTABs
+         !byte 1,2,3,4,6,7,8,9,10,11,12,13
+kSelectSizeHTABs
+         !byte 3,3,3,7,6,6,6,6,6 ,6 ,6 ,6
+kSelectSizeStringsLo
+         !byte <sSelectSizeLine1
+         !byte <sSelectSizeLine2
+         !byte <sSelectSizeLine3
+         !byte <sSelectSizeLine4
+         ; nothing on line 5
+         !byte <sSelectSizeLine6
+         !byte <sSelectSizeLine7
+         !byte <sSelectSizeLine8
+         !byte <sSelectSizeLine9
+         !byte <sSelectSizeLine10
+         !byte <sSelectSizeLine11
+         !byte <sSelectSizeLine12
+         !byte <sSelectSizeLine13
+kSelectSizeStringsHi
+         !byte >sSelectSizeLine1
+         !byte >sSelectSizeLine2
+         !byte >sSelectSizeLine3
+         !byte >sSelectSizeLine4
+         ; nothing on line 5
+         !byte >sSelectSizeLine6
+         !byte >sSelectSizeLine7
+         !byte >sSelectSizeLine8
+         !byte >sSelectSizeLine9
+         !byte >sSelectSizeLine10
+         !byte >sSelectSizeLine11
+         !byte >sSelectSizeLine12
+         !byte >sSelectSizeLine13
+
+SelectSizeEventLoop
+         bit   TEXTMODE
+         jsr   DrawSelectSizeBackground
+         jsr   DrawSelectSizeText
+         bit   GFXMODE
+         +DEBUGWAIT
+         rts
+
+SelectSizeEventReturn
+SelectSizeEventUp
+SelectSizeEventDown
+SelectSizeEventEsc
+
+DrawSelectSizeBackground
+         lda   #$10
+         sta   logical_board_size
+         lda   #>kTitleBoard
+         sta   board_base_ptr+1
+         jmp   DrawEntireBoard
+
+DrawSelectSizeText
+         lda   #11
+         sta   row1
+-        ldy   row1
+         lda   kSelectSizeVTABs, y
+         sta   VTAB
+         lda   kSelectSizeHTABs, y
+         tax
+         lda   kSelectSizeStringsLo, y
+         pha
+         lda   kSelectSizeStringsHi, y
+         tay
+         pla
+         jsr   DrawLargeString
+         dec   row1
+         bpl   -
+         rts

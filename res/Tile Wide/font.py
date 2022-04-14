@@ -8,7 +8,8 @@ def myhex(bitstring):
 leftdata =  [ [], [], [], [], [], [], [], [] ]
 rightdata = [ [], [], [], [], [], [], [], [] ]
 with open("font.txt", "r") as f:
-    for c in ('empty tile','white tile','blue tile') + tuple('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
+    for c in ('empty tile','right-facing pointer','white tile','blue tile') + \
+        tuple('0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
         if f.readline().strip()[1:] != c:
             raise ValueError(c)
         for row in range(8):

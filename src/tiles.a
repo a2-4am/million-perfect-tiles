@@ -12,10 +12,12 @@
 FirstMover
 !pseudopc $4000 {
 Start
+         jsr   Home
          jmp   MainMenuEventLoop
 
          !source "src/ui.strings.a"
          !source "src/ui.main.menu.a"
+         !source "src/ui.select.size.a"
          !source "src/ui.puzzle.a"
          !source "src/ui.common.a"
          !source "src/ui.font.tile.wide.a"

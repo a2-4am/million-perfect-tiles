@@ -1,0 +1,27 @@
+         lda   #16
+         sta   logical_board_size
+         bit   $C010
+stresstest
+lo=*+1
+         lda   #0
+hi=*+1
+         ldy   #0
+         ldx   #>kTitleBoard
+         stx   board_base_ptr+1
+         jsr   nth
+         jsr   AutoSolve
+         ldy   #0
+         sty   board_base_ptr
+-        lda   (board_base_ptr), y
+         beq   @exit
+         iny
+         bne   -
+         inc   lo
+         bne   +
+         lda   hi
+         eor   #1
+         sta   hi
++        bit   $C000
+         bpl   stresstest
+         bit   $C010
+@exit    jmp   $ff59

@@ -69,7 +69,7 @@ DrawLargeString
 ;------------------------------------------------------------------------------
 ; DrawLargeCharacter
 ;
-; in:    A contains 0x41..0x5A (for letters) or 0x00, 0x02, or 0x03 (for tiles)
+; in:    A contains 0x30..0x5A (for characters) or 0x00..0x03 (for tiles)
 ;          high bit is stripped internally, so A=0x82 on entry is same as A=0x02
 ;        X contains logical line number (0x00..0x0F)
 ;        Y contains logical column number (0x00..0x0F)
@@ -77,28 +77,21 @@ DrawLargeString
 ;        character will be drawn at byte offset = 2 + (2 * Y)
 ; out:   preserves all registers & flags
 ;------------------------------------------------------------------------------
+row_start
+         !byte 8,19,30,41,52,63,74,85,96,107,118,129,140,151,162,173
 DrawLargeCharacter
          php
          pha
          and   #$7F
-         beq   ++
          cmp   #$04
-         bcs   +
-         sec
-         sbc   #$01
-         +HIDE_NEXT_2_BYTES
-+        sbc   #$3E
-++       sta   char_index
+         bcc   +
+         sbc   #$2C
++        sta   char_index
          stx   tmpx
          sty   tmpy
          +LogicalColumnToPhysicalColumn
          sty   HTAB
-         lda   #8
-         clc
-         bcc   +
--        adc   #11
-+        dex
-         bpl   -
+         lda   row_start, x
          sta   char_row
 
          +COMPUTE_DRAW_ADDRESSES

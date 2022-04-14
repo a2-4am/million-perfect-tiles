@@ -7,7 +7,6 @@
 DrawEntireBoard
 ; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
 ; out:   all flags and registers clobbered
-         jsr   Home
          lda   #$FF
          sta   @a+1
          lda   board_base_ptr+1
@@ -26,5 +25,4 @@ DrawEntireBoard
          bpl   @a
          dex
          bpl   -
-         bit   GFXMODE
          rts

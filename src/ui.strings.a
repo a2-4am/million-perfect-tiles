@@ -48,20 +48,20 @@ sMainMenuLine8
 
 sMainMenuLine10
          !byte 6
-         !byte 0
+         !byte 1
          !raw  "PLAY"
          !byte 0
 
 sMainMenuLine11
          !byte 6
          !byte 0
-         !raw  "HELP"
+         !raw  "DEMO"
          !byte 0
 
 sMainMenuLine12
          !byte 6
          !byte 0
-         !raw  "DEMO"
+         !raw  "FROM"
          !byte 0
 
 sMainMenuLine13
@@ -72,87 +72,90 @@ sMainMenuLine13
 
 sMainMenuLine14=sMainMenuLine8
 
-sSelectSize
-         !byte 11
+sSelectSizeLine1
+         !byte 8,0,0,0,0,0,0,0,0
+
+sSelectSizeLine2
+         !byte 10
+         !byte 0
          !raw  "SELECT"
-         !byte 0
+         !byte 0,0,0
+
+sSelectSizeLine3
+         !byte 10
+         !byte 0,0,0,0,0
          !raw  "SIZE"
+         !byte 0
 
-sSelectSize06
-         !byte 7
-         !byte 0
-         !raw  "6"
-         !byte 0
-         !raw  "X"
-         !byte 0
-         !raw  "6"
+sSelectSizeLine4
+         !byte 6,0,0,0,0,0,0
 
-sSelectSize08
-         !byte 7
-         !byte 0
-         !raw  "8"
-         !byte 0
-         !raw  "X"
-         !byte 0
-         !raw  "8"
+sSelectSizeLine6
+         !byte 4,0,0,0,0
 
-sSelectSize10
-         !byte 7
+sSelectSizeLine7
+         !byte 4
+         !byte 1
+         !raw  "06"
+         !byte 0
+
+sSelectSizeLine8
+         !byte 4
+         !byte 0
+         !raw  "08"
+         !byte 0
+
+sSelectSizeLine9
+         !byte 4
+         !byte 0
          !raw  "10"
          !byte 0
-         !raw  "X"
-         !byte 0
-         !raw  "10"
 
-sSelectSize12
-         !byte 7
+sSelectSizeLine10
+         !byte 4
+         !byte 0
          !raw  "12"
          !byte 0
-         !raw  "X"
-         !byte 0
-         !raw  "12"
 
-sSelectSize14
-         !byte 7
+sSelectSizeLine11
+         !byte 4
+         !byte 0
          !raw  "14"
          !byte 0
-         !raw  "X"
-         !byte 0
-         !raw  "14"
 
-sSelectSize16
-         !byte 7
-         !raw  "16"
-         !byte 0
-         !raw  "X"
+sSelectSizeLine12
+         !byte 4
          !byte 0
          !raw  "16"
+         !byte 0
 
-!if 0 {
-sBadThree1
-         !byte 15
-         !raw  "3 BLUE IN A ROW"
+sSelectSizeLine13=sSelectSizeLine6
 
-sBadThree2
+;XXXXXXXXXXXXXXXX
+;XXX        XXXXX
+;XXX SELECT   XXX
+;XXX     SIZE XXX
+;XXXXXXX      XXX
+;XXXXXXXXXXXXXXXX
+;XXXXXX    XXXXXX
+;XXXXXX>06 XXXXXX
+;XXXXXX 08 XXXXXX
+;XXXXXX 10 XXXXXX
+;XXXXXX 12 XXXXXX
+;XXXXXX 14 XXXXXX
+;XXXXXX 16 XXXXXX
+;XXXXXX    XXXXXX
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+sHintNeverThree
          !byte 16
-         !raw  "3 WHITE IN A ROW"
+         !raw  "NEVER 3 IN A ROW"
 
-sBadUnequalRow
-         !byte 20
-         !raw  ""
+sHintUnequalColors
+         !byte 15
+         !raw  "ALWAYS BALANCED"
 
-sHintThree1
-         !byte 17
-         !raw  "2 BLUE THEN WHITE"
-
-sHintThree2
-         !byte 17
-         !raw  "2 WHITE THEN BLUE"
-
-sBadTooManyInRow
-         !byte 40
-         !raw  "ROWS NEED AN EQUAL NUMBER OF BLUE & WHIT"
-sBadTooManyInColumn
-         !byte 40
-         !raw  "COLUMNS NEED THE SAME NUMBER OF BLUE & W"
-}
+sHintDuplicateRow
+         !byte 15
+         !raw  "NEVER IDENTICAL"
