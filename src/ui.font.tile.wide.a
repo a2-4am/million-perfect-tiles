@@ -8,6 +8,9 @@
 ; - DrawLargeCharacter
 ;
 
+HGR_start_row
+         !byte 8,19,30,41,52,63,74,85,96,107,118,129,140,151,162,173
+
 !macro COMPUTE_DRAW_ADDRESSES {
          ldx   char_row
          lda   HGRLO, x
@@ -21,22 +24,6 @@
 !macro INC_AND_RECOMPUTE_DRAW_ADDRESSES {
          inc   char_row
          +COMPUTE_DRAW_ADDRESSES
-}
-
-;------------------------------------------------------------------------------
-; LogicalColumnToPhysicalColumn
-;
-; in:    Y contains logical column number
-; out:   Y contains physical byte offset to use against an HGR base address
-;        A clobbered
-;        X preserved
-;------------------------------------------------------------------------------
-!macro LogicalColumnToPhysicalColumn {
-         iny
-         iny
-         tya
-         asl
-         tay
 }
 
 ;------------------------------------------------------------------------------
@@ -77,8 +64,6 @@ DrawLargeString
 ;        character will be drawn at byte offset = 2 + (2 * Y)
 ; out:   preserves all registers & flags
 ;------------------------------------------------------------------------------
-row_start
-         !byte 8,19,30,41,52,63,74,85,96,107,118,129,140,151,162,173
 DrawLargeCharacter
          php
          pha
@@ -91,7 +76,7 @@ DrawLargeCharacter
          sty   tmpy
          +LogicalColumnToPhysicalColumn
          sty   HTAB
-         lda   row_start, x
+         lda   HGR_start_row, x
          sta   char_row
 
          +COMPUTE_DRAW_ADDRESSES

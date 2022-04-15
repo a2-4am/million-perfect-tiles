@@ -26,3 +26,100 @@ DrawEntireBoard
          dex
          bpl   -
          rts
+
+; to draw focus rectangle around a single tile:
+; for X in (top row - 2) .., (bottom row + 2) inclusive
+;   (X, left byte - 1) OR= 0xC0
+;   (X, right byte + 1) OR= 0xC0
+; (top row - 2, left byte) = 0xAA
+; (top row - 2, right byte) = 0xD5
+; (bottom row + 2, left byte) = 0xAA
+; (bottom row + 2, right byte) = 0xD5
+;
+; to remove focus rectangle around a single tile:
+; for X in (top row - 2) ... (bottom row + 2) inclusive
+;   (X, left byte - 1) AND= 0xBF
+;   (X, right byte + 1) AND= 0xBF
+; (top row - 2, left byte) = 0x80
+; (top row - 2, right byte) = 0x80
+; (bottom row + 2, left byte) = 0x80
+; (bottom row + 2, right byte) = 0x80
+
+DrawFocusRectangle
+; in:    X contains logical line number (0x00..0x0F)
+;        Y contains logical column number (0x00..0x0F)
+         +LogicalColumnToPhysicalColumn
+         sty   HTAB
+         ldy   HGR_start_row, x
+         dey
+         dey                         ; start two rows above tile
+         sty   char_row
+         ldx   #11
+--       sec
+-        ldy   char_row
+         lda   HGRLO, y
+         sta   hgr_base_ptr
+         lda   HGRHI, y
+         sta   hgr_base_ptr+1
+         bcc   +
+         clc
+         ldy   HTAB
+         lda   #$AA                  ; draw horizontal line above and below tile
+         sta   (hgr_base_ptr), y
+         iny
+         lda   #$D5
+         sta   (hgr_base_ptr), y
++        ldy   HTAB
+         dey
+         lda   (hgr_base_ptr), y
+         ora   #$C0                  ; draw red line to the left of tile
+         sta   (hgr_base_ptr), y
+         iny
+         iny
+         lda   (hgr_base_ptr), y
+         ora   #$C0                  ; draw red line to the right of tile
+         sta   (hgr_base_ptr), y
+         inc   char_row
+         dex
+         beq   --
+         bpl   -
+         rts
+
+ClearFocusRectangle
+; in:    X contains logical line number (0x00..0x0F)
+;        Y contains logical column number (0x00..0x0F)
+         +LogicalColumnToPhysicalColumn
+         sty   HTAB
+         ldy   HGR_start_row, x
+         dey
+         dey                         ; start two rows above tile
+         sty   char_row
+         ldx   #11
+--       sec
+-        ldy   char_row
+         lda   HGRLO, y
+         sta   hgr_base_ptr
+         lda   HGRHI, y
+         sta   hgr_base_ptr+1
+         bcc   +
+         clc
+         ldy   HTAB
+         lda   #$80                  ; erase horizontal line above and below tile (these rows are always black)
+         sta   (hgr_base_ptr), y
+         iny
+         sta   (hgr_base_ptr), y
++        ldy   HTAB
+         dey
+         lda   (hgr_base_ptr), y
+         and   #$BF                  ; erase red line to the left of tile
+         sta   (hgr_base_ptr), y
+         iny
+         iny
+         lda   (hgr_base_ptr), y
+         and   #$BF                  ; erase red line to the right of tile
+         sta   (hgr_base_ptr), y
+         inc   char_row
+         dex
+         beq   --
+         bpl   -
+         rts
