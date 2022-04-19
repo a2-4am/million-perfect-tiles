@@ -44,7 +44,7 @@ if __name__ == "__main__":
             if len(output) >= max_output_size:
                 break
             if fetchbit():
-                output.append(str(fetchbit()))
+                output.append(str(int(fetchbit())))
             else:
                 output.append(".")
         print("".join(output))
