@@ -24,7 +24,7 @@ def fetchbit():
 if __name__ == "__main__":
     bits = bitarray.bitarray(endian="big")
     with open(sys.argv[1], 'rb') as f:
-        bits.frombytes(f.read())
+        bits.fromfile(f)
     board_size = int(sys.argv[2])
     if not board_size in BOARD_SIZES:
         raise ValueError
