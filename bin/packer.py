@@ -60,5 +60,5 @@ if __name__ == "__main__":
                 board_count += 1
                 if board_count == BOARDS_PER_SIZE:
                     break
-    with open(os.path.join(sys.argv[1], 'puzzles.bin'), 'wb') as f:
+    with open(sys.argv[2], 'wb') as f:
         all_bits.tofile(f)
