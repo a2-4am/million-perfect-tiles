@@ -4,13 +4,17 @@
 ; drawing routines for the puzzle board
 ;
 
-DrawEntireBoard
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+DrawBoardForTitle
+         ldx   #>kTitleBoardBuffer
+         ; /!\ execution falls through here to DrawBoard
+
+DrawBoard
+; in:    X = high byte of page-aligned board buffer
 ; out:   all flags and registers clobbered
+         stx   board_base_ptr+1
+         stx   @a+2
          lda   #$FF
          sta   @a+1
-         lda   board_base_ptr+1
-         sta   @a+2
          ldx   #$0F
 -        ldy   #$0F
 @a       lda   $FDFD                 ; SMC

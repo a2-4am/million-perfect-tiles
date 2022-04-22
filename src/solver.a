@@ -3,14 +3,26 @@
 ;
 ; puzzle solving routines
 ;
+; - FindValidMoveForTitle
+; - FindValidMove
+; - TransposeBoard
+; - CalculateRowBase
+
+FindValidMoveForTitle
+         ldx   #>kTitleBoardBuffer
+         ldy   #kTitleBoardSize
+         ; /!\ execution falls through here to FindValidMove
 
 FindValidMove
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+; in:    X = high byte of page-aligned board buffer
+;        Y = logical board size (6,8,10,12,14,16)
 ; out:   C=0 if found valid move, then
 ;          A=tile value (1 or 2)
 ;          X=tile row (0..15)
 ;          Y=tile column (0..15)
 ;        C=1 if no valid move was found
+         stx   board_base_ptr+1
+         sty   logical_board_size
          ldx   #$0F                  ; tile row
 .CheckRow
          jsr   CalculateRowBase
@@ -85,7 +97,7 @@ FindValidMove
 .nomatch
          dec   tile_column
          bpl   .CheckTile
-         jsr   IsRowFullOfOneColorButNotTheOther
+         jsr   .IsRowFullOfOneColorButNotTheOther
          bcc   .exit
          dex
          bpl   .CheckRow
@@ -173,7 +185,7 @@ FindValidMove
          sec
          rts
 
-IsRowFullOfOneColorButNotTheOther
+.IsRowFullOfOneColorButNotTheOther
          lda   #$00
          sta   colorcount2
          sta   colorcount3

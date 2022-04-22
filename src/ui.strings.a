@@ -95,7 +95,7 @@ sSelectSizeLine6
 
 sSelectSizeLine7
          !byte 4
-         !byte 1
+         !byte 0
          !raw  "06"
          !byte 0
 

@@ -1,12 +1,17 @@
 ;license:MIT
 ;(c) 2022 by 4am
 ;
-; 'select size' screen display and event loop
+; 'select size' screen
 ;
 
 ; Codes returned by event handlers
 kStayOnSelectSize = 0
 kReturnToMainMenu = 1
+
+kSelectSizeMin = 7
+kSelectSizeCount = 6
+.selectSizeSelectedIndex
+         !byte 7
 
 kSelectSizeKeys                      ; must keep in sync with kSelectSizeKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
@@ -69,25 +74,76 @@ kSelectSizeStringsHi
          !byte >sSelectSizeLine12
          !byte >sSelectSizeLine13
 
+;------------------------------------------------------------------------------
+; SelectSizeEventLoop
+; display 'select size' menu
+;
+; in:    C clear if screen is already cleared and menu page is already drawn
+;          (will happen if using arrow keys to move selection indicator)
+;        C set if full screen clear & redraw is required
+;          (will happen if user is coming from any other screen)
+; out:   Z = 0
+;------------------------------------------------------------------------------
 SelectSizeEventLoop
-         bit   TEXTMODE
+         bcc   +
          jsr   DrawSelectSizeBackground
          jsr   DrawSelectSizeText
          bit   GFXMODE
-         +DEBUGWAIT
++        bit   CLEARKBD
+@keyloop
+         lda   KBD
+         bpl   @keyloop
+         bit   CLEARKBD
+         sta   gLastKeyPressed
+         ldx   #0
+-        ldy   kSelectSizeKeys, x
+         beq   @keyloop              ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kSelectSizeKeyHandlersLo, x
+         sta   @j+1
+         lda   kSelectSizeKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   SelectSizeEventLoop
          rts
 
 SelectSizeEventReturn
+         brk
+
 SelectSizeEventUp
+         jsr   EraseSelectSizeSelectionIndicator
+         dec   .selectSizeSelectedIndex
+         ldx   .selectSizeSelectedIndex
+         cpx   #kSelectSizeMin
+         bcs   +
+         ldx   #(kSelectSizeMin+kSelectSizeCount-1)
++        jsr   SetSelectSizeSelectionIndexAndRedraw
+         jmp   StayOnSelectSizeNoRefresh
+
 SelectSizeEventDown
+         jsr   EraseSelectSizeSelectionIndicator
+         inc   .selectSizeSelectedIndex
+         ldx   .selectSizeSelectedIndex
+         cpx   #(kSelectSizeMin+kSelectSizeCount)
+         bcc   +
+         ldx   #kSelectSizeMin
++        jsr   SetSelectSizeSelectionIndexAndRedraw
+StayOnSelectSizeNoRefresh
+         ldx   #kStayOnSelectSize    ; Z=1 so caller will stay in select size event loop
+         clc
+         rts
+
 SelectSizeEventEsc
+         ldx   #kReturnToMainMenu
+         rts
 
 DrawSelectSizeBackground
-         lda   #$10
-         sta   logical_board_size
-         lda   #>kTitleBoard
-         sta   board_base_ptr+1
-         jmp   DrawEntireBoard
+         jsr   Home
+         jmp   DrawBoardForTitle
 
 DrawSelectSizeText
          lda   #11
@@ -105,4 +161,18 @@ DrawSelectSizeText
          jsr   DrawLargeString
          dec   row1
          bpl   -
-         rts
+         ldx   .selectSizeSelectedIndex
+         ; /!\ execution falls through here to DrawSelectSizeSelectionIndicator
+
+SetSelectSizeSelectionIndexAndRedraw
+; in:    X = new selection index
+         stx   .selectSizeSelectedIndex
+         ldy   kSelectSizeHTABs+8
+         lda   #$01                  ; selection indicator character
+         jmp   DrawLargeCharacter
+
+EraseSelectSizeSelectionIndicator
+         ldx   .selectSizeSelectedIndex
+         ldy   kSelectSizeHTABs+8
+         lda   #$00                  ; blank character
+         jmp   DrawLargeCharacter

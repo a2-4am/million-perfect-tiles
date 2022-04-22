@@ -121,6 +121,7 @@ MainMenuEventLoop
          bcc   +
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
+         bit   GFXMODE
 +        bit   CLEARKBD
 @keyloop
          lda   KBD
@@ -176,6 +177,7 @@ StayOnMainMenuNoRefresh
          rts
 
 MainMenuEventP
+         sec
          jsr   SelectSizeEventLoop
 StayOnMainMenuWithFullRefresh
          ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
@@ -195,23 +197,25 @@ MainMenuEventQ
          rts
 
 DrawMainMenuBackground
-         lda   #16
-         sta   logical_board_size
-         lda   #>kTitleBoard
-         sta   board_base_ptr+1
 OneTimeLoad
          jsr   LoadRandomBoardForTitle ; SMC opcode
-;AutoSolve
          jsr   Home
-         jsr   DrawEntireBoard
+         jsr   DrawBoardForTitle
+;
+; Auto-solve the randomly chosen board.
+; This board buffer persists in memory, so coming back to the main menu
+; will just show the solved board.
+;
 @loop
-         jsr   FindValidMove
+         jsr   FindValidMoveForTitle
          bcc   @draw
-         jsr   TransposeBoard
-         jsr   FindValidMove
-         jsr   TransposeBoard
-         bcs   @exit
-         stx   tmpx
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
+                                     ; preserves all flags and registers
+         jsr   FindValidMoveForTitle
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
+                                     ; preserves all flags and registers
+         bcs   @exit                 ; C is from FindValidMoveForTitle
+         stx   tmpx                  ; swap X & Y because we found a move while the board was transposed
          sty   tmpy
          ldx   tmpy
          ldy   tmpx
@@ -225,15 +229,16 @@ OneTimeLoad
          sta   (board_base_ptr), y
          bne   @loop                 ; always branches
 @exit
-         bit   GFXMODE
          rts
 
 LoadRandomBoardForTitle
+         lda   #kTitleBoardSize
+         sta   logical_board_size
          lda   RNDSEED+1
          and   #1
          tay
          lda   RNDSEED
-         ldx   #>kTitleBoard
+         ldx   #>kTitleBoardBuffer
          jsr   nth
          lda   #$2C                  ; BIT opcode
          sta   OneTimeLoad

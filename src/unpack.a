@@ -12,6 +12,7 @@
 ;
 ; in:    X = target page to write board
 ;        A/Y (lo/hi) set to value of n
+;        logical_board_size populated with one of 6,8,10,12,14,16
 ; out:   page X filled with centered board and appropriate padding
 ;        all registers and flags clobbered
 ;------------------------------------------------------------------------------
