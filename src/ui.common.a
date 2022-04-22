@@ -11,7 +11,7 @@
 ; clear graphics page 1 without flicker
 ;
 ; in:    none, but assumes text screen 1 is clear (this is done at program startup)
-; out:   hi-res page 1 cleared
+; out:   hi-res page 1 cleared but not displayed
 ;        text screen 1 displayed
 ;        X preserved
 ;        A/Y clobbered

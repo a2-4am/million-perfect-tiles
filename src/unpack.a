@@ -73,7 +73,7 @@ nth
          sta   unpack_ptr + 1
          lda   logical_board_size
          sta   tmpy
-         jsr   .padvert        
+         jsr   .padvert
 --       jsr   .padhorz
          lda   logical_board_size
          sta   tmpx
@@ -130,7 +130,7 @@ nth
          !word 0, 5600, 14700, 28700, 46900, 70700 and 65535
 
 .c8_parms
-         !byte	3
+         !byte 3
          !word .filename
          !word file_buffer
          !byte 0

@@ -18,6 +18,15 @@
          jsr   ROM_IN0
          jsr   ROM_PR0
          +BUILD_HGR_LOOKUP_TABLES HGRLO, HGRHI
+         jsr   BuildAcceleratorFunction
+         +ST16 @accelSrc
+         dex
+-
+@accelSrc=*+1
+         lda   $FDFD, x
+         sta   DisableAccelerator, x
+         dex
+         bpl   -
 
 -        inc   FM+2                  ; relocate program code to $4000
          inc   FMDEST+2
@@ -35,4 +44,5 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
+         jsr   DisableAccelerator
          jmp   Start

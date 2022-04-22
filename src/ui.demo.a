@@ -1,0 +1,9 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; self-running demo
+;
+
+RunDemo
+         ;TODO
+         rts

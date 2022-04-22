@@ -1,48 +1,71 @@
 ;license:MIT
 ;(c) 2022 by 4am
 ;
-; main menu screen display and event loop
+; main menu
+;
+; Public functions:
+; - MainMenuEventLoop
 ;
 
 ; Codes returned by event handlers
 kStayOnMainMenu = 0
 kQuit = 1
 
+kMainMenuMin = 10
+kMainMenuCount = 4
+.mainMenuSelectedIndex
+         !byte 10
+
 kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
-         !byte $8D                   ; Return
+                                     ; additionally, first 4 items correspond to the 4 visible menu items, in order
+                                     ; (this is used by the Return handler to delegate to the appropriate handler)
+
          !byte $D0                   ; P
-         !byte $F0                   ; p
          !byte $C4                   ; D
-         !byte $E4                   ; D
          !byte $C6                   ; F
-         !byte $E6                   ; f
          !byte $D1                   ; Q
+         !byte $8D                   ; Return
+         !byte $8B                   ; up arrow
+         !byte $88                   ; left arrow
+         !byte $8A                   ; down arrow
+         !byte $95                   ; right arrow
+         !byte $F0                   ; p
+         !byte $E4                   ; D
+         !byte $E6                   ; f
          !byte $F1                   ; q
          !byte $9B                   ; Esc
          !byte $00
 
 kMainMenuKeyHandlersLo
-         !byte <MainMenuEventReturn
-         !byte <MainMenuEventP
          !byte <MainMenuEventP
          !byte <MainMenuEventD
-         !byte <MainMenuEventD
-         !byte <MainMenuEventF
          !byte <MainMenuEventF
          !byte <MainMenuEventQ
+         !byte <MainMenuEventReturn
+         !byte <MainMenuEventUp
+         !byte <MainMenuEventUp
+         !byte <MainMenuEventDown
+         !byte <MainMenuEventDown
+         !byte <MainMenuEventP
+         !byte <MainMenuEventD
+         !byte <MainMenuEventF
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
 
 kMainMenuKeyHandlersHi
-         !byte >MainMenuEventReturn
-         !byte >MainMenuEventP
          !byte >MainMenuEventP
          !byte >MainMenuEventD
-         !byte >MainMenuEventD
-         !byte >MainMenuEventF
          !byte >MainMenuEventF
          !byte >MainMenuEventQ
+         !byte >MainMenuEventReturn
+         !byte >MainMenuEventUp
+         !byte >MainMenuEventUp
+         !byte >MainMenuEventDown
+         !byte >MainMenuEventDown
+         !byte >MainMenuEventP
+         !byte >MainMenuEventD
+         !byte >MainMenuEventF
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
 
@@ -83,37 +106,106 @@ kMainMenuStringsHi
          !byte >sMainMenuLine13
          !byte >sMainMenuLine14
 
+;------------------------------------------------------------------------------
+; MainMenuEventLoop
+; display main menu
+;
+; in:    C clear if screen is already cleared and menu page is already drawn
+;          (will happen if using arrow keys to move selection indicator)
+;        C set if full screen clear & redraw is required
+;          (will happen the first time called, or
+;          if user returns to main menu from any other screen)
+; out:   Z = 0
+;------------------------------------------------------------------------------
 MainMenuEventLoop
+         bcc   +
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
++        bit   CLEARKBD
+@keyloop
+         lda   KBD
+         bpl   @keyloop
+         bit   CLEARKBD
+         sta   gLastKeyPressed
          ldx   #0
-         ldy   #0
-         jsr   DrawFocusRectangle
-         bit   GFXMODE
-         +DEBUGWAIT
-         ldx   #0
-         ldy   #0
-         jsr   ClearFocusRectangle
-         jsr   SelectSizeEventLoop
-         jmp   $ff59
+-        ldy   kMainMenuKeys, x
+         beq   @keyloop              ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kMainMenuKeyHandlersLo, x
+         sta   @j+1
+         lda   kMainMenuKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   MainMenuEventLoop
+         rts
 
 MainMenuEventReturn
+         ; figure out which menu item is selected and exit via its handler
+         ldx   .mainMenuSelectedIndex
+         lda   kMainMenuKeyHandlersLo-kMainMenuMin, x
+         sta   @crjmp+1
+         lda   kMainMenuKeyHandlersHi-kMainMenuMin, x
+         sta   @crjmp+2
+@crjmp   jmp   $FDFD                 ; SMC
+
+MainMenuEventUp
+         jsr   EraseMainMenuSelectionIndicator
+         dec   .mainMenuSelectedIndex
+         ldx   .mainMenuSelectedIndex
+         cpx   #kMainMenuMin
+         bcs   +
+         ldx   #(kMainMenuMin+kMainMenuCount-1)
++        jsr   SetMainMenuSelectionIndexAndRedraw
+         jmp   StayOnMainMenuNoRefresh
+
+MainMenuEventDown
+         jsr   EraseMainMenuSelectionIndicator
+         inc   .mainMenuSelectedIndex
+         ldx   .mainMenuSelectedIndex
+         cpx   #(kMainMenuMin+kMainMenuCount)
+         bcc   +
+         ldx   #kMainMenuMin
++        jsr   SetMainMenuSelectionIndexAndRedraw
+StayOnMainMenuNoRefresh
+         ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
+         clc
+         rts
+
 MainMenuEventP
+         jsr   SelectSizeEventLoop
+StayOnMainMenuWithFullRefresh
+         ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
+         sec                         ; C=1 so caller will do a full screen refresh
+         rts
+
 MainMenuEventD
+         jsr   RunDemo
+         jmp   StayOnMainMenuWithFullRefresh
+
 MainMenuEventF
+         jsr   AboutPage
+         jmp   StayOnMainMenuWithFullRefresh
+
 MainMenuEventQ
+         ldx   #kQuit
+         rts
 
 DrawMainMenuBackground
-         lda   #$10
+         lda   #16
          sta   logical_board_size
          lda   #>kTitleBoard
          sta   board_base_ptr+1
 OneTimeLoad
          jsr   LoadRandomBoardForTitle ; SMC opcode
-AutoSolve
-         bit   TEXTMODE
+;AutoSolve
+         jsr   Home
          jsr   DrawEntireBoard
-@loop    jsr   FindValidMove
+@loop
+         jsr   FindValidMove
          bcc   @draw
          jsr   TransposeBoard
          jsr   FindValidMove
@@ -133,6 +225,7 @@ AutoSolve
          sta   (board_base_ptr), y
          bne   @loop                 ; always branches
 @exit
+         bit   GFXMODE
          rts
 
 LoadRandomBoardForTitle
@@ -142,7 +235,7 @@ LoadRandomBoardForTitle
          lda   RNDSEED
          ldx   #>kTitleBoard
          jsr   nth
-         lda   #$2C       ; BIT opcode
+         lda   #$2C                  ; BIT opcode
          sta   OneTimeLoad
          rts
 
@@ -162,4 +255,18 @@ DrawMainMenuText
          jsr   DrawLargeString
          dec   row1
          bpl   -
-         rts
+         ldx   .mainMenuSelectedIndex
+         ; /!\ execution falls through here to DrawMainMenuSelectionIndicator
+
+SetMainMenuSelectionIndexAndRedraw
+; in:    X = new selection index
+         stx   .mainMenuSelectedIndex
+         ldy   kMainMenuHTABs+8
+         lda   #$01                  ; selection indicator character
+         jmp   DrawLargeCharacter
+
+EraseMainMenuSelectionIndicator
+         ldx   .mainMenuSelectedIndex
+         ldy   kMainMenuHTABs+8
+         lda   #$00                  ; blank character
+         jmp   DrawLargeCharacter

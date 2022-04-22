@@ -43,6 +43,7 @@ LORES =        $C056
 HIRES =        $C057
 
 ; ROM routines and addresses
+MLI =          $BF00
 ROM_TEXT =     $FB2F
 ROM_MACHINEID =$FBB3
 ROM_HOME =     $FC58
@@ -56,6 +57,7 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
+gLastKeyPressed           = $DE      ; byte
 logical_board_size        = $DF      ; byte (used by FindValidMove)
 row_empty_counts          = $E0      ; 0x10 bytes (used by FindValidMove)
 hgr_base_ptr              = $F0      ; word (used by DrawLargeCharacter)
@@ -79,3 +81,5 @@ read_buffer               = $03C0    ; 0x2D bytes (used by nth)
 kTitleBoard               = $1A00    ; 0x0100 bytes, page-aligned (used by DrawMainMenuBackground)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth)
 file_buffer               = $1C00    ; 0x0400 bytes (used by nth)
+DisableAccelerator        = $BEB4
+EnableAccelerator         = DisableAccelerator+3

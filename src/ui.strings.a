@@ -48,7 +48,7 @@ sMainMenuLine8
 
 sMainMenuLine10
          !byte 6
-         !byte 1
+         !byte 0
          !raw  "PLAY"
          !byte 0
 

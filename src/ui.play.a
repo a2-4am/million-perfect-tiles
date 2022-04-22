@@ -1,0 +1,8 @@
+         ldx   #0
+         ldy   #0
+         jsr   DrawFocusRectangle
+         bit   GFXMODE
+         +DEBUGWAIT
+         ldx   #0
+         ldy   #0
+         jsr   ClearFocusRectangle

@@ -8,16 +8,24 @@
          !source "src/constants.a"              ; no code
          !source "src/macros.a"                 ; no code
          !source "src/tiles.init.a"             ; one-time initialization code, exits via Start
+         !source "src/hw.accel.a"
 
 FirstMover
 !pseudopc $4000 {
 Start
-         jsr   Home
-         jmp   MainMenuEventLoop
+         sec
+         jsr   MainMenuEventLoop
+         jsr   EnableAccelerator
+         jsr   MLI
+         !byte $65
+         !word +
++        !byte 4,0,0,0,0
 
          !source "src/ui.strings.a"
          !source "src/ui.main.menu.a"
          !source "src/ui.select.size.a"
+         !source "src/ui.about.a"
+         !source "src/ui.demo.a"
          !source "src/ui.puzzle.a"
          !source "src/ui.common.a"
          !source "src/ui.font.tile.wide.a"
