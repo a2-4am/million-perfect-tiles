@@ -30,6 +30,7 @@ kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandle
          !byte $88                   ; left arrow
          !byte $8A                   ; down arrow
          !byte $95                   ; right arrow
+         !byte $A0                   ; space
          !byte $F0                   ; p
          !byte $E4                   ; D
          !byte $E6                   ; f
@@ -47,6 +48,7 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventUp
          !byte <MainMenuEventDown
          !byte <MainMenuEventDown
+         !byte <MainMenuEventDown
          !byte <MainMenuEventP
          !byte <MainMenuEventD
          !byte <MainMenuEventF
@@ -61,6 +63,7 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventReturn
          !byte >MainMenuEventUp
          !byte >MainMenuEventUp
+         !byte >MainMenuEventDown
          !byte >MainMenuEventDown
          !byte >MainMenuEventDown
          !byte >MainMenuEventP
@@ -118,20 +121,17 @@ kMainMenuStringsHi
 ; out:   Z = 0
 ;------------------------------------------------------------------------------
 MainMenuEventLoop
-         bcc   +
+         bcc   @keyloop
+         bit   TEXTMODE
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
          bit   GFXMODE
-+        bit   CLEARKBD
 @keyloop
-         lda   KBD
-         bpl   @keyloop
-         bit   CLEARKBD
-         sta   gLastKeyPressed
+         jsr   WaitForKey
          ldx   #0
 -        ldy   kMainMenuKeys, x
          beq   @keyloop              ; key has no associated handler, so ignore it
-         cpy   gLastKeyPressed
+         cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
          bne   -                     ; always branches
@@ -199,7 +199,6 @@ MainMenuEventQ
 DrawMainMenuBackground
 OneTimeLoad
          jsr   LoadRandomBoardForTitle ; SMC opcode
-         jsr   Home
          jsr   DrawBoardForTitle
 ;
 ; Auto-solve the randomly chosen board.

@@ -78,6 +78,7 @@ tmpy                      = $FF      ; byte (used by DrawLargeCharacter)
 HGRLO                     = $0100    ; 0xC0 bytes (used by DrawLargeCharacter)
 HGRHI                     = $0300    ; 0xC0 bytes (used by DrawLargeCharacter)
 read_buffer               = $03C0    ; 0x2D bytes (used by nth)
+kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (used by DrawMainMenuBackground)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth)
 file_buffer               = $1C00    ; 0x0400 bytes (used by nth)

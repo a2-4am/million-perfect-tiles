@@ -20,6 +20,7 @@ kSelectSizeKeys                      ; must keep in sync with kSelectSizeKeyHand
          !byte $88                   ; left arrow
          !byte $8A                   ; down arrow
          !byte $95                   ; right arrow
+         !byte $A0                   ; space
          !byte $9B                   ; Esc
          !byte $00
 
@@ -29,12 +30,14 @@ kSelectSizeKeyHandlersLo
          !byte <SelectSizeEventUp
          !byte <SelectSizeEventDown
          !byte <SelectSizeEventDown
+         !byte <SelectSizeEventDown
          !byte <SelectSizeEventEsc
 
 kSelectSizeKeyHandlersHi
          !byte >SelectSizeEventReturn
          !byte >SelectSizeEventUp
          !byte >SelectSizeEventUp
+         !byte >SelectSizeEventDown
          !byte >SelectSizeEventDown
          !byte >SelectSizeEventDown
          !byte >SelectSizeEventEsc
@@ -85,20 +88,17 @@ kSelectSizeStringsHi
 ; out:   Z = 0
 ;------------------------------------------------------------------------------
 SelectSizeEventLoop
-         bcc   +
+         bcc   @keyloop
+         bit   TEXTMODE
          jsr   DrawSelectSizeBackground
          jsr   DrawSelectSizeText
          bit   GFXMODE
-+        bit   CLEARKBD
 @keyloop
-         lda   KBD
-         bpl   @keyloop
-         bit   CLEARKBD
-         sta   gLastKeyPressed
+         jsr   WaitForKey
          ldx   #0
 -        ldy   kSelectSizeKeys, x
          beq   @keyloop              ; key has no associated handler, so ignore it
-         cpy   gLastKeyPressed
+         cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
          bne   -                     ; always branches
@@ -112,6 +112,32 @@ SelectSizeEventLoop
          rts
 
 SelectSizeEventReturn
+         jsr   Home
+         lda   .selectSizeSelectedIndex
+         sec
+         sbc   #(kSelectSizeMin-3)
+         asl
+         sta   logical_board_size
+         lda   RNDSEED+1
+         and   #1
+         tay
+         lda   RNDSEED
+         ldx   #>kUserBoardBuffer
+         jsr   nth
+         jsr   DrawBoardForUser
+         jsr   FindEmptyCoordinatesForUser
+         stx   gFocusedRow
+         sty   gFocusedColumn
+         jsr   DrawFocusRectangle
+         bit   GFXMODE
+         jsr   PlayEventLoop
+         cpx   #kReturnToSelectWorld
+         bne   +
+StayOnSelectSizeNoRefresh
+         ldx   #kStayOnSelectSize
+         sec
+         rts
++
          brk
 
 SelectSizeEventUp
@@ -142,7 +168,6 @@ SelectSizeEventEsc
          rts
 
 DrawSelectSizeBackground
-         jsr   Home
          jmp   DrawBoardForTitle
 
 DrawSelectSizeText

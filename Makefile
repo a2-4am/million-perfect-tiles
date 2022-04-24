@@ -14,9 +14,8 @@
 # https://sourceforge.net/projects/acme-crossass/
 ACME=acme
 
-# https://www.brutaldeluxe.fr/products/crossdevtools/cadius/
-# https://github.com/sicklittlemonkey/cadius
-# version 1.4.0 or later
+# https://github.com/mach-kernel/cadius
+# version 1.4.4 or later
 CADIUS=cadius
 
 BUILDDISK=build/tiles

@@ -4,11 +4,22 @@
 ; drawing routines for the puzzle board
 ;
 
+; DrawBoardForTitle
+; DrawBoardForUser
+; DrawBoardAt
+; DrawFocusRectangle
+; DrawFocusRectangleAt
+; ClearFocusRectangle
+; ClearFocusRectangleAt
+
 DrawBoardForTitle
          ldx   #>kTitleBoardBuffer
-         ; /!\ execution falls through here to DrawBoard
-
-DrawBoard
+         +HIDE_NEXT_2_BYTES
+         ; /!\ execution falls through here to DrawBoardForUser
+DrawBoardForUser
+         ldx   #>kUserBoardBuffer
+         ; /!\ execution falls through here to DrawBoardAt
+DrawBoardAt
 ; in:    X = high byte of page-aligned board buffer
 ; out:   all flags and registers clobbered
          stx   board_base_ptr+1
@@ -50,8 +61,11 @@ DrawBoard
 ; (bottom row + 2, right byte) = 0x80
 
 DrawFocusRectangle
-; in:    X contains logical line number (0x00..0x0F)
-;        Y contains logical column number (0x00..0x0F)
+         ldx   gFocusedRow
+         ldy   gFocusedColumn
+DrawFocusRectangleAt
+; in:    X = logical row (0x00..0x0F)
+;        Y = logical column (0x00..0x0F)
          +LogicalColumnToPhysicalColumn
          sty   HTAB
          ldy   HGR_start_row, x
@@ -90,8 +104,11 @@ DrawFocusRectangle
          rts
 
 ClearFocusRectangle
-; in:    X contains logical line number (0x00..0x0F)
-;        Y contains logical column number (0x00..0x0F)
+         ldx   gFocusedRow
+         ldy   gFocusedColumn
+ClearFocusRectangleAt
+; in:    X = logical row (0x00..0x0F)
+;        Y = logical column (0x00..0x0F)
          +LogicalColumnToPhysicalColumn
          sty   HTAB
          ldy   HGR_start_row, x

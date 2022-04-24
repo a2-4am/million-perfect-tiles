@@ -13,6 +13,7 @@
 FirstMover
 !pseudopc $4000 {
 Start
+         jsr   Home
          sec
          jsr   MainMenuEventLoop
          jsr   EnableAccelerator
@@ -24,6 +25,7 @@ Start
          !source "src/ui.strings.a"
          !source "src/ui.main.menu.a"
          !source "src/ui.select.size.a"
+         !source "src/ui.play.a"
          !source "src/ui.about.a"
          !source "src/ui.demo.a"
          !source "src/ui.puzzle.a"

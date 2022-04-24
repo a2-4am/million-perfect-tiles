@@ -5,7 +5,9 @@
 ;
 ; Public functions:
 ; - Home
+; - WaitForKey
 ;
+
 ;------------------------------------------------------------------------------
 ; Home
 ; clear graphics page 1 without flicker
@@ -58,4 +60,24 @@ Home
          sta   $3F00, y
          iny
          bne   -
+         rts
+
+;------------------------------------------------------------------------------
+; WaitForKey
+; wait forever for any key, while incrementing random seed
+;
+; in:    none
+; out:   A = gLastKeyPressed = unaltered key code
+;        X/Y preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+WaitForKey
+         bit   CLEARKBD
+-        inc   RNDSEED
+         bne   +
+         inc   RNDSEED+1
++        lda   KBD
+         bpl   -
+         bit   CLEARKBD
+         sta   gLastKeyPressed
          rts

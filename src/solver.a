@@ -3,10 +3,41 @@
 ;
 ; puzzle solving routines
 ;
+; - FindEmptyCoordinatesForUser
+; - FindEmptyCoordinates
 ; - FindValidMoveForTitle
 ; - FindValidMove
 ; - TransposeBoard
 ; - CalculateRowBase
+
+FindEmptyCoordinatesForUser
+         ldx   #>kUserBoardBuffer
+FindEmptyCoordinates
+; in:    X = high byte of page-aligned board buffer
+; out:   C=0 if found empty coordinates, then
+;          X = logical row (0x00..0x0F)
+;          Y = logical column (0x00..0x0F)
+;        C=1 if no empty coordinates was found
+         stx   board_base_ptr+1
+         ldy   #0
+         sty   board_base_ptr
+-        lda   (board_base_ptr), y
+         beq   +
+         iny
+         bne   -
+         sec
+         rts
++        tya
+         lsr
+         lsr
+         lsr
+         lsr
+         tax
+         tya
+         and   #$0F
+         tay
+         clc
+         rts
 
 FindValidMoveForTitle
          ldx   #>kTitleBoardBuffer
@@ -18,8 +49,8 @@ FindValidMove
 ;        Y = logical board size (6,8,10,12,14,16)
 ; out:   C=0 if found valid move, then
 ;          A=tile value (1 or 2)
-;          X=tile row (0..15)
-;          Y=tile column (0..15)
+;          X=tile row (0x00..0x0F)
+;          Y=tile column (0x00..0x0F)
 ;        C=1 if no valid move was found
          stx   board_base_ptr+1
          sty   logical_board_size
@@ -305,7 +336,7 @@ TransposeBoard
          rts
 
 CalculateRowBase
-; in:    X = row (0..15)
+; in:    X = row (0x00..0x0F)
 ; out:   A = low byte of address of board buffer for this row
          txa
          asl

@@ -1,8 +1,184 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; main event loop for playing puzzles
+;
+; Public functions:
+; - PlayEventLoop
+
+; Codes returned by event handlers
+kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it must be 0
+kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
+kRequestedRestart = 2                ;   with the code in X so caller knows what happened
+kRequestedSkip = 3
+kReturnToSelectWorld = 4
+
+gFocusedRow
+         !byte $FF
+gFocusedColumn
+         !byte $FF
+
+kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo/Hi arrays
+                                     ; except for last byte ($00) which doesn't need an associated handler
+         !byte $8B                   ; up arrow
+         !byte $8A                   ; down arrow
+         !byte $88                   ; left arrow
+         !byte $95                   ; right arrow
+         !byte $9B                   ; Esc
+         !byte $92                   ; Ctrl-R
+         !byte $93                   ; Ctrl-S
+         !byte $8D                   ; Return
+         !byte $A0                   ; space
+         !byte $AF                   ; /
+         !byte $BF                   ; ?
+         !byte $00
+
+kPlayKeyHandlersLo
+         !byte <PlayEventUpArrow
+         !byte <PlayEventDownArrow
+         !byte <PlayEventLeftArrow
+         !byte <PlayEventRightArrow
+         !byte <PlayEventEsc
+         !byte <PlayEventCtrlR
+         !byte <PlayEventCtrlS
+         !byte <PlayEventReturn
+         !byte <PlayEventReturn
+         !byte <PlayEventQuestion
+         !byte <PlayEventQuestion
+
+kPlayKeyHandlersHi
+         !byte >PlayEventUpArrow
+         !byte >PlayEventDownArrow
+         !byte >PlayEventLeftArrow
+         !byte >PlayEventRightArrow
+         !byte >PlayEventEsc
+         !byte >PlayEventCtrlR
+         !byte >PlayEventCtrlS
+         !byte >PlayEventReturn
+         !byte >PlayEventReturn
+         !byte >PlayEventQuestion
+         !byte >PlayEventQuestion
+
+;------------------------------------------------------------------------------
+; PlayEventLoop
+; main event loop for playing a puzzle
+;
+; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
+;        and is ready to play
+; out:   X = reason why event loop ended (see list above)
+;        all other registers & flags clobbered
+;------------------------------------------------------------------------------
+PlayEventLoop
+@keyloop
+         jsr   WaitForKey
          ldx   #0
-         ldy   #0
-         jsr   DrawFocusRectangle
-         bit   GFXMODE
-         +DEBUGWAIT
-         ldx   #0
-         ldy   #0
+-        ldy   kPlayKeys, x
+         beq   @keyloop              ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed       ; populated by WaitForKey
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kPlayKeyHandlersLo, x
+         sta   @j+1
+         lda   kPlayKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   PlayEventLoop
+         rts
+
+PlayEventEsc
+         ldx   #kReturnToSelectWorld ; caller will exit play event loop
+         rts
+
+PlayEventCtrlR
+         ldx   #kRequestedRestart    ; caller will exit play event loop
+         rts
+
+PlayEventCtrlN
+         ldx   #kRequestedSkip       ; caller will exit play event loop
+         rts
+
+PlayEventCtrlS
+         brk
+
+PlayEventUpArrow
+         jsr   GetFocusCoordinates
+         dex
+         jsr   CanMoveFocusTo
+         bcs   CantMoveFocus
          jsr   ClearFocusRectangle
+         dec   gFocusedRow
+         bpl   RedrawFocusAndKeepPlaying        ; always branches
+
+PlayEventDownArrow
+         jsr   GetFocusCoordinates
+         inx
+         jsr   CanMoveFocusTo
+         bcs   CantMoveFocus
+         jsr   ClearFocusRectangle
+         inc   gFocusedRow
+         bpl   RedrawFocusAndKeepPlaying        ; always branches
+
+PlayEventLeftArrow
+         jsr   GetFocusCoordinates
+         dey
+         jsr   CanMoveFocusTo
+         bcs   CantMoveFocus
+         jsr   ClearFocusRectangle
+         dec   gFocusedColumn
+         bpl   RedrawFocusAndKeepPlaying        ; always branches
+
+PlayEventRightArrow
+         jsr   GetFocusCoordinates
+         iny
+         jsr   CanMoveFocusTo
+         bcs   CantMoveFocus
+         jsr   ClearFocusRectangle
+         inc   gFocusedColumn
+RedrawFocusAndKeepPlaying
+         jsr   DrawFocusRectangle
+         ldx   #kKeepPlaying
+         rts
+
+CantMoveFocus
+         ;TODO gentle error sound?
+         ldx   #kKeepPlaying
+         rts
+
+PlayEventReturn
+         brk
+PlayEventQuestion
+         brk
+
+GetFocusCoordinates
+         ldx   gFocusedRow
+         ldy   gFocusedColumn
+         rts
+
+CanMoveFocusTo
+; in:    X = logical row
+;        Y = logical column
+; out:   C = 0 if focus can move to the given logical coordinates
+;        C = 1 if focus can not move there because
+;          X < 0, or
+;          Y < 0, or
+;          X > 15, or
+;          Y > 15, or
+;          those coordinates contain a padding byte, meaning that
+;          you're trying to move past the edge of the logical board
+         cpx   #16
+         bcs   @no
+         cpy   #16
+         bcs   @no
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         lda   #>kUserBoardBuffer
+         sta   board_base_ptr+1
+         lda   (board_base_ptr), y
+         cmp   #$FF
+         beq   @no
+         clc
+         rts
+@no      sec
+         rts
