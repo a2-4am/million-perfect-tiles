@@ -131,12 +131,24 @@ SelectSizeEventReturn
          jsr   DrawFocusRectangle
          bit   GFXMODE
          jsr   PlayEventLoop
-         cpx   #kReturnToSelectWorld
+         ; TODO maybe another dispatch table here?
+         cpx   #kCompletedPuzzle
          bne   +
-StayOnSelectSizeNoRefresh
+         brk
++
+         cpx   #kReturnToSelectSize
+         bne   +
          ldx   #kStayOnSelectSize
          sec
          rts
++
+         cpx   #kRequestedRestart
+         bne   +
+         brk
++
+         cpx   #kRequestedSkip
+         bne   +
+         brk
 +
          brk
 

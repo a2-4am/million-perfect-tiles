@@ -57,7 +57,9 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
-gLastKeyPressed           = $DE      ; byte
+gFocusedRow               = $DC      ; byte (used by PlayEventLoop)
+gFocusedColumn            = $DD      ; byte (used by PlayEventLoop)
+gLastKeyPressed           = $DE      ; byte (used by multiple event loops)
 logical_board_size        = $DF      ; byte (used by FindValidMove)
 row_empty_counts          = $E0      ; 0x10 bytes (used by FindValidMove)
 hgr_base_ptr              = $F0      ; word (used by DrawLargeCharacter)
@@ -78,7 +80,7 @@ tmpy                      = $FF      ; byte (used by DrawLargeCharacter)
 HGRLO                     = $0100    ; 0xC0 bytes (used by DrawLargeCharacter)
 HGRHI                     = $0300    ; 0xC0 bytes (used by DrawLargeCharacter)
 read_buffer               = $03C0    ; 0x2D bytes (used by nth)
-kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned
+kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (used by DrawMainMenuBackground)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth)
 file_buffer               = $1C00    ; 0x0400 bytes (used by nth)

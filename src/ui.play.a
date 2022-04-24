@@ -11,12 +11,7 @@ kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it 
 kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
 kRequestedRestart = 2                ;   with the code in X so caller knows what happened
 kRequestedSkip = 3
-kReturnToSelectWorld = 4
-
-gFocusedRow
-         !byte $FF
-gFocusedColumn
-         !byte $FF
+kReturnToSelectSize = 4
 
 kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
@@ -24,6 +19,10 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $8A                   ; down arrow
          !byte $88                   ; left arrow
          !byte $95                   ; right arrow
+         !byte $C2                   ; B
+         !byte $E2                   ; b
+         !byte $D7                   ; W
+         !byte $F7                   ; w
          !byte $9B                   ; Esc
          !byte $92                   ; Ctrl-R
          !byte $93                   ; Ctrl-S
@@ -38,6 +37,10 @@ kPlayKeyHandlersLo
          !byte <PlayEventDownArrow
          !byte <PlayEventLeftArrow
          !byte <PlayEventRightArrow
+         !byte <PlayEventB
+         !byte <PlayEventB
+         !byte <PlayEventW
+         !byte <PlayEventW
          !byte <PlayEventEsc
          !byte <PlayEventCtrlR
          !byte <PlayEventCtrlS
@@ -51,6 +54,10 @@ kPlayKeyHandlersHi
          !byte >PlayEventDownArrow
          !byte >PlayEventLeftArrow
          !byte >PlayEventRightArrow
+         !byte >PlayEventB
+         !byte >PlayEventB
+         !byte >PlayEventW
+         !byte >PlayEventW
          !byte >PlayEventEsc
          !byte >PlayEventCtrlR
          !byte >PlayEventCtrlS
@@ -88,7 +95,8 @@ PlayEventLoop
          rts
 
 PlayEventEsc
-         ldx   #kReturnToSelectWorld ; caller will exit play event loop
+         jsr   ClearFocusRectangle
+         ldx   #kReturnToSelectSize  ; caller will exit play event loop
          rts
 
 PlayEventCtrlR
@@ -141,13 +149,34 @@ RedrawFocusAndKeepPlaying
          ldx   #kKeepPlaying
          rts
 
+PlayEventB
+         jsr   GetFocusCoordinates
+         jsr   GetValueAt
+         bmi   CantChange
+         lda   #$03
+         bne   Change                ; always branches
+
+PlayEventW
+         jsr   GetFocusCoordinates
+         jsr   GetValueAt
+         bmi   CantChange
+         lda   #$02
+Change
+         sta   (board_base_ptr), y   ; populated by GetValueAt
+         pha
+         jsr   ClearFocusRectangle
+         jsr   GetFocusCoordinates
+         pla
+         jsr   DrawLargeCharacter
+         jsr   DrawFocusRectangle
 CantMoveFocus
-         ;TODO gentle error sound?
+CantChange
          ldx   #kKeepPlaying
          rts
 
 PlayEventReturn
          brk
+
 PlayEventQuestion
          brk
 
@@ -159,7 +188,9 @@ GetFocusCoordinates
 CanMoveFocusTo
 ; in:    X = logical row
 ;        Y = logical column
-; out:   C = 0 if focus can move to the given logical coordinates
+; out:   X/Y preserved
+;        C = 0 if focus can move to the given logical coordinates
+;          and A = tile value at those coordinates
 ;        C = 1 if focus can not move there because
 ;          X < 0, or
 ;          Y < 0, or
@@ -168,17 +199,18 @@ CanMoveFocusTo
 ;          those coordinates contain a padding byte, meaning that
 ;          you're trying to move past the edge of the logical board
          cpx   #16
-         bcs   @no
+         bcs   +
          cpy   #16
-         bcs   @no
+         bcs   +
+GetValueAt
          jsr   CalculateRowBase
          sta   board_base_ptr
          lda   #>kUserBoardBuffer
          sta   board_base_ptr+1
          lda   (board_base_ptr), y
          cmp   #$FF
-         beq   @no
+         beq   +
          clc
          rts
-@no      sec
++        sec
          rts

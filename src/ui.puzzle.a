@@ -104,8 +104,7 @@ DrawFocusRectangleAt
          rts
 
 ClearFocusRectangle
-         ldx   gFocusedRow
-         ldy   gFocusedColumn
+         jsr   GetFocusCoordinates
 ClearFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
