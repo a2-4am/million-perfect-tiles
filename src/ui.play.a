@@ -101,7 +101,6 @@ PlayEventLoop
          rts
 
 PlayEventEsc
-         bit   $ff58
          jsr   ClearFocusRectangle
          ldx   #kReturnToSelectSize  ; caller will exit play event loop
          rts
