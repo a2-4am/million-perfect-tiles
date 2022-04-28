@@ -147,15 +147,3 @@ sSelectSizeLine13=sSelectSizeLine6
 ;XXXXXX    XXXXXX
 ;XXXXXXXXXXXXXXXX
 ;XXXXXXXXXXXXXXXX
-
-sHintNeverThree
-         !byte 16
-         !raw  "NEVER 3 IN A ROW"
-
-sHintUnequalColors
-         !byte 15
-         !raw  "ALWAYS BALANCED"
-
-sHintDuplicateRow
-         !byte 15
-         !raw  "NEVER IDENTICAL"

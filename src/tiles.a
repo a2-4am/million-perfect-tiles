@@ -13,9 +13,11 @@
 FirstMover
 !pseudopc $4000 {
 Start
+         jsr   PointerOnStartup
          jsr   Home
          sec
          jsr   MainMenuEventLoop
+         jsr   PointerOnShutdown
          jsr   EnableAccelerator
          jsr   MLI
          !byte $65
@@ -29,10 +31,14 @@ Start
          !source "src/ui.about.a"
          !source "src/ui.demo.a"
          !source "src/ui.puzzle.a"
+         !source "src/ui.focus.a"
+         !source "src/ui.pointer.a"
          !source "src/ui.common.a"
          !source "src/ui.font.tile.wide.a"
          !source "src/ui.font.tile.wide.data.a"
          !source "src/solver.a"
+         !source "src/common.a"
          !source "src/unpack.a"
+         !source "src/mouse.a"
 }
 LastMover

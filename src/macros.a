@@ -175,3 +175,21 @@
          asl
          tay
 }
+
+; Saves all registers
+!macro SAVE_AXY {
+         pha
+         txa
+         pha
+         tya
+         pha
+}
+
+; Restores all registers
+!macro RESTORE_AXY {
+         pla
+         tay
+         pla
+         tax
+         pla
+}

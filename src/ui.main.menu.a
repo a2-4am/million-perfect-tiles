@@ -123,8 +123,10 @@ kMainMenuStringsHi
 MainMenuEventLoop
          bcc   @keyloop
          bit   TEXTMODE
+         jsr   HidePointer
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
+         jsr   ShowPointer
          bit   GFXMODE
 @keyloop
          jsr   WaitForKey
@@ -214,10 +216,7 @@ OneTimeLoad
          jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
                                      ; preserves all flags and registers
          bcs   @exit                 ; C is from FindValidMoveForTitle
-         stx   tmpx                  ; swap X & Y because we found a move while the board was transposed
-         sty   tmpy
-         ldx   tmpy
-         ldy   tmpx
+         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
 @draw
          bit   GFXMODE
          jsr   DrawLargeCharacter

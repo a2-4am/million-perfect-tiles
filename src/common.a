@@ -1,0 +1,25 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; utility functions
+;
+
+; - CalculateRowBase
+; - SwapXY
+
+CalculateRowBase
+; in:    X = row (0x00..0x0F)
+; out:   A = low byte of address of board buffer for this row
+         txa
+         asl
+         asl
+         asl
+         asl
+         rts
+
+SwapXY
+         stx   tmpx
+         sty   tmpy
+         ldx   tmpy
+         ldy   tmpx
+         rts

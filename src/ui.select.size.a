@@ -90,8 +90,10 @@ kSelectSizeStringsHi
 SelectSizeEventLoop
          bcc   @keyloop
          bit   TEXTMODE
+         jsr   HidePointer
          jsr   DrawSelectSizeBackground
          jsr   DrawSelectSizeText
+         jsr   ShowPointer
          bit   GFXMODE
 @keyloop
          jsr   WaitForKey
@@ -118,41 +120,45 @@ SelectSizeEventReturn
          sbc   #(kSelectSizeMin-3)
          asl
          sta   logical_board_size
+         sta   gLastSelectedBoardSize
          lda   RNDSEED+1
          and   #1
          tay
          lda   RNDSEED
+         +ST16 gLastSelectedBoardIndex
+ReloadBoard
          ldx   #>kUserBoardBuffer
          jsr   nth
+         jsr   HidePointer
          jsr   DrawBoardForUser
          jsr   FindEmptyCoordinatesForUser
          stx   gFocusedRow
          sty   gFocusedColumn
          jsr   DrawFocusRectangle
          bit   GFXMODE
+         jsr   ShowPointer
          jsr   PlayEventLoop
          ; TODO maybe another dispatch table here?
-         cpx   #kCompletedPuzzle
+         cpx   #kRequestedSkip
+         beq   SelectSizeEventReturn
+         cpx   #kRequestedRestart
          bne   +
-         brk
-+
-         cpx   #kReturnToSelectSize
+         jsr   Home
+         lda   gLastSelectedBoardSize
+         sta   logical_board_size
+         +LD16 gLastSelectedBoardIndex
+         jmp   ReloadBoard
++        cpx   #kReturnToSelectSize
          bne   +
          ldx   #kStayOnSelectSize
          sec
          rts
 +
-         cpx   #kRequestedRestart
-         bne   +
-         brk
-+
-         cpx   #kRequestedSkip
-         bne   +
-         brk
-+
+         ; TODO completed puzzle
          brk
 
 SelectSizeEventUp
+         jsr   HidePointer
          jsr   EraseSelectSizeSelectionIndicator
          dec   .selectSizeSelectedIndex
          ldx   .selectSizeSelectedIndex
@@ -160,9 +166,11 @@ SelectSizeEventUp
          bcs   +
          ldx   #(kSelectSizeMin+kSelectSizeCount-1)
 +        jsr   SetSelectSizeSelectionIndexAndRedraw
+         jsr   ShowPointer
          jmp   StayOnSelectSizeNoRefresh
 
 SelectSizeEventDown
+         jsr   HidePointer
          jsr   EraseSelectSizeSelectionIndicator
          inc   .selectSizeSelectedIndex
          ldx   .selectSizeSelectedIndex
@@ -170,6 +178,7 @@ SelectSizeEventDown
          bcc   +
          ldx   #kSelectSizeMin
 +        jsr   SetSelectSizeSelectionIndexAndRedraw
+         jsr   ShowPointer
 StayOnSelectSizeNoRefresh
          ldx   #kStayOnSelectSize    ; Z=1 so caller will stay in select size event loop
          clc

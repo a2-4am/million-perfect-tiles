@@ -1,0 +1,532 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; drawing routines for mouse pointer
+;
+
+; Public functions:
+; - PointerOnStartup
+; - PointerOnShutdown
+; - HidePointer
+; - ShowPointer
+
+; Additionally, these routines are called by the mouse driver (do not call them directly)
+; - DrawPointer
+; - UndrawPointer
+
+kPointerHeight = 9
+
+; plenty of space so we just store all these preshifted shapes and bitmasks
+; instead of calculating them at runtime
+kPointerLeft0
+         !byte %10000000
+         !byte %10000010
+         !byte %10000110
+         !byte %10001110
+         !byte %10011110
+         !byte %10111110
+         !byte %10001110
+         !byte %10011000
+         !byte %10000000
+kPointerRight0
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerLeft1
+         !byte %10000000
+         !byte %10000100
+         !byte %10001100
+         !byte %10011100
+         !byte %10111100
+         !byte %11111100
+         !byte %10011100
+         !byte %10110000
+         !byte %10000000
+kPointerRight1
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerLeft2
+         !byte %10000000
+         !byte %10001000
+         !byte %10011000
+         !byte %10111000
+         !byte %11111000
+         !byte %11111000
+         !byte %10111000
+         !byte %11100000
+         !byte %10000000
+kPointerRight2
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerLeft3
+         !byte %10000000
+         !byte %10010000
+         !byte %10110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11000000
+         !byte %10000000
+kPointerRight3
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000000
+         !byte %10000001
+         !byte %10000000
+kPointerLeft4
+         !byte %10000000
+         !byte %10100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %10000000
+         !byte %10000000
+kPointerRight4
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10000001
+         !byte %10000011
+         !byte %10000000
+kPointerLeft5
+         !byte %10000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %10000000
+         !byte %10000000
+kPointerRight5
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10000011
+         !byte %10000110
+         !byte %10000000
+kPointerLeft6
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerRight6
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10011111
+         !byte %10000111
+         !byte %10001100
+         !byte %10000000
+
+kPointerMaskLeft0
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10011111
+         !byte %10111111
+         !byte %11111111
+         !byte %10011111
+         !byte %10111100
+         !byte %10011000
+kPointerMaskRight0
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerMaskLeft1
+         !byte %10000110
+         !byte %10001110
+         !byte %10011110
+         !byte %10111110
+         !byte %11111110
+         !byte %11111110
+         !byte %10111110
+         !byte %11111000
+         !byte %10110000
+kPointerMaskRight1
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+kPointerMaskLeft2
+         !byte %10001100
+         !byte %10011100
+         !byte %10111100
+         !byte %11111100
+         !byte %11111100
+         !byte %11111100
+         !byte %11111100
+         !byte %11110000
+         !byte %11100000
+kPointerMaskRight2
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000000
+         !byte %10000001
+         !byte %10000000
+kPointerMaskLeft3
+         !byte %10011000
+         !byte %10111000
+         !byte %11111000
+         !byte %11111000
+         !byte %11111000
+         !byte %11111000
+         !byte %11111000
+         !byte %11100000
+         !byte %11000000
+kPointerMaskRight3
+         !byte %10000000
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10000001
+         !byte %10000011
+         !byte %10000001
+kPointerMaskLeft4
+         !byte %10110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11110000
+         !byte %11000000
+         !byte %10000000
+kPointerMaskRight4
+         !byte %10000000
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10000011
+         !byte %10000111
+         !byte %10000011
+kPointerMaskLeft5
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %11100000
+         !byte %10000000
+         !byte %10000000
+kPointerMaskRight5
+         !byte %10000000
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10011111
+         !byte %10000111
+         !byte %10001111
+         !byte %10000110
+kPointerMaskLeft6
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %11000000
+         !byte %10000000
+         !byte %10000000
+kPointerMaskRight6
+         !byte %10000001
+         !byte %10000011
+         !byte %10000111
+         !byte %10001111
+         !byte %10011111
+         !byte %10111111
+         !byte %10001111
+         !byte %10011110
+         !byte %10001100
+
+kPointerLeftLo
+         !byte <kPointerLeft0
+         !byte <kPointerLeft1
+         !byte <kPointerLeft2
+         !byte <kPointerLeft3
+         !byte <kPointerLeft4
+         !byte <kPointerLeft5
+         !byte <kPointerLeft6
+kPointerLeftHi
+         !byte >kPointerLeft0
+         !byte >kPointerLeft1
+         !byte >kPointerLeft2
+         !byte >kPointerLeft3
+         !byte >kPointerLeft4
+         !byte >kPointerLeft5
+         !byte >kPointerLeft6
+kPointerRightLo
+         !byte <kPointerRight0
+         !byte <kPointerRight1
+         !byte <kPointerRight2
+         !byte <kPointerRight3
+         !byte <kPointerRight4
+         !byte <kPointerRight5
+         !byte <kPointerRight6
+kPointerRightHi
+         !byte >kPointerRight0
+         !byte >kPointerRight1
+         !byte >kPointerRight2
+         !byte >kPointerRight3
+         !byte >kPointerRight4
+         !byte >kPointerRight5
+         !byte >kPointerRight6
+
+kPointerMaskLeftLo
+         !byte <kPointerMaskLeft0
+         !byte <kPointerMaskLeft1
+         !byte <kPointerMaskLeft2
+         !byte <kPointerMaskLeft3
+         !byte <kPointerMaskLeft4
+         !byte <kPointerMaskLeft5
+         !byte <kPointerMaskLeft6
+kPointerMaskLeftHi
+         !byte >kPointerMaskLeft0
+         !byte >kPointerMaskLeft1
+         !byte >kPointerMaskLeft2
+         !byte >kPointerMaskLeft3
+         !byte >kPointerMaskLeft4
+         !byte >kPointerMaskLeft5
+         !byte >kPointerMaskLeft6
+kPointerMaskRightLo
+         !byte <kPointerMaskRight0
+         !byte <kPointerMaskRight1
+         !byte <kPointerMaskRight2
+         !byte <kPointerMaskRight3
+         !byte <kPointerMaskRight4
+         !byte <kPointerMaskRight5
+         !byte <kPointerMaskRight6
+kPointerMaskRightHi
+         !byte >kPointerMaskRight0
+         !byte >kPointerMaskRight1
+         !byte >kPointerMaskRight2
+         !byte >kPointerMaskRight3
+         !byte >kPointerMaskRight4
+         !byte >kPointerMaskRight5
+         !byte >kPointerMaskRight6
+
+PointerOnStartup
+         +LDADDR DrawPointer
+         +ST16 WGDrawPointerCallback
+         +LDADDR UndrawPointer
+         +ST16 WGUndrawPointerCallback
+         lda   #$00
+         sta   gPointerHasCache
+         jsr   ShowPointer
+         jmp   WGEnableMouse
+
+PointerOnShutdown
+         jmp   WGDisableMouse
+
+DrawPointer
+         php
+         sei
+         +SAVE_AXY
+         lsr   WG_MOUSEPOS_Y+1
+         ror   WG_MOUSEPOS_Y
+         lsr   WG_MOUSEPOS_Y+1
+         ror   WG_MOUSEPOS_Y
+         ldx   WG_MOUSEPOS_Y
+         lsr   WG_MOUSEPOS_X+1
+         ror   WG_MOUSEPOS_X
+         ldy   #0
+-        lda   WG_MOUSEPOS_X
+         sec
+         sbc   #7
+         bcs   +
+         dec   WG_MOUSEPOS_X+1
+         bmi   ++
++        sta   WG_MOUSEPOS_X
+         iny
+         bne   -
+++       lda   WG_MOUSEPOS_X
+;DrawPointerAt
+; in:    X = top HGR row (0x00..0xBF)
+;        Y = column offset, byte (0x00..0x27)
+;        A = column offset, pixel offset within byte (0..6)
+         stx   gPointerX
+         sty   gPointerY
+         bit   gPointerVisible
+         bpl   @done
+         tax
+         lda   kPointerLeftLo, x
+         sta   @eorleft+1
+         lda   kPointerLeftHi, x
+         sta   @eorleft+2
+         lda   kPointerMaskLeftLo, x
+         sta   @andleft+1
+         lda   kPointerMaskLeftHi, x
+         sta   @andleft+2
+         lda   kPointerRightLo, x
+         sta   @eorright+1
+         lda   kPointerRightHi, x
+         sta   @eorright+2
+         lda   kPointerMaskRightLo, x
+         sta   @andright+1
+         lda   kPointerMaskRightHi, x
+         sta   @andright+2
+         lda   gPointerX
+         clc
+         adc   #(kPointerHeight-1)
+         sta   pointer_hgr_row
+         tax
+         lda   #(kPointerHeight-1)
+         sta   pointer_logical_row
+@pointerRowLoop
+         ldx   pointer_hgr_row
+         cpx   #$C0
+         bcs   +
+         lda   HGRLO, x
+         sta   pointer_hgr_base_ptr
+         lda   HGRHI, x
+         sta   pointer_hgr_base_ptr+1
+         ldx   pointer_logical_row
+         lda   (pointer_hgr_base_ptr), y
+         sta   gPointerCacheLeft, x
+@eorleft
+         eor   kPointerLeft0, x      ; SMC
+@andleft
+         and   kPointerMaskLeft0, x  ; SMC
+         eor   (pointer_hgr_base_ptr), y
+         sta   (pointer_hgr_base_ptr), y
+         cpy   #$27
+         bcs   +
+         iny
+         lda   (pointer_hgr_base_ptr), y
+         sta   gPointerCacheRight, x
+@eorright
+         eor   kPointerRight0, x     ; SMC
+@andright
+         and   kPointerMaskRight0, x ; SMC
+         eor   (pointer_hgr_base_ptr), y
+         sta   (pointer_hgr_base_ptr), y
+         dey
++        dec   pointer_hgr_row
+         dec   pointer_logical_row
+         bpl   @pointerRowLoop
+         lda   #$80
+         sta   gPointerHasCache
+@done
+         +RESTORE_AXY
+         cli
+         plp
+         rts
+
+UndrawPointer
+         php
+         sei
+         +SAVE_AXY
+         bit   gPointerHasCache
+         bpl   @done
+         ldx   gPointerX
+         ldy   gPointerY
+         txa
+         clc
+         adc   #(kPointerHeight-1)
+         sta   pointer_hgr_row
+         tax
+         lda   #(kPointerHeight-1)
+         sta   pointer_logical_row
+@pointerRowLoop
+         ldx   pointer_hgr_row
+         cpx   #$C0
+         bcs   +
+         lda   HGRLO, x
+         sta   pointer_hgr_base_ptr
+         lda   HGRHI, x
+         sta   pointer_hgr_base_ptr+1
+         ldx   pointer_logical_row
+         lda   gPointerCacheLeft, x
+         sta   (pointer_hgr_base_ptr), y
+         cpy   #$27
+         bcs   +
+         iny
+         lda   gPointerCacheRight, x
+         sta   (pointer_hgr_base_ptr), y
+         dey
++        dec   pointer_hgr_row
+         dec   pointer_logical_row
+         bpl   @pointerRowLoop
+         lda   #$00
+         sta   gPointerHasCache
+@done
+         +RESTORE_AXY
+         cli
+         plp
+         rts
+
+HidePointer
+         jsr   UndrawPointer
+         pha
+         lda   #$00
+         sta   gPointerVisible
+         pla
+         rts
+
+ShowPointer
+         pha
+         lda   #$80
+         sta   gPointerVisible
+         pla
+         rts

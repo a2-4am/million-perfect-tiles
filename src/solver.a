@@ -5,19 +5,19 @@
 ;
 ; - FindEmptyCoordinatesForUser
 ; - FindEmptyCoordinates
+; - FindInvalidMove
 ; - FindValidMoveForTitle
 ; - FindValidMove
 ; - TransposeBoard
-; - CalculateRowBase
 
 FindEmptyCoordinatesForUser
          ldx   #>kUserBoardBuffer
 FindEmptyCoordinates
 ; in:    X = high byte of page-aligned board buffer
-; out:   C=0 if found empty coordinates, then
+; out:   C = 0 if found empty coordinates, then
 ;          X = logical row (0x00..0x0F)
 ;          Y = logical column (0x00..0x0F)
-;        C=1 if no empty coordinates was found
+;        C = 1 if no empty coordinates was found
          stx   board_base_ptr+1
          ldy   #0
          sty   board_base_ptr
@@ -39,6 +39,155 @@ FindEmptyCoordinates
          clc
          rts
 
+kInvalid3WhiteInRow          = 0x01
+kInvalid3BlueInRow           = 0x02
+kInvalidTooManyWhiteInRow    = 0x03
+kInvalidTooManyBlueInRow     = 0x04
+kInvalidIdenticalRows        = 0x05
+kInvalid3WhiteInColumn       = 0x81
+kInvalid3BlueInColumn        = 0x82
+kInvalidTooManyWhiteInColumn = 0x83
+kInvalidTooManyBlueInColumn  = 0x84
+kInvalidIdenticalColumns     = 0x85
+
+FindInvalidMoveForUser
+         ldx   #>kUserBoardBuffer
+         ldy   gLastSelectedBoardSize
+FindInvalidMove
+; in:    X = high byte of page-aligned board buffer
+;        Y = logical board size (6,8,10,12,14,16)
+; out:   C = 0 if found invalid move, then
+;          A = reason code (see above)
+;          Z set by A
+;          X = starting tile row (0x00..0x0F)
+;          Y = starting tile column (0x00..0x0F)
+;        C = 1 if no invalid move was found
+         stx   board_base_ptr+1
+         sty   logical_board_size
+         ldx   #$0F                  ; tile row
+@CheckRow
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         ldy   #$0D
+         sty   tile_column
+@CheckTile
+         ldy   tile_column
+         jsr   cmp_2
+         bne   @not2xx
+         jsr   iny_and_cmp_2
+         bne   @nomatch
+         jsr   iny_and_cmp_2
+         bne   @nomatch
+         ldy   tile_column
+         lda   #kInvalid3WhiteInRow
+         clc
+@exit    rts
+@not2xx
+         jsr   cmp_3
+         bne   @nomatch
+         jsr   iny_and_cmp_3
+         bne   @nomatch
+         jsr   iny_and_cmp_3
+         bne   @nomatch
+         ldy   tile_column
+         lda   #kInvalid3BlueInRow
+         clc
+         rts
+@nomatch
+         dec   tile_column
+         bpl   @CheckTile
+         jsr   @DoesRowHaveTooManyOfOneColor
+         bcc   @exit
+         dex
+         bpl   @CheckRow
+         jsr   .CountEmptyPerRow
+         lda   board_base_ptr+1
+         sta   board_base_ptr2+1
+;IsAnyFullRowADuplicateOfAnotherRow
+         jsr   .CountEmptyPerRow
+         lda   board_base_ptr+1
+         sta   board_base_ptr2+1
+@row1loop
+         ldx   row1
+         lda   row_empty_counts, x
+         bne   @nextrow1
+         ; found a full row
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         lda   #$0F
+         sta   row2
+@row2loop
+         ldx   row2
+         lda   row_empty_counts, x
+         bne   @nextrow2
+         ; found another full row
+         jsr   CalculateRowBase
+         sta   board_base_ptr2
+         ldx   #0
+         ldy   #$0F
+@comparerowsloop
+         lda   (board_base_ptr2), y
+         and   #$7F
+         cmp   #$7F
+         beq   +
+         sta   tmpx
+         lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #$7F
+         beq   +
+         cmp   tmpx
+         bne   @nextrow2
+         inx
++        dey
+         bpl   @comparerowsloop
+         txa
+         beq   @nextrow2
+         ldx   row1
+         ldy   row2
+         lda   #kInvalidIdenticalRows
+         clc
+         rts
+@nextrow2
+         dec   row2
+         lda   row1
+         cmp   row2
+         bcc   @row2loop
+@nextrow1
+         dec   row1
+         bpl   @row1loop
+         sec
+         rts
+
+@DoesRowHaveTooManyOfOneColor
+         jsr   .CountColorsInRow
+         lda   colorcount2
+         asl
+         cmp   logical_board_size
+         beq   @notTooMany2
+         bcc   @notTooMany2
+         ldy   #0
+         lda   #kInvalidTooManyWhiteInRow
+         clc
+         rts
+@notTooMany2
+         lda   colorcount3
+         asl
+         cmp   logical_board_size
+         beq   @notTooMany3
+         bcc   @notTooMany3
+         ldy   #0
+         lda   #kInvalidTooManyBlueInRow
+         clc
+         rts
+@notTooMany3
+         sec
+         rts
+
+FindValidMoveForUser
+         ldx   #>kUserBoardBuffer
+         ldy   gLastSelectedBoardSize
+         bne   FindValidMove         ; always branches
+
 FindValidMoveForTitle
          ldx   #>kTitleBoardBuffer
          ldy   #kTitleBoardSize
@@ -47,115 +196,93 @@ FindValidMoveForTitle
 FindValidMove
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
-; out:   C=0 if found valid move, then
-;          A=tile value (1 or 2)
-;          X=tile row (0x00..0x0F)
-;          Y=tile column (0x00..0x0F)
-;        C=1 if no valid move was found
+; out:   C = 0 if found valid move, then
+;          A = tile value (0x02 or 0x03)
+;          X = tile row (0x00..0x0F)
+;          Y = tile column (0x00..0x0F)
+;        C = 1 if no valid move was found
          stx   board_base_ptr+1
          sty   logical_board_size
          ldx   #$0F                  ; tile row
-.CheckRow
+@CheckRow
          jsr   CalculateRowBase
          sta   board_base_ptr
          ldy   #$0D
          sty   tile_column
-.CheckTile
+@CheckTile
          ldy   tile_column
          jsr   cmp_0
-         bne   .not0xx
+         bne   @not0xx
          jsr   iny_and_cmp_2
-         bne   .not02x
+         bne   @not02x
          jsr   iny_and_cmp_2
-         bne   .nomatch
+         bne   @nomatch
          ;found 022, valid move to change 0 -> 3
          lda   #$03
 -        ldy   tile_column
          clc
          rts
-.not02x
+@not02x
          cmp   #$03
-         bne   .nomatch
+         bne   @nomatch
          jsr   iny_and_cmp_3
-         bne   .nomatch
+         bne   @nomatch
          ;found 033, valid move to change 0 -> 2
          lda   #$02
          bne   -                     ; always branches
-.not0xx
+@not0xx
          jsr   iny_and_cmp_0
-         bne   .notx0x
+         bne   @notx0x
          dey
          jsr   cmp_2
-         bne   .not20x
+         bne   @not20x
          iny
          jsr   iny_and_cmp_2
-         bne   .nomatch
+         bne   @nomatch
          ;found 202, valid move to change 0 -> 3
          lda   #$03
 -        dey
          clc
          rts
-.not20x
+@not20x
          cmp   #$03
-         bne   .nomatch
+         bne   @nomatch
          iny
          jsr   iny_and_cmp_3
-         bne   .nomatch
+         bne   @nomatch
          ;found 303, valid move to change 0 -> 2
          lda   #$02
          bne   -                     ; always branches
-.notx0x
+@notx0x
          jsr   iny_and_cmp_0
-         bne   .nomatch
+         bne   @nomatch
          jsr   dey_and_cmp_2
-         bne   .notx20
+         bne   @notx20
          jsr   dey_and_cmp_2
-         bne   .nomatch
+         bne   @nomatch
          ;found 220, valid move to change 0 -> 3
          lda   #$03
 -        iny
          iny
          clc
-.exit    rts
-.notx20
+@exit    rts
+@notx20
          cmp   #$03
-         bne   .nomatch
+         bne   @nomatch
          jsr   dey_and_cmp_3
-         bne   .nomatch
+         bne   @nomatch
          ;found 330, valid move to change 0 -> 2
          lda   #$02
          bne   -                     ; always branches
-.nomatch
+@nomatch
          dec   tile_column
-         bpl   .CheckTile
-         jsr   .IsRowFullOfOneColorButNotTheOther
-         bcc   .exit
+         bpl   @CheckTile
+         jsr   @IsRowFullOfOneColorButNotTheOther
+         bcc   @exit
          dex
-         bpl   .CheckRow
+         bpl   @CheckRow
 ;IsAnyRowAlmostADuplicateOfAnotherRow
-         ldx   #$0E
-         stx   row1
-         inx
-         ; count number of empty tiles in each row
-         ldy   #$00
--        sty   row_empty_counts, x
-         dex
-         bpl   -
-         inx
-         ;X=0
-         stx   board_base_ptr
-         ;Y=0
---       lda   #$10
-         sta   tile_column
--        lda   (board_base_ptr), y
-         bne   +
-         inc   row_empty_counts, x
-+        iny
-         dec   tile_column
-         bne   -
-         inx
-         tya
-         bne   --
+         jsr   .CountEmptyPerRow
          lda   board_base_ptr+1
          sta   board_base_ptr2+1
 @row1loop
@@ -216,49 +343,79 @@ FindValidMove
          sec
          rts
 
-.IsRowFullOfOneColorButNotTheOther
+@IsRowFullOfOneColorButNotTheOther
+         jsr   .CountColorsInRow
+         lda   colorcount2
+         cmp   colorcount3
+         beq   @no                   ; if color counts are the same, we're done (and the answer is no)
+         asl
+         cmp   logical_board_size
+         beq   @fullOf2
+         lda   colorcount3
+         asl
+         cmp   logical_board_size
+         beq   @fullOf3
+@no
+         sec
+         rts
+@fullOf2
+         lda   #$03
+         +HIDE_NEXT_2_BYTES
+@fullOf3
+         lda   #$02
+         pha
+         ldy   #$0F
+-        lda   (board_base_ptr), y
+         beq   @yes
+         dey
+         bpl   -                     ; always branches
+@yes
+         pla                         ; A=1 or 2, X/Y contain row/column
+         clc
+         rts
+
+.CountColorsInRow
          lda   #$00
          sta   colorcount2
          sta   colorcount3
          ldy   #$0F
 -        jsr   cmp_0
          cmp   #$02
-         beq   .inc2
+         beq   @inc2
          cmp   #$03
-         beq   .inc3
+         beq   @inc3
          +HIDE_NEXT_2_BYTES
-.inc2    inc   colorcount2
+@inc2    inc   colorcount2
          +HIDE_NEXT_2_BYTES
-.inc3    inc   colorcount3
+@inc3    inc   colorcount3
          dey
          bpl   -
-         lda   colorcount2
-         cmp   colorcount3
-         beq   .no                   ; if color counts are the same, we're done (and the answer is no)
-         asl
-         cmp   logical_board_size
-         beq   .fullOf2
-         lda   colorcount3
-         asl
-         cmp   logical_board_size
-         beq   .fullOf3
-.no
-         sec
          rts
-.fullOf2
-         lda   #$03
-         +HIDE_NEXT_2_BYTES
-.fullOf3
-         lda   #$02
-         pha
-         ldy   #$0F
+
+.CountEmptyPerRow
+         ldx   #$0E
+         stx   row1
+         inx
+         ; count number of empty tiles in each row
+         ldy   #$00
+-        sty   row_empty_counts, x
+         dex
+         bpl   -
+         inx
+         ;X=0
+         stx   board_base_ptr
+         ;Y=0
+--       lda   #$10
+         sta   tile_column
 -        lda   (board_base_ptr), y
-         beq   .yes
-         dey
-         bpl   -                     ; always branches
-.yes
-         pla                         ; A=1 or 2, X/Y contain row/column
-         clc
+         bne   +
+         inc   row_empty_counts, x
++        iny
+         dec   tile_column
+         bne   -
+         inx
+         tya
+         bne   --
          rts
 
 iny_and_cmp_0
@@ -333,14 +490,4 @@ TransposeBoard
          tax
          pla
          plp
-         rts
-
-CalculateRowBase
-; in:    X = row (0x00..0x0F)
-; out:   A = low byte of address of board buffer for this row
-         txa
-         asl
-         asl
-         asl
-         asl
          rts

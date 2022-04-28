@@ -337,9 +337,6 @@ addon
          ; TransWarp I
          sta   tw1_speed
 
-         ; no UW support here because the softswitch to enable
-         ; acceleration triggers DHGR bugs in OpenEmulator :-(
-
          ; Zip Chip
          ldy   #FC_1MHZ
          eor   #1
@@ -369,7 +366,7 @@ FASTChip
          lda   #FC_LOCK
          sta   fc_lock
 skip_fc
-         ;ldx   gMachineInDHGRMode
+         ldx   #0
 fixiic
          bit   $D05F     ; fix colouring on IIc (SMC to STA,X on IIc)
 +        plp             ; restore interrupt state

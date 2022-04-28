@@ -23,6 +23,8 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $E2                   ; b
          !byte $D7                   ; W
          !byte $F7                   ; w
+         !byte $C8                   ; H
+         !byte $E8                   ; h
          !byte $9B                   ; Esc
          !byte $92                   ; Ctrl-R
          !byte $93                   ; Ctrl-S
@@ -41,6 +43,8 @@ kPlayKeyHandlersLo
          !byte <PlayEventB
          !byte <PlayEventW
          !byte <PlayEventW
+         !byte <PlayEventH
+         !byte <PlayEventH
          !byte <PlayEventEsc
          !byte <PlayEventCtrlR
          !byte <PlayEventCtrlS
@@ -58,6 +62,8 @@ kPlayKeyHandlersHi
          !byte >PlayEventB
          !byte >PlayEventW
          !byte >PlayEventW
+         !byte >PlayEventH
+         !byte >PlayEventH
          !byte >PlayEventEsc
          !byte >PlayEventCtrlR
          !byte >PlayEventCtrlS
@@ -95,6 +101,7 @@ PlayEventLoop
          rts
 
 PlayEventEsc
+         bit   $ff58
          jsr   ClearFocusRectangle
          ldx   #kReturnToSelectSize  ; caller will exit play event loop
          rts
@@ -144,6 +151,8 @@ PlayEventRightArrow
          bcs   CantMoveFocus
          jsr   ClearFocusRectangle
          inc   gFocusedColumn
+         ; /!\ execution falls through here to RedrawFocusAndKeepPlaying
+
 RedrawFocusAndKeepPlaying
          jsr   DrawFocusRectangle
          ldx   #kKeepPlaying
@@ -161,6 +170,8 @@ PlayEventW
          jsr   GetValueAt
          bmi   CantChange
          lda   #$02
+         ; /!\ execution falls through here to Change
+
 Change
          sta   (board_base_ptr), y   ; populated by GetValueAt
          pha
@@ -168,11 +179,62 @@ Change
          jsr   GetFocusCoordinates
          pla
          jsr   DrawLargeCharacter
+         jsr   FindEmptyCoordinatesForUser
+         bcs   MaybeWin
          jsr   DrawFocusRectangle
 CantMoveFocus
 CantChange
          ldx   #kKeepPlaying
          rts
+
+PlayEventH
+         jsr   FindInvalidMoveForUser
+         bcc   @foundInvalid
+         jsr   TransposeBoard
+         jsr   FindInvalidMoveForUser
+         jsr   TransposeBoard
+         jsr   SwapXY
+         bcs   @noInvalid
+@foundInvalid
+         ; FIXME
+         ldx   #kKeepPlaying
+         rts
+@noInvalid
+         jsr   FindValidMoveForUser
+         bcc   @foundValid
+         jsr   TransposeBoard
+         jsr   FindValidMoveForUser
+         jsr   TransposeBoard
+         jsr   SwapXY
+         bcs   @exit                 ; should never branch but OK
+@foundValid
+         txa
+         pha
+         tya
+         pha
+         jsr   ClearFocusRectangle
+         pla
+         sta   gFocusedColumn
+         pla
+         sta   gFocusedRow
+         jsr   DrawFocusRectangle
+@exit    ldx   #kKeepPlaying
+         rts
+
+MaybeWin
+         jsr   FindInvalidMove
+         bcc   AWinnerIsNotYou
+         jsr   TransposeBoard
+         jsr   FindInvalidMove
+         jsr   SwapXY
+         jsr   TransposeBoard
+         bcc   AWinnerIsNotYou
+         ldx   #kCompletedPuzzle
+         rts
+
+AWinnerIsNotYou
+         ; board is full but we found an invalid move so highlight it
+         brk
 
 PlayEventReturn
          brk
