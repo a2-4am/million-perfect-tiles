@@ -41,6 +41,7 @@ DrawFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
 ;        A = type (see above)
+         jsr   HidePointer
          pha
          +LogicalColumnToPhysicalColumn
          sty   HTAB
@@ -53,7 +54,6 @@ DrawFocusRectangleAt
          lda   kFocusColumnCounts, x
          sta   column_count
          ldx   #11
-         jsr   HidePointer
 @drawLastRow
          sec
 @drawRowLoop
@@ -102,6 +102,7 @@ ClearFocusRectangle
 ClearFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
+         jsr   HidePointer
          +LogicalColumnToPhysicalColumn
          sty   HTAB
          ldy   HGR_start_row, x
@@ -109,7 +110,6 @@ ClearFocusRectangleAt
          dey                         ; start two rows above tile
          sty   char_row
          ldx   #11
-         jsr   HidePointer
 --       sec
 -        ldy   char_row
          lda   HGRLO, y

@@ -382,7 +382,6 @@ PointerOnShutdown
 DrawPointer
          php
          sei
-         +SAVE_AXY
          lsr   WG_MOUSEPOS_Y+1
          ror   WG_MOUSEPOS_Y
          lsr   WG_MOUSEPOS_Y+1
@@ -468,8 +467,6 @@ DrawPointer
          lda   #$80
          sta   gPointerHasCache
 @done
-         +RESTORE_AXY
-         cli
          plp
          rts
 
@@ -512,7 +509,6 @@ UndrawPointer
          sta   gPointerHasCache
 @done
          +RESTORE_AXY
-         cli
          plp
          rts
 

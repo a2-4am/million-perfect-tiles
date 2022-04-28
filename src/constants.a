@@ -6,16 +6,17 @@
 ; YE OLDE GRAND UNIFIED MEMORY MAP
 ;
 ; MAIN MEMORY
-; 0100..01BF - HGR base address table (lo)
-; 0300..03BF - HGR base address table (hi)
-; 03C0..03EC - used by nth() when reading puzzles from disk
 ; 0400..07FF - text page (kept black for switching)
 ;
+; 1700..19BF - HGR base address table
+; 18C0..18EC - used by nth() when reading puzzles from disk
+; 1900..19FF - board buffer for gameplay
 ; 1A00..1AFF - board buffer for main menu
 ; 1B00..1BFF - used by nth() when decompressing puzzles read from disk
 ; 1C00..1FFF - ProDOS file buffer
 ; 2000..3FFF - hi-res page
 ; 4000+      - program code (relocated to here at startup)
+; BEB4..BEFF - DisableAccelerator/EnableAccelerator (relocated to here at startup)
 ;------------------------------------------------------------------------------
 
 ; soft switches
@@ -57,9 +58,9 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
-pointer_hgr_base_ptr      = $BD      ; word
-pointer_logical_row       = $BF      ; byte
-pointer_hgr_row           = $C0      ; byte
+pointer_hgr_base_ptr      = $BD      ; word (used by DrawPointer/UndrawPointer)
+pointer_logical_row       = $BF      ; byte (used by DrawPointer/UndrawPointer)
+pointer_hgr_row           = $C0      ; byte (used by DrawPointer/UndrawPointer)
 gPointerVisible           = $C1      ; byte (used by DrawPointer/UndrawPointer)
 gPointerHasCache          = $C2      ; byte (used by DrawPointer/UndrawPointer)
 gPointerCacheLeft         = $C3      ; 9 bytes (used by DrawPointer/UndrawPointer)
@@ -90,9 +91,9 @@ string_len                = $FB      ; byte (used by DrawLargeString)
 string_ptr                = $FC      ; word (used by DrawLargeString)
 tmpx                      = $FE      ; byte (used by DrawLargeCharacter)
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter)
-HGRHI                     = $0300    ; 0xC0 bytes (used by DrawLargeCharacter)
-read_buffer               = $03C0    ; 0x2D bytes (used by nth)
+HGRHI                     = $1700    ; 0xC0 bytes (used by DrawLargeCharacter)
 HGRLO                     = $1800    ; 0xC0 bytes (used by DrawLargeCharacter)
+read_buffer               = $18C0    ; 0x2D bytes (used by nth)
 kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (used by DrawMainMenuBackground)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth)
