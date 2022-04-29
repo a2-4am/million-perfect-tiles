@@ -176,6 +176,14 @@
          tay
 }
 
+!macro PhysicalColumnToLogicalColumn {
+         tya
+         lsr
+         tay
+         dey
+         dey
+}
+
 ; Saves all registers
 !macro SAVE_AXY {
          pha

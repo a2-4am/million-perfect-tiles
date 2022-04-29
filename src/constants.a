@@ -58,15 +58,19 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
-pointer_hgr_base_ptr      = $BD      ; word (used by DrawPointer/UndrawPointer)
-pointer_logical_row       = $BF      ; byte (used by DrawPointer/UndrawPointer)
-pointer_hgr_row           = $C0      ; byte (used by DrawPointer/UndrawPointer)
-gPointerVisible           = $C1      ; byte (used by DrawPointer/UndrawPointer)
+pointer_tmp_x             = $B7      ; word
+pointer_tmp_y             = $B9      ; word
+pointer_hgr_base_ptr      = $BB      ; word (used by DrawPointer/UndrawPointer)
+pointer_logical_row       = $BD      ; byte (used by DrawPointer/UndrawPointer)
+pointer_hgr_row           = $BE      ; byte (used by DrawPointer/UndrawPointer)
+gPointerVisible           = $BF      ; byte (used by DrawPointer/UndrawPointer)
+gPointerClicked           = $C0
+gPointerMoved             = $C1
 gPointerHasCache          = $C2      ; byte (used by DrawPointer/UndrawPointer)
 gPointerCacheLeft         = $C3      ; 9 bytes (used by DrawPointer/UndrawPointer)
 gPointerCacheRight        = $CC      ; 9 bytes (used by DrawPointer/UndrawPointer)
-gPointerX                 = $D5      ; byte (used by DrawPointer/UndrawPointer)
-gPointerY                 = $D6      ; byte (used by DrawPointer/UndrawPointer)
+gPointerCacheX            = $D5      ; byte (used by DrawPointer/UndrawPointer)
+gPointerCacheY            = $D6      ; byte (used by DrawPointer/UndrawPointer)
 column_index              = $D7      ; byte (used by DrawFocusRectangle)
 column_count              = $D8      ; byte (used by DrawFocusRectangle)
 gLastSelectedBoardSize    = $D9      ; byte

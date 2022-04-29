@@ -121,18 +121,24 @@ kMainMenuStringsHi
 ; out:   Z = 0
 ;------------------------------------------------------------------------------
 MainMenuEventLoop
-         bcc   @keyloop
+         bcc   @loop
          bit   TEXTMODE
          jsr   HidePointer
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
          jsr   ShowPointer
          bit   GFXMODE
-@keyloop
-         jsr   WaitForKey
+@loop
+         jsr   GetNextEvent
+         cpx   #kEventMouseMove
+         beq   @onMouseMove
+         cpx   #kEventClick
+         beq   @onClick
+         cpx   #kEventKeypress
+         bne   @loop
          ldx   #0
 -        ldy   kMainMenuKeys, x
-         beq   @keyloop              ; key has no associated handler, so ignore it
+         beq   @loop                 ; key has no associated handler, so ignore it
          cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
@@ -145,6 +151,47 @@ MainMenuEventLoop
 @j       jsr   $FDFD                 ; SMC
          beq   MainMenuEventLoop
          rts
+@onMouseMove
+         +LDADDR MainMenuEventMouseMove
+         +ST16 @j+1
+         jmp   @j
+@onClick
+         +LDADDR MainMenuEventClick
+         +ST16 @j+1
+         jmp   @j
+
+MainMenuEventMouseMove
+         jsr   MousePositionToLogicalCoordinates
+         cpx   #kMainMenuMin
+         bcc   StayOnMainMenuNoRefresh
+         cpx   #(kMainMenuMin + kMainMenuCount)
+         bcs   StayOnMainMenuNoRefresh
+         cpy   #5
+         bcc   StayOnMainMenuNoRefresh
+         cpy   #11
+         bcs   StayOnMainMenuNoRefresh
+         cpx   .mainMenuSelectedIndex
+         beq   StayOnMainMenuNoRefresh
+         txa
+         pha
+         jsr   HidePointer
+         jsr   EraseMainMenuSelectionIndicator
+         pla
+         tax
+         jmp   .MainMenuRedrawSelect
+
+MainMenuEventClick
+         jsr   ClickPositionToLogicalCoordinates
+         cpx   #kMainMenuMin
+         bcc   StayOnMainMenuNoRefresh
+         cpx   #(kMainMenuMin + kMainMenuCount)
+         bcs   StayOnMainMenuNoRefresh
+         cpy   #5
+         bcc   StayOnMainMenuNoRefresh
+         cpy   #11
+         bcs   StayOnMainMenuNoRefresh
+         stx   .mainMenuSelectedIndex
+         ; /!\ execution falls through here to MainMenuEventReturn
 
 MainMenuEventReturn
          ; figure out which menu item is selected and exit via its handler
@@ -156,23 +203,26 @@ MainMenuEventReturn
 @crjmp   jmp   $FDFD                 ; SMC
 
 MainMenuEventUp
+         jsr   HidePointer
          jsr   EraseMainMenuSelectionIndicator
          dec   .mainMenuSelectedIndex
          ldx   .mainMenuSelectedIndex
          cpx   #kMainMenuMin
          bcs   +
          ldx   #(kMainMenuMin+kMainMenuCount-1)
-+        jsr   SetMainMenuSelectionIndexAndRedraw
-         jmp   StayOnMainMenuNoRefresh
++        jmp   .MainMenuRedrawSelect
 
 MainMenuEventDown
+         jsr   HidePointer
          jsr   EraseMainMenuSelectionIndicator
          inc   .mainMenuSelectedIndex
          ldx   .mainMenuSelectedIndex
          cpx   #(kMainMenuMin+kMainMenuCount)
-         bcc   +
+         bcc   .MainMenuRedrawSelect
          ldx   #kMainMenuMin
-+        jsr   SetMainMenuSelectionIndexAndRedraw
+.MainMenuRedrawSelect
+         jsr   SetMainMenuSelectionIndexAndRedraw
+         jsr   ShowPointer
 StayOnMainMenuNoRefresh
          ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
          clc
@@ -259,7 +309,7 @@ DrawMainMenuText
          dec   row1
          bpl   -
          ldx   .mainMenuSelectedIndex
-         ; /!\ execution falls through here to DrawMainMenuSelectionIndicator
+         ; /!\ execution falls through here to SetMainMenuSelectionIndexAndRedraw
 
 SetMainMenuSelectionIndexAndRedraw
 ; in:    X = new selection index

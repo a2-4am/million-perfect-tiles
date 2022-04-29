@@ -357,6 +357,8 @@ WGMouseInterruptHandler_buttonDown:
 	sta WG_MOUSECLICK_Y
 	lda WG_MOUSEPOS_Y+1
 	sta WG_MOUSECLICK_Y+1
+        lda #$80
+        sta gPointerClicked
 
 WGMouseInterruptHandler_intDoneGS:
 	rts				; Self-modifying code!

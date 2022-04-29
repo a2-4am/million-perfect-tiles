@@ -5,8 +5,12 @@
 ;
 ; Public functions:
 ; - Home
-; - WaitForKey
+; - GetNextEvent
 ;
+
+kEventKeypress = 1
+kEventMouseMove = 2
+kEventClick = 3
 
 ;------------------------------------------------------------------------------
 ; Home
@@ -64,21 +68,39 @@ Home
          jmp   ShowPointer
 
 ;------------------------------------------------------------------------------
-; WaitForKey
-; wait forever for any key, while incrementing random seed
+; GetNextEvent
+; wait forever for any key, mouse movement, or mouse click, while incrementing
+; random seed
 ;
 ; in:    none
-; out:   A = gLastKeyPressed = unaltered key code
-;        X/Y preserved
+; out:   X = event code (see above)
+;        if X = kEventKeypress, then
+;          A = gLastKeyPressed = unaltered key code
+;        Y preserved
 ;        flags clobbered
 ;------------------------------------------------------------------------------
-WaitForKey
+GetNextEvent
          bit   CLEARKBD
 -        inc   RNDSEED
          bne   +
          inc   RNDSEED+1
-+        lda   KBD
++        bit   gPointerMoved
+         bmi   @onMouseMove
+         bit   gPointerClicked
+         bmi   @onClick
+         lda   KBD
          bpl   -
          bit   CLEARKBD
          sta   gLastKeyPressed
+         ldx   #kEventKeypress
+         rts
+@onMouseMove
+         lda   #$00
+         sta   gPointerMoved
+         ldx   #kEventMouseMove
+         rts
+@onClick
+         lda   #$00
+         sta   gPointerClicked
+         ldx   #kEventClick
          rts

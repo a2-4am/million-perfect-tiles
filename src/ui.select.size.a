@@ -88,18 +88,24 @@ kSelectSizeStringsHi
 ; out:   Z = 0
 ;------------------------------------------------------------------------------
 SelectSizeEventLoop
-         bcc   @keyloop
+         bcc   @loop
          bit   TEXTMODE
          jsr   HidePointer
          jsr   DrawSelectSizeBackground
          jsr   DrawSelectSizeText
          jsr   ShowPointer
          bit   GFXMODE
-@keyloop
-         jsr   WaitForKey
+@loop
+         jsr   GetNextEvent
+         cpx   #kEventMouseMove
+         beq   @onMouseMove
+         cpx   #kEventClick
+         beq   @onClick
+         cpx   #kEventKeypress
+         bne   @loop
          ldx   #0
 -        ldy   kSelectSizeKeys, x
-         beq   @keyloop              ; key has no associated handler, so ignore it
+         beq   @loop                 ; key has no associated handler, so ignore it
          cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
@@ -112,6 +118,50 @@ SelectSizeEventLoop
 @j       jsr   $FDFD                 ; SMC
          beq   SelectSizeEventLoop
          rts
+@onMouseMove
+         +LDADDR SelectSizeEventMouseMove
+         +ST16 @j+1
+         jmp   @j
+@onClick
+         +LDADDR SelectSizeEventClick
+         +ST16 @j+1
+         jmp   @j
+
+StayOnSelectSizeNoRefresh0
+         jmp   StayOnSelectSizeNoRefresh
+
+SelectSizeEventMouseMove
+         jsr   MousePositionToLogicalCoordinates
+         cpx   #kSelectSizeMin
+         bcc   StayOnSelectSizeNoRefresh0
+         cpx   #(kSelectSizeMin + kSelectSizeCount)
+         bcs   StayOnSelectSizeNoRefresh0
+         cpy   #6
+         bcc   StayOnSelectSizeNoRefresh0
+         cpy   #10
+         bcs   StayOnSelectSizeNoRefresh0
+         cpx   .selectSizeSelectedIndex
+         beq   StayOnSelectSizeNoRefresh0
+         txa
+         pha
+         jsr   HidePointer
+         jsr   EraseSelectSizeSelectionIndicator
+         pla
+         tax
+         jmp   .SelectSizeRedrawSelect
+
+SelectSizeEventClick
+         jsr   ClickPositionToLogicalCoordinates
+         cpx   #kSelectSizeMin
+         bcc   StayOnSelectSizeNoRefresh0
+         cpx   #(kSelectSizeMin + kSelectSizeCount)
+         bcs   StayOnSelectSizeNoRefresh0
+         cpy   #6
+         bcc   StayOnSelectSizeNoRefresh0
+         cpy   #10
+         bcs   StayOnSelectSizeNoRefresh0
+         stx   .selectSizeSelectedIndex
+         ; /!\ execution falls through here to SelectSizeEventReturn
 
 SelectSizeEventReturn
          jsr   Home
@@ -165,9 +215,7 @@ SelectSizeEventUp
          cpx   #kSelectSizeMin
          bcs   +
          ldx   #(kSelectSizeMin+kSelectSizeCount-1)
-+        jsr   SetSelectSizeSelectionIndexAndRedraw
-         jsr   ShowPointer
-         jmp   StayOnSelectSizeNoRefresh
++        jmp   .SelectSizeRedrawSelect
 
 SelectSizeEventDown
          jsr   HidePointer
@@ -175,9 +223,10 @@ SelectSizeEventDown
          inc   .selectSizeSelectedIndex
          ldx   .selectSizeSelectedIndex
          cpx   #(kSelectSizeMin+kSelectSizeCount)
-         bcc   +
+         bcc   .SelectSizeRedrawSelect
          ldx   #kSelectSizeMin
-+        jsr   SetSelectSizeSelectionIndexAndRedraw
+.SelectSizeRedrawSelect
+         jsr   SetSelectSizeSelectionIndexAndRedraw
          jsr   ShowPointer
 StayOnSelectSizeNoRefresh
          ldx   #kStayOnSelectSize    ; Z=1 so caller will stay in select size event loop

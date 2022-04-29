@@ -9,6 +9,8 @@
 ; - PointerOnShutdown
 ; - HidePointer
 ; - ShowPointer
+; - MousePositionToLogicalCoordinates
+; - ClickPositionToLogicalCoordinates
 
 ; Additionally, these routines are called by the mouse driver (do not call them directly)
 ; - DrawPointer
@@ -372,6 +374,8 @@ PointerOnStartup
          +LDADDR UndrawPointer
          +ST16 WGUndrawPointerCallback
          lda   #$00
+         sta   gPointerMoved
+         sta   gPointerClicked
          sta   gPointerHasCache
          jsr   ShowPointer
          jmp   WGEnableMouse
@@ -382,30 +386,34 @@ PointerOnShutdown
 DrawPointer
          php
          sei
-         lsr   WG_MOUSEPOS_Y+1
-         ror   WG_MOUSEPOS_Y
-         lsr   WG_MOUSEPOS_Y+1
-         ror   WG_MOUSEPOS_Y
-         ldx   WG_MOUSEPOS_Y
-         lsr   WG_MOUSEPOS_X+1
-         ror   WG_MOUSEPOS_X
+         +LD16 WG_MOUSEPOS_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSEPOS_Y
+         +ST16 pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         ldx   pointer_tmp_y
+         lsr   pointer_tmp_x+1
+         ror   pointer_tmp_x
          ldy   #0
--        lda   WG_MOUSEPOS_X
+-        lda   pointer_tmp_x
          sec
          sbc   #7
          bcs   +
-         dec   WG_MOUSEPOS_X+1
+         dec   pointer_tmp_x+1
          bmi   ++
-+        sta   WG_MOUSEPOS_X
++        sta   pointer_tmp_x
          iny
          bne   -
-++       lda   WG_MOUSEPOS_X
+++       lda   pointer_tmp_x
 ;DrawPointerAt
 ; in:    X = top HGR row (0x00..0xBF)
 ;        Y = column offset, byte (0x00..0x27)
 ;        A = column offset, pixel offset within byte (0..6)
-         stx   gPointerX
-         sty   gPointerY
+         stx   gPointerCacheX
+         sty   gPointerCacheY
          bit   gPointerVisible
          bpl   @done
          tax
@@ -425,7 +433,7 @@ DrawPointer
          sta   @andright+1
          lda   kPointerMaskRightHi, x
          sta   @andright+2
-         lda   gPointerX
+         lda   gPointerCacheX
          clc
          adc   #(kPointerHeight-1)
          sta   pointer_hgr_row
@@ -465,6 +473,7 @@ DrawPointer
          dec   pointer_logical_row
          bpl   @pointerRowLoop
          lda   #$80
+         sta   gPointerMoved
          sta   gPointerHasCache
 @done
          plp
@@ -476,8 +485,8 @@ UndrawPointer
          +SAVE_AXY
          bit   gPointerHasCache
          bpl   @done
-         ldx   gPointerX
-         ldy   gPointerY
+         ldx   gPointerCacheX
+         ldy   gPointerCacheY
          txa
          clc
          adc   #(kPointerHeight-1)
@@ -525,4 +534,50 @@ ShowPointer
          lda   #$80
          sta   gPointerVisible
          pla
+         rts
+
+ClickPositionToLogicalCoordinates
+         php
+         sei
+         +LD16 WG_MOUSECLICK_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSECLICK_Y
+         jmp   +
+MousePositionToLogicalCoordinates
+         php
+         sei
+         +LD16 WG_MOUSEPOS_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSEPOS_Y
++
+         +ST16 pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         ldx   #$FF
+         lda   pointer_tmp_y
+         sec
+         sbc   #8
+         bcc   +
+-        inx
+         sec
+         sbc   #11
+         bcs   -
++
+         lsr   pointer_tmp_x+1
+         ror   pointer_tmp_x
+         ldy   #0
+-        lda   pointer_tmp_x
+         sec
+         sbc   #7
+         bcs   +
+         dec   pointer_tmp_x+1
+         bmi   ++
++        sta   pointer_tmp_x
+         iny
+         bne   -
+++
+         +PhysicalColumnToLogicalColumn
+         plp
          rts

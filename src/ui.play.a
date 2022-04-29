@@ -82,11 +82,17 @@ kPlayKeyHandlersHi
 ;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 PlayEventLoop
-@keyloop
-         jsr   WaitForKey
+@loop
+         jsr   GetNextEvent
+         cpx   #kEventMouseMove
+         beq   @onMouseMove
+         cpx   #kEventClick
+         beq   @onClick
+         cpx   #kEventKeypress
+         bne   @loop
          ldx   #0
 -        ldy   kPlayKeys, x
-         beq   @keyloop              ; key has no associated handler, so ignore it
+         beq   @loop                 ; key has no associated handler, so ignore it
          cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
@@ -99,6 +105,62 @@ PlayEventLoop
 @j       jsr   $FDFD                 ; SMC
          beq   PlayEventLoop
          rts
+@onMouseMove
+         +LDADDR PlayEventMouseMove
+         +ST16 @j+1
+         jmp   @j
+@onClick
+         +LDADDR PlayEventClick
+         +ST16 @j+1
+         jmp   @j
+
+PlayEventMouseMove
+         jsr   MousePositionToLogicalCoordinates
+         cpx   gFocusedRow
+         bne   @maybeMoveFocus
+         cpy   gFocusedColumn
+         beq   @done
+@maybeMoveFocus
+         jsr   CanMoveFocusTo
+         bcs   @done
+         txa
+         pha
+         tya
+         pha
+         jsr   ClearFocusRectangle
+         pla
+         tay
+         pla
+         tax
+         stx   gFocusedRow
+         sty   gFocusedColumn
+         jsr   DrawFocusRectangle
+@done
+         ldx   #kKeepPlaying
+         rts
+
+PlayEventClick
+         jsr   ClickPositionToLogicalCoordinates
+         cpx   gFocusedRow
+         bne   @done
+         cpy   gFocusedColumn
+         beq   PlayEventReturn
+@done
+         ldx   #kKeepPlaying
+         rts
+
+PlayEventReturn
+         jsr   GetFocusCoordinates
+         jsr   GetValueAt
+         bmi   @done
+         tax
+         lda   kNextValue, x
+         jmp   Change
+@done
+         ldx   #kKeepPlaying
+         rts
+kNextValue
+         !byte $02,$FF,$03,$00
 
 PlayEventEsc
          jsr   ClearFocusRectangle
@@ -233,9 +295,6 @@ MaybeWin
 
 AWinnerIsNotYou
          ; board is full but we found an invalid move so highlight it
-         brk
-
-PlayEventReturn
          brk
 
 PlayEventQuestion
