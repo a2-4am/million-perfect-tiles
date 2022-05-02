@@ -6,6 +6,7 @@
 ; Public functions:
 ; - Home
 ; - GetNextEvent
+; - GridFizzle
 ;
 
 kEventKeypress = 1
@@ -104,3 +105,40 @@ GetNextEvent
          sta   gPointerClicked
          ldx   #kEventClick
          rts
+
+GridFizzle
+         ldx   #0
+         ldy   #0
+; X,Y=0 on entry to LFSR
+@loop    txa
+@loop1   eor   #$35                  ; LFSR form 0x3500 with period 0x3FFF
+         tax                         ; X is LFSR high byte, Y is LFSR low byte
+@loop2   txa
+         bne   +                     ; ignore if high byte > 0 (absurdly high period instead of a wait loop)
+         pha
+         tya
+         pha
+         lsr
+         lsr
+         lsr
+         lsr
+         tax
+         tya
+         and   #$0F
+         tay                         ; split LFSR low byte into nibbles and put in X (high nibble) and Y (low nibble)
+         jsr   @draw
+         pla
+         tay
+         pla
++        lsr
+         tax
+         tya
+         ror
+         tay
+         bcc   @loop2                ; C modified by ror
+         bne   @loop                 ; Z modified by tay
+         txa
+         bne   @loop1
+         ; /!\ execution falls through here to draw final coordinates (0,0)
+@draw    lda   #$00
+         jmp   DrawLargeCharacter
