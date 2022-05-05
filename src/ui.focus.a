@@ -27,11 +27,16 @@
 ; (bottom row + 2, left byte) = 0x80
 ; (bottom row + 2, right byte) = 0x80
 
-kFocus1x1      = 0
-kFocus1x3      = 1
+kFocusEntireRow           = 0
+kFocusEntireColumn        = 1
+kFocus1x1                 = 2
+kFocus1x3                 = 3
+kFocus3x1                 = 4
 
+kFocusRowCounts
+         !byte 1,0,1,1,3
 kFocusColumnCounts
-         !byte 1,3
+         !byte 0,1,1,3,1
 
 DrawFocusRectangle
          ldx   gFocusedRow
@@ -43,6 +48,7 @@ DrawFocusRectangleAt
 ;        A = type (see above)
          jsr   HidePointer
          pha
+         jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
          sty   HTAB
          ldy   HGR_start_row, x
@@ -53,11 +59,18 @@ DrawFocusRectangleAt
          tax
          lda   kFocusColumnCounts, x
          sta   column_count
-         ldx   #11
+         lda   kFocusRowCounts, x
+         tax
+         clc
+         lda   #0
+-        adc   #11
+         dex
+         bne   -
+         tax                         ; total HGR row count
 @drawLastRow
          sec
 @drawRowLoop
--        ldy   char_row
+         ldy   char_row
          lda   HGRLO, y
          sta   hgr_base_ptr
          lda   HGRHI, y
@@ -94,7 +107,8 @@ DrawFocusRectangleAt
          inc   char_row
          dex
          beq   @drawLastRow
-         bpl   @drawRowLoop
+         cpx   #$FF
+         bne   @drawRowLoop
          jmp   ShowPointer
 
 ClearFocusRectangle
@@ -103,38 +117,88 @@ ClearFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
          jsr   HidePointer
+         pha
+         jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
          sty   HTAB
          ldy   HGR_start_row, x
          dey
          dey                         ; start two rows above tile
          sty   char_row
-         ldx   #11
---       sec
--        ldy   char_row
+         pla
+         tax
+         lda   kFocusColumnCounts, x
+         sta   column_count
+         lda   kFocusRowCounts, x
+         tax
+         clc
+         lda   #0
+-        adc   #11
+         dex
+         bne   -
+         tax                         ; total HGR row count
+@clearLastRow
+         sec
+@clearRowLoop
+         ldy   char_row
          lda   HGRLO, y
          sta   hgr_base_ptr
          lda   HGRHI, y
          sta   hgr_base_ptr+1
-         bcc   +
+         bcc   @skipHorizontal
          clc
          ldy   HTAB
+         lda   column_count
+         sta   column_index
+@clearColumnLoop
          lda   #$80                  ; erase horizontal line above and below tile (these rows are always black)
          sta   (hgr_base_ptr), y
          iny
          sta   (hgr_base_ptr), y
-+        ldy   HTAB
+         iny
+         dec   column_index
+         bne   @clearColumnLoop
+@skipHorizontal
+         ldy   HTAB
          dey
          lda   (hgr_base_ptr), y
          and   #$BF                  ; erase red line to the left of tile
          sta   (hgr_base_ptr), y
+         lda   column_count
+         sta   column_index
+-        iny
          iny
-         iny
+         dec   column_index
+         bne   -
          lda   (hgr_base_ptr), y
          and   #$BF                  ; erase red line to the right of tile
          sta   (hgr_base_ptr), y
          inc   char_row
          dex
-         beq   --
-         bpl   -
+         beq   @clearLastRow
+         cpx   #$FF
+         bne   @clearRowLoop
          jmp   ShowPointer
+
+;------------------------------------------------------------------------------
+; internal functions
+
+MaybeUpdateFocusCounts
+         cmp   #kFocusEntireRow
+         bne   +
+         sty   tmpy                  ; calculate actual column count
+         lda   #8
+         sec
+         sbc   tmpy
+         asl
+         sta   kFocusColumnCounts
+         rts
++        cmp   #kFocusEntireColumn
+         bne   +
+         stx   tmpx                  ; calculate actual row count
+         lda   #8
+         sec
+         sbc   tmpx
+         asl
+         sta   kFocusRowCounts+1
++        rts

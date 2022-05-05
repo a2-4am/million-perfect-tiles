@@ -5,6 +5,8 @@
 ;
 ; Public functions:
 ; - Home
+; - WaitForKeyWithTimeout
+; - LongWaitForKeyWithTimeout
 ; - GetNextEvent
 ; - GridFizzle
 ;
@@ -67,6 +69,50 @@ Home
          iny
          bne   -
          jmp   ShowPointer
+
+;------------------------------------------------------------------------------
+; WaitForKeyWithTimeout
+; wait for an amount of time, keypress, or mouse click, whichever comes first
+;
+; in:    A = timeout length (like standard $FCA8 wait routine)
+; out:   A = 0
+;        X/Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
+;------------------------------------------------------------------------------
+WaitForKeyWithTimeout
+         sec
+@wait1   pha
+@wait2   sbc   #1
+         bne   @wait2
+         pla
+         bit   $C000
+         bmi   @exit
+         bit   gPointerClicked
+         bmi   @exit
+         sbc   #1
+         bne   @wait1
+@exit    lda   #0
+         sta   gPointerClicked
+         rts
+
+;------------------------------------------------------------------------------
+; LongWaitForKeyWithTimeout
+; wait for a long amount of time, keypress, or mouse click, whichever comes first
+;
+; in:    X = number of iterations for an A=0 wait loop
+; out:   A,X = 0
+;        Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
+;------------------------------------------------------------------------------
+LongWaitForKeyWithTimeout
+         lda   #0
+-        jsr   WaitForKeyWithTimeout
+         bmi   +
+         dex
+         bne   -
++        rts
 
 ;------------------------------------------------------------------------------
 ; GetNextEvent

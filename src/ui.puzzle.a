@@ -4,10 +4,15 @@
 ; drawing routines for the puzzle board
 ;
 
+; DrawBoardForDemo
 ; DrawBoardForTitle
 ; DrawBoardForUser
 ; DrawBoardAt
 
+DrawBoardForDemo
+         ldx   #>kDemoBoardBuffer
+         +HIDE_NEXT_2_BYTES
+         ; /!\ execution falls through here to DrawBoardForTitle
 DrawBoardForTitle
          ldx   #>kTitleBoardBuffer
          +HIDE_NEXT_2_BYTES

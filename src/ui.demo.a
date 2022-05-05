@@ -4,6 +4,444 @@
 ; self-running demo
 ;
 
+kWhite = 2
+kBlue = 3
+
+; opcodes
+EXIT     = 0
+HOME     = 1
+LOAD     = 2
+SHOW     = 3
+HIDE     = 4
+FOCUS    = 5
+CLEAR    = 6
+DRAW     = 7
+WAIT     = 8
+
+s3SimpleRules0
+         !byte 1
+         !raw  "3"
+s3SimpleRules1
+         !byte 6
+         !raw "SIMPLE"
+s3SimpleRules2
+         !byte 5
+         !raw "RULES"
+sRuleOne0
+         !byte 4
+         !raw  "RULE"
+sRuleOne1
+         !byte 1
+         !raw  "1"
+sNever3InARow0
+         !byte 5
+         !raw  "NEVER"
+sNever3InARow1
+         !byte 1
+         !raw  "3"
+sNever3InARow2
+         !byte 2
+         !raw  "IN"
+sNever3InARow3
+         !byte 1
+         !raw  "A"
+sNever3InARow4
+         !byte 3
+         !raw  "ROW"
+sOfWhiteOrBlue0
+         !byte 2
+         !raw  "OF"
+sOfWhiteOrBlue1
+         !byte 5
+         !raw  "WHITE"
+sOfWhiteOrBlue2
+         !byte 2
+         !raw  "OR"
+sOfWhiteOrBlue3
+         !byte 4
+         !raw  "BLUE"
+sRuleTwo0
+         !byte 4
+         !raw  "RULE"
+sRuleTwo1
+         !byte 1
+         !raw  "2"
+sInEveryRow0
+         !byte 2
+         !raw  "IN"
+sInEveryRow1
+         !byte 5
+         !raw  "EVERY"
+sInEveryRow2
+         !byte 3
+         !raw  "ROW"
+sAndEveryColumn0
+         !byte 3
+         !raw  "AND"
+sAndEveryColumn1
+         !byte 5
+         !raw  "EVERY"
+sAndEveryColumn2
+         !byte 6
+         !raw  "COLUMN"
+sSameNumberOf0
+         !byte 4
+         !raw  "SAME"
+sSameNumberOf1
+         !byte 6
+         !raw  "NUMBER"
+sSameNumberOf2
+         !byte 2
+         !raw  "OF"
+sWhiteAndBlue0
+         !byte 5
+         !raw  "WHITE"
+sWhiteAndBlue1
+         !byte 3
+         !raw  "AND"
+sWhiteAndBlue2
+         !byte 4
+         !raw  "BLUE"
+
+DemoCode
+         !byte HOME
+         !byte SHOW , 7, 1, <s3SimpleRules0, >s3SimpleRules0
+         !byte WAIT , 2
+         !byte SHOW , 7, 3, <s3SimpleRules1, >s3SimpleRules1
+         !byte WAIT , 2
+         !byte SHOW , 7,10, <s3SimpleRules2, >s3SimpleRules2
+         !byte WAIT ,20
+
+         !byte HOME
+         !byte LOAD
+         !byte WAIT ,10
+         !byte SHOW , 0, 5, <sRuleOne0, >sRuleOne0
+         !byte WAIT , 1
+         !byte SHOW , 0,10, <sRuleOne1, >sRuleOne1
+         !byte WAIT , 8
+         !byte SHOW , 1, 0, <sNever3InARow0, >sNever3InARow0
+         !byte WAIT , 2
+         !byte SHOW , 1, 6, <sNever3InARow1, >sNever3InARow1
+         !byte WAIT , 1
+         !byte SHOW , 1, 8, <sNever3InARow2, >sNever3InARow2
+         !byte WAIT , 1
+         !byte SHOW , 1,11, <sNever3InARow3, >sNever3InARow3
+         !byte WAIT , 1
+         !byte SHOW , 1,13, <sNever3InARow4, >sNever3InARow4
+         !byte WAIT ,10
+         !byte SHOW , 2, 0, <sOfWhiteOrBlue0, >sOfWhiteOrBlue0
+         !byte WAIT , 1
+         !byte SHOW , 2, 3, <sOfWhiteOrBlue1, >sOfWhiteOrBlue1
+         !byte WAIT , 2
+         !byte SHOW , 2, 9, <sOfWhiteOrBlue2, >sOfWhiteOrBlue2
+         !byte WAIT , 1
+         !byte SHOW , 2, 12,<sOfWhiteOrBlue3, >sOfWhiteOrBlue3
+         !byte WAIT ,15
+
+         !byte FOCUS, 6, 7, kFocus1x3
+         !byte WAIT ,10
+         !byte DRAW , 6, 8, kBlue
+         !byte WAIT , 5
+         !byte CLEAR, 6, 7, kFocus1x3
+         !byte WAIT , 2
+
+         !byte FOCUS, 7, 8, kFocus1x3
+         !byte WAIT ,10
+         !byte DRAW , 7, 9, kWhite
+         !byte WAIT , 5
+         !byte CLEAR, 7, 8, kFocus1x3
+         !byte WAIT , 2
+
+         !byte FOCUS, 5, 8, kFocus3x1
+         !byte WAIT ,10
+         !byte DRAW , 5, 8, kWhite
+         !byte FOCUS, 5, 8, kFocus3x1
+         !byte WAIT , 5
+         !byte CLEAR, 5, 8, kFocus3x1
+         !byte WAIT , 2
+
+         !byte FOCUS, 6, 8, kFocus3x1
+         !byte WAIT ,10
+         !byte DRAW , 8, 8, kWhite
+         !byte FOCUS, 6, 8, kFocus3x1
+         !byte WAIT , 5
+         !byte CLEAR, 6, 8, kFocus3x1
+         !byte WAIT , 2
+
+         !byte FOCUS, 5, 9, kFocus3x1
+         !byte WAIT , 5
+         !byte DRAW , 5, 9, kBlue
+         !byte FOCUS, 5, 9, kFocus3x1
+         !byte WAIT , 3
+         !byte CLEAR, 5, 9, kFocus3x1
+         !byte WAIT , 1
+
+         !byte FOCUS, 6, 9, kFocus3x1
+         !byte WAIT , 5
+         !byte DRAW , 8, 9, kBlue
+         !byte FOCUS, 6, 9, kFocus3x1
+         !byte WAIT , 3
+         !byte CLEAR, 6, 9, kFocus3x1
+         !byte WAIT , 1
+
+         !byte FOCUS, 8, 7, kFocus3x1
+         !byte WAIT , 5
+         !byte DRAW , 8, 7, kBlue
+         !byte FOCUS, 8, 7, kFocus3x1
+         !byte WAIT , 3
+         !byte CLEAR, 8, 7, kFocus3x1
+         !byte WAIT , 1
+
+         !byte FOCUS, 8, 9, kFocus3x1
+         !byte WAIT , 5
+         !byte DRAW , 9, 9, kWhite
+         !byte FOCUS, 8, 9, kFocus3x1
+         !byte WAIT , 3
+         !byte CLEAR, 8, 9, kFocus3x1
+         !byte WAIT , 1
+
+         !byte FOCUS, 9, 7, kFocus1x3
+         !byte WAIT , 5
+         !byte DRAW , 9, 8, kBlue
+         !byte WAIT , 3
+         !byte CLEAR, 9, 7, kFocus1x3
+         !byte WAIT , 1
+
+         !byte HIDE , 0
+         !byte HIDE , 1
+         !byte HIDE , 2
+         !byte WAIT ,10
+         !byte SHOW , 0, 5, <sRuleTwo0, >sRuleTwo0
+         !byte WAIT , 1
+         !byte SHOW , 0,10, <sRuleTwo1, >sRuleTwo1
+         !byte WAIT , 8
+         !byte SHOW , 1, 2, <sInEveryRow0, >sInEveryRow0
+         !byte WAIT , 1
+         !byte SHOW , 1, 5, <sInEveryRow1, >sInEveryRow1
+         !byte WAIT , 1
+         !byte SHOW , 1,11, <sInEveryRow2, >sInEveryRow2
+         !byte WAIT , 4
+         !byte SHOW , 2, 0, <sAndEveryColumn0, >sAndEveryColumn0
+         !byte WAIT , 1
+         !byte SHOW , 2, 4, <sAndEveryColumn1, >sAndEveryColumn1
+         !byte WAIT , 1
+         !byte SHOW , 2,10, <sAndEveryColumn2, >sAndEveryColumn2
+         !byte WAIT ,10
+         !byte HIDE , 1
+         !byte HIDE , 2
+         !byte SHOW , 1, 1, <sSameNumberOf0, >sSameNumberOf0
+         !byte WAIT , 1
+         !byte SHOW , 1, 6, <sSameNumberOf1, >sSameNumberOf1
+         !byte WAIT , 2
+         !byte SHOW , 1,13, <sSameNumberOf2, >sSameNumberOf2
+         !byte WAIT , 1
+         !byte SHOW , 2, 1, <sWhiteAndBlue0, >sWhiteAndBlue0
+         !byte WAIT , 2
+         !byte SHOW , 2, 7, <sWhiteAndBlue1, >sWhiteAndBlue1
+         !byte WAIT , 1
+         !byte SHOW , 2,11, <sWhiteAndBlue2, >sWhiteAndBlue2
+         !byte WAIT ,15
+
+         !byte FOCUS, 5, 8, kFocusEntireColumn
+         !byte WAIT ,10
+         !byte DRAW ,10, 8, kWhite
+         !byte FOCUS, 5, 8, kFocusEntireColumn
+         !byte WAIT , 5
+         !byte CLEAR, 5, 8, kFocusEntireColumn
+         !byte WAIT , 2
+
+         !byte WAIT , 255
+         !byte EXIT
+
+DemoDispatchLo
+         !byte <DemoOnEXIT
+         !byte <DemoOnHOME
+         !byte <DemoOnLOAD
+         !byte <DemoOnSHOW
+         !byte <DemoOnHIDE
+         !byte <DemoOnFOCUS
+         !byte <DemoOnCLEAR
+         !byte <DemoOnDRAW
+         !byte <DemoOnWAIT
+DemoDispatchHi
+         !byte >DemoOnEXIT
+         !byte >DemoOnHOME
+         !byte >DemoOnLOAD
+         !byte >DemoOnSHOW
+         !byte >DemoOnHIDE
+         !byte >DemoOnFOCUS
+         !byte >DemoOnCLEAR
+         !byte >DemoOnDRAW
+         !byte >DemoOnWAIT
+
+;------------------------------------------------------------------------------
+; RunDemo
+; run self-running demo until keypress or completion
+;
+; in:    none
+; out:   Z = 0
+;        all other registers & flags clobbered
+;------------------------------------------------------------------------------
 RunDemo
-         ;TODO
+         +LDADDR DemoCode
+         +ST16 GetNextDemoByte+1
+-        jsr   GetNextDemoByte
+         lda   DemoDispatchLo, x
+         sta   @j+1
+         lda   DemoDispatchHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         lda   KBD
+         bpl   -
+         jsr   DemoOnEXIT            ; does not return
+
+DemoOnEXIT
+; out:   pops 2 bytes off stack and returns via caller's caller
+         pla
+         pla
+         ; /!\ execution falls through here to DemoOnHOME
+
+DemoOnHOME
+         jsr   Home
+         bit   GFXMODE
          rts
+
+DemoOnWAIT
+         jsr   GetNextDemoByte
+         jmp   LongWaitForKeyWithTimeout
+
+DemoOnLOAD
+         ldy   #$00
+         lda   #$FF
+@clear
+         sta   kDemoBoardBuffer, y
+         iny
+         bne   @clear
+         ldx   #$55
+         ;Y=0
+@load
+         lda   kDemoData, y
+         cmp   #$8D
+         beq   @next
+         cmp   #$FF
+         beq   @done
+         sta   kDemoBoardBuffer, x
+@inc     iny
+         inx
+         bne   @load                 ; always branches
+@done
+         jsr   DrawBoardForDemo
+         bit   GFXMODE
+         rts
+@next
+         txa
+         clc
+         adc   #$09
+         tax
+         bne   @inc                  ; always branches
+
+kDemoData
+         !byte $82,$00,$00,$00,$00,$00,$8D
+         !byte $00,$00,$82,$00,$82,$00,$8D
+         !byte $00,$00,$00,$83,$00,$83,$8D
+         !byte $00,$00,$00,$00,$00,$00,$8D
+         !byte $00,$83,$82,$00,$00,$00,$8D
+         !byte $00,$00,$82,$00,$83,$00,$FF
+
+DemoOnSHOW
+         jsr   GetNextDemoByte
+         stx   VTAB
+         jsr   GetNextDemoByte
+         stx   HTAB
+         jsr   GetNextDemoByte
+         txa
+         pha
+         jsr   GetNextDemoByte
+         txa
+         tay
+         pla
+         ldx   HTAB
+         jmp   DrawLargeString
+
+DemoOnHIDE
+         jsr   GetNextDemoByte
+         lda   #$00
+         ldy   #$0F
+-        jsr   DrawLargeCharacter
+         dey
+         bpl   -
+         rts
+
+DemoOnFOCUS
+         jsr   GetFocusParams
+         jmp   DrawFocusRectangleAt
+
+DemoOnCLEAR
+         jsr   GetFocusParams
+         jmp   ClearFocusRectangleAt
+
+DemoOnDRAW
+         jsr   GetFocusParams
+         jmp   DrawLargeCharacter
+
+GetFocusParams
+         jsr   GetNextDemoByte
+         stx   tmpx
+         jsr   GetNextDemoByte
+         txa
+         tay
+         jsr   GetNextDemoByte
+         txa
+         ldx   tmpx
+         rts
+
+GetNextDemoByte
+         ldx   $FDFD                 ; SMC
+         inc   GetNextDemoByte+1
+         bne   +
+         inc   GetNextDemoByte+2
++        rts
+
+;    0123456789ABCDEF
+;$00 ////////////////
+;$10 ////////////////
+;$20 ////////////////
+;$30 ////////////////
+;$40 ////////////////
+;$50 /////0..01./////
+;$60 /////..010./////
+;$70 /////...101/////
+;$80 /////...01./////
+;$90 /////.1010./////
+;$A0 /////..0.1./////
+;$B0 ////////////////
+;$C0 ////////////////
+;$D0 ////////////////
+;$E0 ////////////////
+;$F0 ////////////////
+
+!if 0 {
+SolveDemo
+@loop
+         +DEBUGWAIT
+         jsr   FindValidMoveForDemo
+         bcc   @draw
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForDemo
+                                     ; preserves all flags and registers
+         jsr   FindValidMoveForDemo
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForDemo
+                                     ; preserves all flags and registers
+         bcs   @exit                 ; C is from FindValidMoveForDemo
+         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
+@draw
+         bit   GFXMODE
+         jsr   DrawLargeCharacter
+         pha
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         pla
+         sta   (board_base_ptr), y
+         bne   @loop                 ; always branches
+@exit
+         rts
+}

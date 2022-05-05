@@ -6,7 +6,9 @@
 ; - FindEmptyCoordinatesForUser
 ; - FindEmptyCoordinates
 ; - FindInvalidMove
+; - FindValidMoveForDemo
 ; - FindValidMoveForTitle
+; - FindValidMoveForUser
 ; - FindValidMove
 ; - TransposeBoard
 
@@ -182,6 +184,11 @@ FindInvalidMove
 @notTooMany3
          sec
          rts
+
+FindValidMoveForDemo
+         ldx   #>kDemoBoardBuffer
+         ldy   #kDemoBoardSize
+         bne   FindValidMove         ; always branches
 
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
