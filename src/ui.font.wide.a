@@ -1,14 +1,14 @@
 ;license:MIT
 ;(c) 2022 by 4am
 ;
-; font drawing routines
+; font drawing routines for Million Perfect Tiles Wide
 ;
 ; Public functions:
 ; - DrawLargeString
 ; - DrawLargeCharacter
 ;
 
-HGR_start_row
+WideHGRTops
          !byte 8,19,30,41,52,63,74,85,96,107,118,129,140,151,162,173
 
 !macro COMPUTE_DRAW_ADDRESSES {
@@ -76,7 +76,7 @@ DrawLargeCharacter
          sty   tmpy
          +LogicalColumnToPhysicalColumn
          sty   HTAB
-         lda   HGR_start_row, x
+         lda   WideHGRTops, x
          sta   char_row
 
          +COMPUTE_DRAW_ADDRESSES

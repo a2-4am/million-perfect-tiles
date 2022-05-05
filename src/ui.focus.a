@@ -51,7 +51,7 @@ DrawFocusRectangleAt
          jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
          sty   HTAB
-         ldy   HGR_start_row, x
+         ldy   WideHGRTops, x
          dey
          dey                         ; start two rows above tile
          sty   char_row
@@ -121,7 +121,7 @@ ClearFocusRectangleAt
          jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
          sty   HTAB
-         ldy   HGR_start_row, x
+         ldy   WideHGRTops, x
          dey
          dey                         ; start two rows above tile
          sty   char_row
