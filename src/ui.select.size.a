@@ -89,14 +89,14 @@ kSelectSizeStringsHi
 ;------------------------------------------------------------------------------
 SelectSizeEventLoop
          bcc   @loop
-         bit   TEXTMODE
+         jsr   Home
          jsr   HidePointer
          jsr   DrawSelectSizeBackground
          jsr   DrawSelectSizeText
          jsr   ShowPointer
          bit   GFXMODE
 @loop
-         jsr   GetNextEvent
+         jsr   WaitNextEvent
          cpx   #kEventMouseMove
          beq   @onMouseMove
          cpx   #kEventClick
@@ -164,7 +164,7 @@ SelectSizeEventClick
          ; /!\ execution falls through here to SelectSizeEventReturn
 
 SelectSizeEventReturn
-         jsr   Home
+         bit   TEXTMODE
          lda   .selectSizeSelectedIndex
          sec
          sbc   #(kSelectSizeMin-3)
@@ -179,14 +179,10 @@ SelectSizeEventReturn
 ReloadBoard
          ldx   #>kUserBoardBuffer
          jsr   nth
-         jsr   HidePointer
-         jsr   DrawBoardForUser
          jsr   FindEmptyCoordinatesForUser
          stx   gFocusedRow
          sty   gFocusedColumn
-         jsr   DrawFocusRectangle
-         bit   GFXMODE
-         jsr   ShowPointer
+         sec
          jsr   PlayEventLoop
          ; TODO maybe another dispatch table here?
          cpx   #kRequestedSkip

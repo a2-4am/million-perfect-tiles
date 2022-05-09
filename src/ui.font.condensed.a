@@ -34,9 +34,9 @@ DrawCondensedString
 ;------------------------------------------------------------------------------
 ; DrawCondensedBuffer
 ;
-; in:    A/Y contains address of character buffer (characters 0x20..0x5A only)
-;        X contains buffer length (1..40)
-;        $24 (HTAB) contains starting column (0..39)
+; in:    A/Y contains address of character buffer (characters 0x20+ only)
+;        X contains buffer length (0x01..0x28)
+;        $24 (HTAB) contains starting column (0x00..0x27)
 ;        $25 (VTAB) contains logical line number (0x00..0x0F)
 ;        all characters are drawn on the same line
 ;        HTAB is incremented for each character

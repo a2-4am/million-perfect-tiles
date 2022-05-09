@@ -14,7 +14,6 @@ FirstMover
 !pseudopc $4000 {
 Start
          jsr   PointerOnStartup
-         jsr   Home
          sec
          jsr   MainMenuEventLoop
          jsr   PointerOnShutdown
@@ -24,23 +23,25 @@ Start
          !word +
 +        !byte 4,0,0,0,0
 
+         !source "src/common.a"
+         !source "src/tilescript.a"
+         !source "src/solver.a"
+         !source "src/unpack.a"
+         !source "src/hw.mouse.a"
+         !source "src/ui.common.a"
          !source "src/ui.strings.a"
          !source "src/ui.main.menu.a"
          !source "src/ui.select.size.a"
          !source "src/ui.play.a"
          !source "src/ui.about.a"
          !source "src/ui.demo.a"
+         !source "src/ui.help.a"
          !source "src/ui.puzzle.a"
          !source "src/ui.focus.a"
          !source "src/ui.pointer.a"
-         !source "src/ui.common.a"
          !source "src/ui.font.wide.a"
          !source "src/ui.font.condensed.a"
          !source "src/ui.font.wide.data.a"
          !source "src/ui.font.condensed.data.a"
-         !source "src/solver.a"
-         !source "src/common.a"
-         !source "src/unpack.a"
-         !source "src/mouse.a"
 }
 LastMover

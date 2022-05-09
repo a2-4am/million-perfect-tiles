@@ -122,14 +122,14 @@ kMainMenuStringsHi
 ;------------------------------------------------------------------------------
 MainMenuEventLoop
          bcc   @loop
-         bit   TEXTMODE
+         jsr   Home
          jsr   HidePointer
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
          jsr   ShowPointer
          bit   GFXMODE
 @loop
-         jsr   GetNextEvent
+         jsr   WaitNextEvent
          cpx   #kEventMouseMove
          beq   @onMouseMove
          cpx   #kEventClick

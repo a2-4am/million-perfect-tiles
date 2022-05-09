@@ -1,0 +1,124 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; a very lightweight p-code interpreter
+;
+; public functions:
+; - TileScript
+;
+
+; opcodes
+EXIT     = 0
+WAIT     = 1
+HOME     = 2
+PRINT    = 3
+FOCUS    = 4
+UNFOCUS  = 5
+TILE     = 6
+BOARD    = 7
+
+ScriptDispatchLo
+         !byte <ScriptOnEXIT
+         !byte <ScriptOnWAIT
+         !byte <ScriptOnHOME
+         !byte <ScriptOnPRINT
+         !byte <ScriptOnFOCUS
+         !byte <ScriptOnUNFOCUS
+         !byte <ScriptOnTILE
+         !byte <ScriptOnBOARD
+ScriptDispatchHi
+         !byte >ScriptOnEXIT
+         !byte >ScriptOnWAIT
+         !byte >ScriptOnHOME
+         !byte >ScriptOnPRINT
+         !byte >ScriptOnFOCUS
+         !byte >ScriptOnUNFOCUS
+         !byte >ScriptOnTILE
+         !byte >ScriptOnBOARD
+
+;------------------------------------------------------------------------------
+; TileScript
+; execute a series of commands
+;
+; in:    A/Y points to start of command list
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+TileScript
+         +ST16 GetNextScriptByte+1
+@loop
+         jsr   GetNextScriptByte
+         lda   ScriptDispatchLo, x
+         sta   @j+1
+         lda   ScriptDispatchHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         jmp   @loop
+
+ScriptOnEXIT
+         pla
+         pla
+         rts
+
+ScriptOnWAIT
+         jsr   GetNextScriptByte
+         jsr   LongWaitForKeyWithTimeout
+         jsr   GetNextEvent
+         cpx   #kEventClick
+         beq   ScriptOnEXIT
+         cpx   #kEventKeypress
+         beq   ScriptOnEXIT
+         rts
+
+ScriptOnHOME
+         jsr   Home
+         bit   GFXMODE
+         rts
+
+ScriptOnPRINT
+         jsr   GetNextScriptByte
+         stx   VTAB
+         jsr   GetNextScriptByte
+         stx   HTAB
+         jsr   GetNextScriptByte
+         txa
+         pha
+         jsr   GetNextScriptByte
+         txa
+         tay
+         pla
+         ldx   HTAB
+         jmp   DrawCondensedString
+
+ScriptOnFOCUS
+         jsr   GetFocusParams
+         jmp   DrawFocusRectangleAt
+
+ScriptOnUNFOCUS
+         jsr   GetFocusParams
+         jmp   ClearFocusRectangleAt
+
+ScriptOnTILE
+         jsr   GetFocusParams
+         jmp   DrawLargeCharacter
+
+ScriptOnBOARD
+         jsr   GetNextScriptByte
+         jmp   DrawBoardAt
+
+GetFocusParams
+         jsr   GetNextScriptByte
+         stx   tmpx
+         jsr   GetNextScriptByte
+         txa
+         tay
+         jsr   GetNextScriptByte
+         txa
+         ldx   tmpx
+         rts
+
+GetNextScriptByte
+         ldx   $FDFD                 ; SMC
+         inc   GetNextScriptByte+1
+         bne   +
+         inc   GetNextScriptByte+2
++        rts

@@ -1,0 +1,44 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; display help screen
+;
+; Public functions:
+; - HelpEventLoop
+;
+
+;------------------------------------------------------------------------------
+; HelpEventLoop
+; display help subpage
+;
+; in:    none
+; out:   all flags & registers clobbered
+;------------------------------------------------------------------------------
+HelpEventLoop
+         +LDADDR HelpCode
+         jmp   TileScript
+
+sHelp0
+         !byte 21
+         !raw  "Million Perfect Tiles"
+sHelp2
+         !byte 36
+         !raw  "> Never 3 in a row of the same color"
+sHelp4
+         !byte 28
+         !raw  "% Balance colors in each row"
+sHelp6
+         !byte 21
+         !raw  "> Every row is unique"
+
+HelpCode
+         !byte HOME
+         !byte PRINT, 0,10, <sHelp0, >sHelp0
+         !byte PRINT, 2, 2, <sHelp2, >sHelp2
+         !byte PRINT, 4, 2, <sHelp4, >sHelp4
+         !byte PRINT, 6, 2, <sHelp6, >sHelp6
+;         !byte PRINT,10,7,<sSample0,>sSample0
+;         !byte PRINT,12,7,<sSample1,>sSample1
+;         !byte PRINT,14,15,<sSample2,>sSample2
+         !byte WAIT, 255
+         !byte EXIT

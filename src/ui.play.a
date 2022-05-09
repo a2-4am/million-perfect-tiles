@@ -82,8 +82,15 @@ kPlayKeyHandlersHi
 ;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 PlayEventLoop
+         bcc   @loop
+         jsr   Home
+         jsr   HidePointer
+         jsr   DrawBoardForUser
+         jsr   DrawFocusRectangle
+         jsr   ShowPointer
+         bit   GFXMODE
 @loop
-         jsr   GetNextEvent
+         jsr   WaitNextEvent
          cpx   #kEventMouseMove
          beq   @onMouseMove
          cpx   #kEventClick
@@ -137,6 +144,7 @@ PlayEventMouseMove
          jsr   DrawFocusRectangle
 @done
          ldx   #kKeepPlaying
+         clc
          rts
 
 PlayEventClick
@@ -147,6 +155,7 @@ PlayEventClick
          beq   PlayEventReturn
 @done
          ldx   #kKeepPlaying
+         clc
          rts
 
 PlayEventReturn
@@ -158,6 +167,7 @@ PlayEventReturn
          jmp   Change
 @done
          ldx   #kKeepPlaying
+         clc
          rts
 kNextValue
          !byte $02,$FF,$03,$00
@@ -217,6 +227,7 @@ PlayEventRightArrow
 RedrawFocusAndKeepPlaying
          jsr   DrawFocusRectangle
          ldx   #kKeepPlaying
+         clc
          rts
 
 PlayEventB
@@ -246,6 +257,7 @@ Change
 CantMoveFocus
 CantChange
          ldx   #kKeepPlaying
+         clc
          rts
 
 PlayEventH
@@ -259,6 +271,7 @@ PlayEventH
 @foundInvalid
          ; FIXME
          ldx   #kKeepPlaying
+         clc
          rts
 @noInvalid
          jsr   FindValidMoveForUser
@@ -290,7 +303,7 @@ MaybeWin
          jsr   SwapXY
          jsr   TransposeBoard
          bcc   AWinnerIsNotYou
-         ldx   #kCompletedPuzzle
+         ldx   #kCompletedPuzzle     ; caller will exit event loop
          rts
 
 AWinnerIsNotYou
@@ -298,11 +311,9 @@ AWinnerIsNotYou
          brk
 
 PlayEventQuestion
-         brk
-
-GetFocusCoordinates
-         ldx   gFocusedRow
-         ldy   gFocusedColumn
+         jsr   HelpEventLoop
+         ldx   #kKeepPlaying
+         sec
          rts
 
 CanMoveFocusTo

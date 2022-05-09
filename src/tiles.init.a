@@ -45,4 +45,5 @@ FMDEST   sta   $4000, x
          bcs   FM
 
          jsr   DisableAccelerator
+         bit   CLEARKBD
          jmp   Start

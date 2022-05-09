@@ -4,10 +4,12 @@
 ; drawing routines for focus rectangles
 ;
 
-; DrawFocusRectangle
-; DrawFocusRectangleAt
-; ClearFocusRectangle
-; ClearFocusRectangleAt
+; public functions:
+; - DrawFocusRectangle
+; - DrawFocusRectangleAt
+; - ClearFocusRectangle
+; - ClearFocusRectangleAt
+; - GetFocusCoordinates
 
 ; to draw focus rectangle around a single tile:
 ; for X in (top row - 2) .., (bottom row + 2) inclusive
@@ -39,8 +41,7 @@ kFocusColumnCounts
          !byte 0,1,1,3,1
 
 DrawFocusRectangle
-         ldx   gFocusedRow
-         ldy   gFocusedColumn
+         jsr   GetFocusCoordinates
          lda   #kFocus1x1
 DrawFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
@@ -113,6 +114,7 @@ DrawFocusRectangleAt
 
 ClearFocusRectangle
          jsr   GetFocusCoordinates
+         lda   #kFocus1x1
 ClearFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
@@ -179,6 +181,11 @@ ClearFocusRectangleAt
          cpx   #$FF
          bne   @clearRowLoop
          jmp   ShowPointer
+
+GetFocusCoordinates
+         ldx   gFocusedRow
+         ldy   gFocusedColumn
+         rts
 
 ;------------------------------------------------------------------------------
 ; internal functions

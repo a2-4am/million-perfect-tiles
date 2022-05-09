@@ -8,9 +8,12 @@
 ; - WaitForKeyWithTimeout
 ; - LongWaitForKeyWithTimeout
 ; - GetNextEvent
+; - WaitNextEvent
 ; - GridFizzle
 ;
 
+; event codes returned from GetNextEvent and WaitNextEvent
+kNoEvent = 0
 kEventKeypress = 1
 kEventMouseMove = 2
 kEventClick = 3
@@ -74,9 +77,9 @@ Home
 ; WaitForKeyWithTimeout
 ; wait for an amount of time, keypress, or mouse click, whichever comes first
 ;
-; in:    A = timeout length (like standard $FCA8 wait routine)
+; in:    A = timeout length (like standard $FCA8 wait routine but slower)
 ; out:   A = 0
-;        X/Y preserved
+;        X,Y preserved
 ;        N = 1 if key was pressed to exit early
 ;        N = 0 if time ran out
 ;------------------------------------------------------------------------------
@@ -92,9 +95,7 @@ WaitForKeyWithTimeout
          bmi   @exit
          sbc   #1
          bne   @wait1
-@exit    lda   #0
-         sta   gPointerClicked
-         rts
+@exit    rts
 
 ;------------------------------------------------------------------------------
 ; LongWaitForKeyWithTimeout
@@ -116,7 +117,7 @@ LongWaitForKeyWithTimeout
 
 ;------------------------------------------------------------------------------
 ; GetNextEvent
-; wait forever for any key, mouse movement, or mouse click, while incrementing
+; check for any key, mouse movement, or mouse click, while incrementing
 ; random seed
 ;
 ; in:    none
@@ -127,8 +128,7 @@ LongWaitForKeyWithTimeout
 ;        flags clobbered
 ;------------------------------------------------------------------------------
 GetNextEvent
-         bit   CLEARKBD
--        inc   RNDSEED
+         inc   RNDSEED
          bne   +
          inc   RNDSEED+1
 +        bit   gPointerMoved
@@ -136,7 +136,10 @@ GetNextEvent
          bit   gPointerClicked
          bmi   @onClick
          lda   KBD
-         bpl   -
+         bmi   @onKeypress
+         ldx   #kNoEvent
+         rts
+@onKeypress
          bit   CLEARKBD
          sta   gLastKeyPressed
          ldx   #kEventKeypress
@@ -150,6 +153,24 @@ GetNextEvent
          lda   #$00
          sta   gPointerClicked
          ldx   #kEventClick
+         rts
+
+;------------------------------------------------------------------------------
+; WaitNextEvent
+; wait forever for any key, mouse movement, or mouse click, while incrementing
+; random seed
+;
+; in:    none
+; out:   X = event code (see above)
+;        if X = kEventKeypress, then
+;          A = gLastKeyPressed = unaltered key code
+;        Y preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+WaitNextEvent
+         jsr   GetNextEvent
+         cpx   #kNoEvent
+         beq   WaitNextEvent
          rts
 
 GridFizzle

@@ -62,6 +62,38 @@ CondensedRow0
          !byte $B3        ; X
          !byte $B3        ; Y
          !byte $BF        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $80        ; a
+         !byte $83        ; b
+         !byte $80        ; c
+         !byte $B0        ; d
+         !byte $80        ; e
+         !byte $9C        ; f
+         !byte $80        ; g
+         !byte $83        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $83        ; k
+         !byte $8C        ; l
+         !byte $80        ; m
+         !byte $80        ; n
+         !byte $80        ; o
+         !byte $80        ; p
+         !byte $80        ; q
+         !byte $80        ; r
+         !byte $80        ; s
+         !byte $8C        ; t
+         !byte $80        ; u
+         !byte $80        ; v
+         !byte $80        ; w
+         !byte $80        ; x
+         !byte $80        ; y
+         !byte $80        ; z
 CondensedRow1
          !byte $80        ; space
          !byte $80        ; !
@@ -122,13 +154,45 @@ CondensedRow1
          !byte $B3        ; X
          !byte $B3        ; Y
          !byte $BF        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $80        ; a
+         !byte $83        ; b
+         !byte $80        ; c
+         !byte $B0        ; d
+         !byte $80        ; e
+         !byte $BE        ; f
+         !byte $80        ; g
+         !byte $83        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $83        ; k
+         !byte $8C        ; l
+         !byte $80        ; m
+         !byte $80        ; n
+         !byte $80        ; o
+         !byte $80        ; p
+         !byte $80        ; q
+         !byte $80        ; r
+         !byte $80        ; s
+         !byte $8C        ; t
+         !byte $80        ; u
+         !byte $80        ; v
+         !byte $80        ; w
+         !byte $80        ; x
+         !byte $80        ; y
+         !byte $80        ; z
 CondensedRow2
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $81        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -153,42 +217,74 @@ CondensedRow2
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $81        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $B0        ; A
-         !byte $B3        ; B
-         !byte $B3        ; C
-         !byte $B3        ; D
+         !byte $B0        ; B
+         !byte $B0        ; C
+         !byte $B0        ; D
          !byte $80        ; E
-         !byte $83        ; F
-         !byte $B3        ; G
-         !byte $B3        ; H
+         !byte $80        ; F
+         !byte $B0        ; G
+         !byte $B0        ; H
          !byte $80        ; I
-         !byte $98        ; J
+         !byte $80        ; J
          !byte $9B        ; K
          !byte $83        ; L
          !byte $BF        ; M
-         !byte $B3        ; N
+         !byte $B0        ; N
          !byte $B0        ; O
-         !byte $B3        ; P
-         !byte $B3        ; Q
-         !byte $B3        ; R
-         !byte $83        ; S
-         !byte $8C        ; T
+         !byte $B0        ; P
+         !byte $B0        ; Q
+         !byte $B0        ; R
+         !byte $80        ; S
+         !byte $80        ; T
          !byte $B3        ; U
          !byte $B3        ; V
          !byte $B3        ; W
          !byte $9E        ; X
          !byte $B3        ; Y
          !byte $98        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $80        ; a
+         !byte $83        ; b
+         !byte $80        ; c
+         !byte $B0        ; d
+         !byte $80        ; e
+         !byte $B6        ; f
+         !byte $80        ; g
+         !byte $83        ; h
+         !byte $80        ; i
+         !byte $80        ; j
+         !byte $83        ; k
+         !byte $8C        ; l
+         !byte $80        ; m
+         !byte $80        ; n
+         !byte $80        ; o
+         !byte $80        ; p
+         !byte $80        ; q
+         !byte $80        ; r
+         !byte $80        ; s
+         !byte $8C        ; t
+         !byte $80        ; u
+         !byte $80        ; v
+         !byte $80        ; w
+         !byte $80        ; x
+         !byte $80        ; y
+         !byte $80        ; z
 CondensedRow3
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $87        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -213,7 +309,7 @@ CondensedRow3
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $85        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $B3        ; A
@@ -242,13 +338,45 @@ CondensedRow3
          !byte $9E        ; X
          !byte $B3        ; Y
          !byte $98        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $9E        ; a
+         !byte $9F        ; b
+         !byte $9E        ; c
+         !byte $BE        ; d
+         !byte $9E        ; e
+         !byte $86        ; f
+         !byte $BE        ; g
+         !byte $9F        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $B3        ; k
+         !byte $8C        ; l
+         !byte $B3        ; m
+         !byte $9F        ; n
+         !byte $9E        ; o
+         !byte $9F        ; p
+         !byte $BE        ; q
+         !byte $BB        ; r
+         !byte $BE        ; s
+         !byte $BF        ; t
+         !byte $B3        ; u
+         !byte $B3        ; v
+         !byte $B3        ; w
+         !byte $B3        ; x
+         !byte $B3        ; y
+         !byte $BF        ; z
 CondensedRow4
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $9F        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -273,7 +401,7 @@ CondensedRow4
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $95        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $BF        ; A
@@ -286,7 +414,7 @@ CondensedRow4
          !byte $BF        ; H
          !byte $8C        ; I
          !byte $98        ; J
-         !byte $8F        ; K
+         !byte $8B        ; K
          !byte $83        ; L
          !byte $BF        ; M
          !byte $B3        ; N
@@ -300,15 +428,47 @@ CondensedRow4
          !byte $B3        ; V
          !byte $B3        ; W
          !byte $8C        ; X
-         !byte $BF        ; Y
+         !byte $B7        ; Y
          !byte $8C        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $BE        ; a
+         !byte $BF        ; b
+         !byte $BF        ; c
+         !byte $BF        ; d
+         !byte $BF        ; e
+         !byte $86        ; f
+         !byte $B3        ; g
+         !byte $BF        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $B3        ; k
+         !byte $8C        ; l
+         !byte $BF        ; m
+         !byte $BF        ; n
+         !byte $BF        ; o
+         !byte $BF        ; p
+         !byte $BF        ; q
+         !byte $BF        ; r
+         !byte $BF        ; s
+         !byte $BF        ; t
+         !byte $B3        ; u
+         !byte $B3        ; v
+         !byte $B3        ; w
+         !byte $B3        ; x
+         !byte $B3        ; y
+         !byte $BF        ; z
 CondensedRow5
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $FF        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -333,7 +493,7 @@ CondensedRow5
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $D5        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $BF        ; A
@@ -346,7 +506,7 @@ CondensedRow5
          !byte $BF        ; H
          !byte $8C        ; I
          !byte $98        ; J
-         !byte $8F        ; K
+         !byte $8B        ; K
          !byte $83        ; L
          !byte $B3        ; M
          !byte $B3        ; N
@@ -360,15 +520,47 @@ CondensedRow5
          !byte $B3        ; V
          !byte $BF        ; W
          !byte $8C        ; X
-         !byte $BF        ; Y
+         !byte $B7        ; Y
          !byte $8C        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $B0        ; a
+         !byte $B3        ; b
+         !byte $B3        ; c
+         !byte $B3        ; d
+         !byte $B3        ; e
+         !byte $9F        ; f
+         !byte $B3        ; g
+         !byte $B3        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $9B        ; k
+         !byte $8C        ; l
+         !byte $BF        ; m
+         !byte $B0        ; n
+         !byte $B0        ; o
+         !byte $B3        ; p
+         !byte $B3        ; q
+         !byte $83        ; r
+         !byte $83        ; s
+         !byte $8C        ; t
+         !byte $B3        ; u
+         !byte $B3        ; v
+         !byte $B3        ; w
+         !byte $9E        ; x
+         !byte $B3        ; y
+         !byte $98        ; z
 CondensedRow6
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $9F        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -393,7 +585,7 @@ CondensedRow6
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $95        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $B3        ; A
@@ -422,13 +614,45 @@ CondensedRow6
          !byte $9E        ; X
          !byte $B0        ; Y
          !byte $86        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $BE        ; a
+         !byte $B3        ; b
+         !byte $83        ; c
+         !byte $B3        ; d
+         !byte $BF        ; e
+         !byte $9F        ; f
+         !byte $BE        ; g
+         !byte $B3        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $8F        ; k
+         !byte $8C        ; l
+         !byte $BF        ; m
+         !byte $B3        ; n
+         !byte $B3        ; o
+         !byte $B3        ; p
+         !byte $B3        ; q
+         !byte $83        ; r
+         !byte $9E        ; s
+         !byte $8C        ; t
+         !byte $B3        ; u
+         !byte $B3        ; v
+         !byte $BF        ; w
+         !byte $9E        ; x
+         !byte $BE        ; y
+         !byte $8C        ; z
 CondensedRow7
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $87        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -453,7 +677,7 @@ CondensedRow7
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $85        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $B3        ; A
@@ -467,7 +691,7 @@ CondensedRow7
          !byte $8C        ; I
          !byte $9B        ; J
          !byte $9B        ; K
-         !byte $83        ; L
+         !byte $80        ; L
          !byte $B3        ; M
          !byte $B3        ; N
          !byte $B3        ; O
@@ -477,18 +701,50 @@ CondensedRow7
          !byte $B0        ; S
          !byte $8C        ; T
          !byte $B0        ; U
-         !byte $9B        ; V
+         !byte $98        ; V
          !byte $BF        ; W
          !byte $9E        ; X
          !byte $B0        ; Y
-         !byte $83        ; Z
+         !byte $80        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $B3        ; a
+         !byte $B3        ; b
+         !byte $B3        ; c
+         !byte $B3        ; d
+         !byte $83        ; e
+         !byte $86        ; f
+         !byte $B0        ; g
+         !byte $B3        ; h
+         !byte $8C        ; i
+         !byte $98        ; j
+         !byte $9B        ; k
+         !byte $8C        ; l
+         !byte $B3        ; m
+         !byte $B3        ; n
+         !byte $B3        ; o
+         !byte $9F        ; p
+         !byte $BE        ; q
+         !byte $83        ; r
+         !byte $B0        ; s
+         !byte $8C        ; t
+         !byte $B3        ; u
+         !byte $9B        ; v
+         !byte $BF        ; w
+         !byte $9E        ; x
+         !byte $B0        ; y
+         !byte $86        ; z
 CondensedRow8
          !byte $80        ; space
          !byte $80        ; !
          !byte $80        ; "
          !byte $80        ; #
          !byte $80        ; $
-         !byte $80        ; %
+         !byte $81        ; %
          !byte $80        ; &
          !byte $80        ; '
          !byte $80        ; (
@@ -513,7 +769,7 @@ CondensedRow8
          !byte $80        ; ;
          !byte $80        ; <
          !byte $80        ; =
-         !byte $80        ; >
+         !byte $81        ; >
          !byte $80        ; ?
          !byte $80        ; @
          !byte $B3        ; A
@@ -542,6 +798,38 @@ CondensedRow8
          !byte $B3        ; X
          !byte $BF        ; Y
          !byte $BF        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $BF        ; a
+         !byte $BF        ; b
+         !byte $BF        ; c
+         !byte $BF        ; d
+         !byte $BF        ; e
+         !byte $86        ; f
+         !byte $BF        ; g
+         !byte $B3        ; h
+         !byte $9C        ; i
+         !byte $9E        ; j
+         !byte $B3        ; k
+         !byte $BC        ; l
+         !byte $B3        ; m
+         !byte $B3        ; n
+         !byte $BF        ; o
+         !byte $83        ; p
+         !byte $B0        ; q
+         !byte $83        ; r
+         !byte $BF        ; s
+         !byte $BC        ; t
+         !byte $BF        ; u
+         !byte $8F        ; v
+         !byte $BF        ; w
+         !byte $B3        ; x
+         !byte $BF        ; y
+         !byte $BF        ; z
 CondensedRow9
          !byte $80        ; space
          !byte $80        ; !
@@ -602,3 +890,35 @@ CondensedRow9
          !byte $B3        ; X
          !byte $BF        ; Y
          !byte $BF        ; Z
+         !byte $80        ; [
+         !byte $80        ; \
+         !byte $80        ; ]
+         !byte $80        ; ^
+         !byte $80        ; _
+         !byte $80        ; '
+         !byte $BE        ; a
+         !byte $9F        ; b
+         !byte $9E        ; c
+         !byte $BE        ; d
+         !byte $BE        ; e
+         !byte $86        ; f
+         !byte $9F        ; g
+         !byte $B3        ; h
+         !byte $98        ; i
+         !byte $8E        ; j
+         !byte $B3        ; k
+         !byte $B8        ; l
+         !byte $B3        ; m
+         !byte $B3        ; n
+         !byte $9E        ; o
+         !byte $83        ; p
+         !byte $B0        ; q
+         !byte $83        ; r
+         !byte $9F        ; s
+         !byte $B8        ; t
+         !byte $BE        ; u
+         !byte $87        ; v
+         !byte $B3        ; w
+         !byte $B3        ; x
+         !byte $9F        ; y
+         !byte $BF        ; z
