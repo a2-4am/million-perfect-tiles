@@ -1,12 +1,11 @@
 ;license:MIT
 ;(c) 2022 by 4am
 ;
-; puzzle solving routines
+; solving routines
 ;
 ; - FindEmptyCoordinatesForUser
 ; - FindEmptyCoordinates
 ; - FindInvalidMove
-; - FindValidMoveForDemo
 ; - FindValidMoveForTitle
 ; - FindValidMoveForUser
 ; - FindValidMove
@@ -14,12 +13,19 @@
 
 FindEmptyCoordinatesForUser
          ldx   #>kUserBoardBuffer
-FindEmptyCoordinates
+         ; /!\ execution falls through here to FindEmptyCoordinates
+
+;------------------------------------------------------------------------------
+; FindEmptyCoordinates
+; find the top-left-most board coordinates with no tile
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if found empty coordinates, then
 ;          X = logical row (0x00..0x0F)
 ;          Y = logical column (0x00..0x0F)
-;        C = 1 if no empty coordinates was found
+;        C = 1 if no empty coordinates found (board is full)
+;------------------------------------------------------------------------------
+FindEmptyCoordinates
          stx   board_base_ptr+1
          ldy   #0
          sty   board_base_ptr
@@ -55,7 +61,12 @@ kInvalidIdenticalColumns     = 0x85
 FindInvalidMoveForUser
          ldx   #>kUserBoardBuffer
          ldy   gLastSelectedBoardSize
-FindInvalidMove
+         ; /!\ execution falls through here to FindInvalidMove
+
+;------------------------------------------------------------------------------
+; FindInvalidMove
+; find a tile, row, or column that does not adhere to game rules
+;
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
 ; out:   C = 0 if found invalid move, then
@@ -63,7 +74,9 @@ FindInvalidMove
 ;          Z set by A
 ;          X = starting tile row (0x00..0x0F)
 ;          Y = starting tile column (0x00..0x0F)
-;        C = 1 if no invalid move was found
+;        C = 1 if no invalid move found
+;------------------------------------------------------------------------------
+FindInvalidMove
          stx   board_base_ptr+1
          sty   logical_board_size
          ldx   #$0F                  ; tile row
@@ -185,11 +198,6 @@ FindInvalidMove
          sec
          rts
 
-FindValidMoveForDemo
-         ldx   #>kDemoBoardBuffer
-         ldy   #kDemoBoardSize
-         bne   FindValidMove         ; always branches
-
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
          ldy   gLastSelectedBoardSize
@@ -200,14 +208,20 @@ FindValidMoveForTitle
          ldy   #kTitleBoardSize
          ; /!\ execution falls through here to FindValidMove
 
-FindValidMove
+;------------------------------------------------------------------------------
+; FindValidMove
+; find empty coordinates where a tile could be placed in accordance with
+; game rules, based on current board state
+;
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
 ; out:   C = 0 if found valid move, then
 ;          A = tile value (0x02 or 0x03)
 ;          X = tile row (0x00..0x0F)
 ;          Y = tile column (0x00..0x0F)
-;        C = 1 if no valid move was found
+;        C = 1 if no valid move found
+;------------------------------------------------------------------------------
+FindValidMove
          stx   board_base_ptr+1
          sty   logical_board_size
          ldx   #$0F                  ; tile row
@@ -381,6 +395,65 @@ FindValidMove
          clc
          rts
 
+;------------------------------------------------------------------------------
+; TransposeBoard
+; transpose game board (like a matrix, so rows become columns and
+; columns become rows)
+;
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+; out:   all flags & registers preserved
+;------------------------------------------------------------------------------
+TransposeBoard
+         php
+         pha
+         txa
+         pha
+         tya
+         pha
+
+         lda   board_base_ptr+1
+         sta   @a+2
+         sta   @b+2
+         sta   @c+2
+         sta   @d+2
+
+         ldy   #$00
+         ldx   #$00
+@a       lda   $FD00, y              ; SMC
+         pha
+@b       lda   $FD00, x              ; SMC
+@c       sta   $FD00, y              ; SMC
+         pla
+@d       sta   $FD00, x              ; SMC
+         txa
+         clc
+         adc   #$10
+         tax
+         bcc   +
+         iny
+         beq   ++
+         sty   tmpy
+         inx
+         txa
+         clc
+         adc   tmpy
+         tax
+         tay
+         dey
++        iny
+         bne   @a
+++
+         pla
+         tay
+         pla
+         tax
+         pla
+         plp
+         rts
+
+;------------------------------------------------------------------------------
+; internal functions
+
 .CountColorsInRow
          lda   #$00
          sta   colorcount2
@@ -447,54 +520,4 @@ iny_and_cmp_3
 cmp_3    lda   (board_base_ptr), y
          and   #$7F
          cmp   #$03
-         rts
-
-TransposeBoard
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
-; out:   all flags & registers preserved
-         php
-         pha
-         txa
-         pha
-         tya
-         pha
-
-         lda   board_base_ptr+1
-         sta   @a+2
-         sta   @b+2
-         sta   @c+2
-         sta   @d+2
-
-         ldy   #$00
-         ldx   #$00
-@a       lda   $FD00, y              ; SMC
-         pha
-@b       lda   $FD00, x              ; SMC
-@c       sta   $FD00, y              ; SMC
-         pla
-@d       sta   $FD00, x              ; SMC
-         txa
-         clc
-         adc   #$10
-         tax
-         bcc   +
-         iny
-         beq   ++
-         sty   tmpy
-         inx
-         txa
-         clc
-         adc   tmpy
-         tax
-         tay
-         dey
-+        iny
-         bne   @a
-++
-         pla
-         tay
-         pla
-         tax
-         pla
-         plp
          rts

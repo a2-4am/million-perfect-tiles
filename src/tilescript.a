@@ -7,7 +7,7 @@
 ; - TileScript
 ;
 
-; opcodes
+; opcodes (public)
 EXIT     = 0
 WAIT     = 1
 HOME     = 2
@@ -18,6 +18,28 @@ FOCUS    = 6
 UNFOCUS  = 7
 TILE     = 8
 BOARD    = 9
+
+;------------------------------------------------------------------------------
+; TileScript
+; execute a series of commands
+;
+; in:    A/Y points to start of command list
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+TileScript
+         +ST16 GetNextScriptByte+1
+         jsr   HidePointer
+@loop
+         jsr   GetNextScriptByte
+         lda   ScriptDispatchLo, x
+         sta   @j+1
+         lda   ScriptDispatchHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         jmp   @loop
+
+;------------------------------------------------------------------------------
+; internal functions
 
 ScriptDispatchLo
          !byte <ScriptOnEXIT
@@ -41,25 +63,6 @@ ScriptDispatchHi
          !byte >ScriptOnUNFOCUS
          !byte >ScriptOnTILE
          !byte >ScriptOnBOARD
-
-;------------------------------------------------------------------------------
-; TileScript
-; execute a series of commands
-;
-; in:    A/Y points to start of command list
-; out:   all registers and flags clobbered
-;------------------------------------------------------------------------------
-TileScript
-         +ST16 GetNextScriptByte+1
-         jsr   HidePointer
-@loop
-         jsr   GetNextScriptByte
-         lda   ScriptDispatchLo, x
-         sta   @j+1
-         lda   ScriptDispatchHi, x
-         sta   @j+2
-@j       jsr   $FDFD                 ; SMC
-         jmp   @loop
 
 ScriptOnEXIT
          jsr   ShowPointer

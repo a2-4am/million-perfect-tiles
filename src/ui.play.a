@@ -307,6 +307,7 @@ PlayEventH
          jsr   DrawFocusRectangle
          jsr   ShowPointer
 @exit    ldx   #kKeepPlaying
+         clc
          rts
 
 MaybeWin
@@ -327,9 +328,9 @@ AWinnerIsNotYou
          brk
 
 PlayEventQuestion
-         jsr   HelpEventLoop
-         ldx   #kKeepPlaying
-         sec
+         jsr   ShowHelp
+         ldx   #kKeepPlaying         ; Z=1 so caller will stay in play event loop
+         sec                         ; C=1 so caller will do a full screen refresh
          rts
 
 CanMoveFocusTo

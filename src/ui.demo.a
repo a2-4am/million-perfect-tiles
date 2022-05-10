@@ -4,46 +4,25 @@
 ; self-running demo
 ;
 
+; public functions:
+; - ShowDemo
+
 kWhite = 2
 kBlue = 3
 
-sRule1
-         !byte 6
-         !raw  "RULE 1"
-
-sNever
-         !byte 34
-         !raw  "Never 3 in a row of the same color"
-
-sRule2
-         !byte 6
-         !raw  "RULE 2"
-
-sSame
-         !byte 34
-         !raw  "Same number of colors in every row"
-
-sRule3
-         !byte 6
-         !raw  "RULE 3"
-
-sUnique
-         !byte 34
-         !raw  "        Each row is unique        "
-
 ;------------------------------------------------------------------------------
-; RunDemo
+; ShowDemo
 ; run self-running demo/tutorial until keypress or mouse click or completion
 ;
 ; in:    none
 ; out:   all other registers & flags clobbered
 ;------------------------------------------------------------------------------
-RunDemo
+ShowDemo
          jsr   InitDemoBoard
-         +LDADDR DemoCode
+         +LDADDR @script
          jmp   TileScript
 
-DemoCode
+@script
          !byte HOME
 
          !byte BOARD,       >kDemoBoardBuffer
@@ -148,6 +127,9 @@ DemoCode
          !byte WAIT , 255
          !byte EXIT
 
+;------------------------------------------------------------------------------
+; internal functions
+
 InitDemoBoard
          ldy   #$00
          lda   #$FF
@@ -201,29 +183,3 @@ kDemoData
 ;$D0 ////////////////
 ;$E0 ////////////////
 ;$F0 ////////////////
-
-!if 0 {
-SolveDemo
-@loop
-         +DEBUGWAIT
-         jsr   FindValidMoveForDemo
-         bcc   @draw
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForDemo
-                                     ; preserves all flags and registers
-         jsr   FindValidMoveForDemo
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForDemo
-                                     ; preserves all flags and registers
-         bcs   @exit                 ; C is from FindValidMoveForDemo
-         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
-@draw
-         bit   GFXMODE
-         jsr   DrawLargeCharacter
-         pha
-         jsr   CalculateRowBase
-         sta   board_base_ptr
-         pla
-         sta   (board_base_ptr), y
-         bne   @loop                 ; always branches
-@exit
-         rts
-}

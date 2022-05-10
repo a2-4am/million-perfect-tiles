@@ -1,0 +1,137 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; credits page
+;
+; public functions:
+; - ShowCredits
+
+;------------------------------------------------------------------------------
+; ShowCredits
+; display credits until keypress or mouse click or completion
+;
+; in:    none
+; out:   all other registers & flags clobbered
+;------------------------------------------------------------------------------
+ShowCredits
+         +LDADDR @script
+         jmp   TileScript
+
+@script
+         !byte FIZZLE
+         !byte BOARD,       >kTitleBoardBuffer
+         !byte WPRINT, 3, 1
+         !word              sAboutCopyright3
+         !byte WPRINT, 4, 1
+         !word              sAboutCopyright4
+         !byte WPRINT, 5, 1
+         !word              sAboutCopyright5
+         !byte WPRINT, 6, 2
+         !word              sAboutCopyright6
+         !byte WPRINT,10, 5
+         !word              sAboutCopyright10
+         !byte WPRINT,11, 5
+         !word              sAboutCopyright11
+         !byte WPRINT,12, 5
+         !word              sAboutCopyright12
+         !byte WAIT ,30
+
+         !byte FIZZLE
+         !byte BOARD,       >kTitleBoardBuffer
+         !byte WPRINT, 6, 1
+         !word              sAboutCompression6
+         !byte WPRINT, 7, 1
+         !word              sAboutCompression7
+         !byte WPRINT, 8, 1
+         !word              sAboutCompression8
+         !byte WPRINT, 9, 4
+         !word              sAboutCompression9
+         !byte WAIT ,15
+
+         !byte PRINT , 7, 8
+         !word              sAboutCompressed0
+         !byte WAIT ,1
+         !byte PRINT , 7, 9
+         !word              sAboutCompressed1
+         !byte WAIT ,1
+         !byte PRINT , 7,10
+         !word              sAboutCompressed2
+         !byte WAIT ,1
+         !byte PRINT , 7,11
+         !word              sAboutCompressed3
+         !byte WAIT ,1
+         !byte PRINT , 7,12
+         !word              sAboutCompressed4
+         !byte WAIT ,1
+         !byte PRINT , 7,13
+         !word              sAboutCompressed5
+         !byte WAIT ,1
+         !byte PRINT , 7,14
+         !word              sAboutCompressed6
+         !byte WAIT ,1
+         !byte PRINT , 7,15
+         !word              sAboutCompressed7
+         !byte WAIT ,1
+         !byte PRINT , 7,16
+         !word              sAboutCompressed8
+         !byte WAIT ,1
+         !byte PRINT , 7,17
+         !word              sAboutCompressed9
+         !byte WAIT ,1
+         !byte PRINT , 7,18
+         !word              sAboutCompressed10
+         !byte WAIT,15
+         !byte PRINT , 7,8
+         !word              sAboutCompressedHide
+
+         !byte FIZZLE
+         !byte BOARD,       >kTitleBoardBuffer
+         !byte WPRINT, 6, 1
+         !word              sAboutMouse6
+         !byte WPRINT, 7, 1
+         !word              sAboutMouse7
+         !byte WPRINT, 8, 1
+         !word              sAboutMouse8
+         !byte WPRINT, 9, 2
+         !word              sAboutMouse9
+         !byte WAIT ,30
+
+         !byte FIZZLE
+         !byte EXIT
+
+sAboutCompressed0
+         !byte 2
+         !raw  "C "
+sAboutCompressed1
+         !byte 3
+         !raw  "O  "
+sAboutCompressed2
+         !byte 4
+         !raw  "M   "
+sAboutCompressed3
+         !byte 5
+         !raw  "P    "
+sAboutCompressed4
+         !byte 6
+         !raw  "R     "
+sAboutCompressed5
+         !byte 7
+         !raw  "E      "
+sAboutCompressed6
+         !byte 8
+         !raw  "S       "
+sAboutCompressed7
+         !byte 9
+         !raw  "S        "
+sAboutCompressed8
+         !byte 10
+         !raw  "I         "
+sAboutCompressed9
+         !byte 11
+         !raw  "O          "
+sAboutCompressed10
+         !byte 12
+         !raw  "N           "
+sAboutCompressedHide
+         !byte 11
+         !raw  "           "

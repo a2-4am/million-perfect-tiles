@@ -147,3 +147,91 @@ sSelectSizeLine13=sSelectSizeLine6
 ;XXXXXX    XXXXXX
 ;XXXXXXXXXXXXXXXX
 ;XXXXXXXXXXXXXXXX
+
+sAboutCopyright3
+         !byte 11,0,0,0,0,0,0,0,0,0,0,0
+sAboutCopyright4
+         !byte 14,0
+         !raw  "COPYRIGHT"
+         !byte 0,0,0,0
+sAboutCopyright5
+         !byte 14,0,0
+         !raw  "2022"
+         !byte 0
+         !raw  "BY"
+         !byte 0
+         !raw  "4AM"
+         !byte 0
+sAboutCopyright6
+         !byte 13,0,0,0,0,0,0,0,0,0,0,0,0,0
+sAboutCopyright10
+         !byte 6,0,0,0,0,0,0
+sAboutCopyright11
+         !byte 6,0
+         !raw  "V1.0"
+         !byte 0
+sAboutCopyright12=sAboutCopyright10
+sAboutCompression6=sAboutCopyright6
+sAboutCompression7
+         !byte 14,0
+         !raw  "COMPRESSION"
+         !byte 0,0
+sAboutCompression8
+         !byte 14,0,0,0,0
+         !raw  "BY"
+         !byte 0
+         !raw  "QKUMBA"
+         !byte 0
+sAboutCompression9=sAboutCopyright3
+sAboutMouse6
+         !byte 14,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+sAboutMouse7
+         !byte 14,0
+         !raw  "MOUSE"
+         !byte 0
+         !raw  "DRIVER"
+         !byte 0
+sAboutMouse8
+         !byte 14,0,0
+         !raw  "QUINN"
+         !byte 0
+         !raw  "DUNKI"
+         !byte 0
+sAboutMouse9=sAboutCopyright6
+
+sRule1
+         !byte 6
+         !raw  "RULE 1"
+
+sNever
+         !byte 34
+         !raw  "Never 3 in a row of the same color"
+
+sRule2
+         !byte 6
+         !raw  "RULE 2"
+
+sSame
+         !byte 34
+         !raw  "Same number of colors in every row"
+
+sRule3
+         !byte 6
+         !raw  "RULE 3"
+
+sUnique
+         !byte 34
+         !raw  "        Each row is unique        "
+
+sHelp0
+         !byte 21
+         !raw  "Million Perfect Tiles"
+sHelp2
+         !byte 36
+         !raw  "> Never 3 in a row of the same color"
+sHelp4
+         !byte 28
+         !raw  "% Balance colors in each row"
+sHelp6
+         !byte 21
+         !raw  "> Every row is unique"

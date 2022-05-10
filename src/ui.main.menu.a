@@ -224,11 +224,11 @@ StayOnMainMenuWithFullRefresh
          rts
 
 MainMenuEventD
-         jsr   RunDemo
+         jsr   ShowDemo
          jmp   StayOnMainMenuWithFullRefresh
 
 MainMenuEventF
-         jsr   AboutPage
+         jsr   ShowCredits
          jmp   StayOnMainMenuWithFullRefresh
 
 MainMenuEventQ
