@@ -8,11 +8,12 @@
 ; MAIN MEMORY
 ; 0400..07FF - text page (kept black for switching)
 ;
-; 1700..19BF - HGR base address table
+; 1700..18BF - HGR base address table
 ; 18C0..18EC - used by nth() when reading puzzles from disk
 ; 1900..19FF - board buffer for gameplay
 ; 1A00..1AFF - board buffer for main menu
 ; 1B00..1BFF - used by nth() when decompressing puzzles read from disk
+;              board buffer for self-running demo (which does not call nth)
 ; 1C00..1FFF - ProDOS file buffer
 ; 2000..3FFF - hi-res page
 ; 4000+      - program code (relocated to here at startup)
