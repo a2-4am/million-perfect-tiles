@@ -134,7 +134,6 @@ SelectSizeEventMouseMove
          beq   StayOnSelectSizeNoRefresh0
          txa
          pha
-         jsr   HidePointer
          jsr   EraseSelectSizeSelectionIndicator
          pla
          tax
@@ -194,7 +193,6 @@ ReloadBoard
          brk
 
 SelectSizeEventUp
-         jsr   HidePointer
          jsr   EraseSelectSizeSelectionIndicator
          dec   .selectSizeSelectedIndex
          ldx   .selectSizeSelectedIndex
@@ -204,7 +202,6 @@ SelectSizeEventUp
 +        jmp   .SelectSizeRedrawSelect
 
 SelectSizeEventDown
-         jsr   HidePointer
          jsr   EraseSelectSizeSelectionIndicator
          inc   .selectSizeSelectedIndex
          ldx   .selectSizeSelectedIndex

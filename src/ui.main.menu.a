@@ -165,7 +165,6 @@ MainMenuEventMouseMove
          beq   StayOnMainMenuNoRefresh
          txa
          pha
-         jsr   HidePointer
          jsr   EraseMainMenuSelectionIndicator
          pla
          tax
@@ -194,7 +193,6 @@ MainMenuEventReturn
 @crjmp   jmp   $FDFD                 ; SMC
 
 MainMenuEventUp
-         jsr   HidePointer
          jsr   EraseMainMenuSelectionIndicator
          dec   .mainMenuSelectedIndex
          ldx   .mainMenuSelectedIndex
@@ -204,7 +202,6 @@ MainMenuEventUp
 +        jmp   .MainMenuRedrawSelect
 
 MainMenuEventDown
-         jsr   HidePointer
          jsr   EraseMainMenuSelectionIndicator
          inc   .mainMenuSelectedIndex
          ldx   .mainMenuSelectedIndex
@@ -213,7 +210,6 @@ MainMenuEventDown
          ldx   #kMainMenuMin
 .MainMenuRedrawSelect
          jsr   SetMainMenuSelectionIndexAndRedraw
-         jsr   ShowPointer
 StayOnMainMenuNoRefresh
          ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
          clc
