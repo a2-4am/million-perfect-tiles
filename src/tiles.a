@@ -27,6 +27,7 @@ Start
          !source "src/tilescript.a"
          !source "src/solver.a"
          !source "src/unpack.a"
+         !source "src/events.a"
          !source "src/hw.mouse.a"
          !source "src/ui.common.a"
          !source "src/ui.strings.a"

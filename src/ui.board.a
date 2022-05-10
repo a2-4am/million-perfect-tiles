@@ -15,10 +15,16 @@ DrawBoardForTitle
 DrawBoardForUser
          ldx   #>kUserBoardBuffer
          ; /!\ execution falls through here to DrawBoardAt
-DrawBoardAt
+
+;------------------------------------------------------------------------------
+; DrawBoardAt
+; draw game board on screen
+;
 ; in:    X = high byte of page-aligned board buffer
 ;        pointer is hidden
 ; out:   all flags and registers clobbered
+;------------------------------------------------------------------------------
+DrawBoardAt
          stx   board_base_ptr+1
          stx   @a+2
          lda   #$FF

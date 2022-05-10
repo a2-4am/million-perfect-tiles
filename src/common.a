@@ -6,10 +6,17 @@
 
 ; - CalculateRowBase
 ; - SwapXY
+; - LogicalColumnToPhysicalColumn
+; - PhysicalColumnToLogicalColumn
 
-CalculateRowBase
-; in:    X = row (0x00..0x0F)
+;------------------------------------------------------------------------------
+; CalculateRowBase
+; calculate address offset within a board buffer
+;
+; in:    X = logical row number (0x00..0x0F)
 ; out:   A = low byte of address of board buffer for this row
+;------------------------------------------------------------------------------
+CalculateRowBase
          txa
          asl
          asl
@@ -17,9 +24,48 @@ CalculateRowBase
          asl
          rts
 
+;------------------------------------------------------------------------------
+; SwapXY
+; transfer X register to Y and Y register to X
+;
+; in:    none
+; out:   $tmpx, $tmpy clobbered
+;------------------------------------------------------------------------------
 SwapXY
          stx   tmpx
          sty   tmpy
          ldx   tmpy
          ldy   tmpx
+         rts
+
+;------------------------------------------------------------------------------
+; LogicalColumnToPhysicalColumn
+;
+; in:    Y = logical column number
+; out:   Y = physical byte offset to use against an HGR base address
+;        A clobbered
+;        X preserved
+;------------------------------------------------------------------------------
+LogicalColumnToPhysicalColumn
+         iny
+         iny
+         tya
+         asl
+         tay
+         rts
+
+;------------------------------------------------------------------------------
+; PhysicalColumnToLogicalColumn
+;
+; in:    Y = physical byte offset to use against an HGR base address
+; out:   Y = logical column number
+;        A clobbered
+;        X preserved
+;------------------------------------------------------------------------------
+PhysicalColumnToLogicalColumn
+         tya
+         lsr
+         tay
+         dey
+         dey
          rts

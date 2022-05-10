@@ -6,12 +6,64 @@
 ; Public functions:
 ; - PlayEventLoop
 
-; Codes returned by event handlers
+; Codes returned by event handlers (public)
 kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it must be 0
 kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
 kRequestedRestart = 2                ;   with the code in X so caller knows what happened
 kRequestedSkip = 3
 kReturnToSelectSize = 4
+
+;------------------------------------------------------------------------------
+; PlayEventLoop
+; main event loop for playing a puzzle
+;
+; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
+;        and is ready to play
+; out:   X = reason why event loop ended (see list above)
+;        all other registers & flags clobbered
+;------------------------------------------------------------------------------
+PlayEventLoop
+         bcc   @loop
+         jsr   Home
+         ; pointer is hidden (by Home)
+         jsr   DrawBoardForUser
+         jsr   DrawFocusRectangle
+         jsr   ShowPointer
+         bit   GFXMODE
+@loop
+         jsr   WaitNextEvent
+         cpx   #kEventMouseMove
+         beq   @onMouseMove
+         cpx   #kEventClick
+         beq   @onClick
+         cpx   #kEventKeypress
+         bne   @loop
+         ldx   #0
+-        ldy   kPlayKeys, x
+         beq   @loop                 ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed       ; populated by WaitForKey
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kPlayKeyHandlersLo, x
+         sta   @j+1
+         lda   kPlayKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   PlayEventLoop
+         rts
+@onMouseMove
+         +LDADDR PlayEventMouseMove
+         +ST16 @j+1
+         jmp   @j
+@onClick
+         +LDADDR PlayEventClick
+         +ST16 @j+1
+         jmp   @j
+
+;------------------------------------------------------------------------------
+; private
 
 kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
@@ -71,55 +123,6 @@ kPlayKeyHandlersHi
          !byte >PlayEventReturn
          !byte >PlayEventQuestion
          !byte >PlayEventQuestion
-
-;------------------------------------------------------------------------------
-; PlayEventLoop
-; main event loop for playing a puzzle
-;
-; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
-;        and is ready to play
-; out:   X = reason why event loop ended (see list above)
-;        all other registers & flags clobbered
-;------------------------------------------------------------------------------
-PlayEventLoop
-         bcc   @loop
-         jsr   Home
-         ; pointer is hidden (by Home)
-         jsr   DrawBoardForUser
-         jsr   DrawFocusRectangle
-         jsr   ShowPointer
-         bit   GFXMODE
-@loop
-         jsr   WaitNextEvent
-         cpx   #kEventMouseMove
-         beq   @onMouseMove
-         cpx   #kEventClick
-         beq   @onClick
-         cpx   #kEventKeypress
-         bne   @loop
-         ldx   #0
--        ldy   kPlayKeys, x
-         beq   @loop                 ; key has no associated handler, so ignore it
-         cpy   gLastKeyPressed       ; populated by WaitForKey
-         beq   @dispatch
-         inx
-         bne   -                     ; always branches
-@dispatch
-         lda   kPlayKeyHandlersLo, x
-         sta   @j+1
-         lda   kPlayKeyHandlersHi, x
-         sta   @j+2
-@j       jsr   $FDFD                 ; SMC
-         beq   PlayEventLoop
-         rts
-@onMouseMove
-         +LDADDR PlayEventMouseMove
-         +ST16 @j+1
-         jmp   @j
-@onClick
-         +LDADDR PlayEventClick
-         +ST16 @j+1
-         jmp   @j
 
 PlayEventMouseMove
          jsr   MousePositionToLogicalCoordinates

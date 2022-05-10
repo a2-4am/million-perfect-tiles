@@ -76,7 +76,7 @@ DrawLargeCharacter
 +        sta   char_index
          stx   tmpx
          sty   tmpy
-         +LogicalColumnToPhysicalColumn
+         jsr   LogicalColumnToPhysicalColumn
          sty   HTAB
          lda   WideHGRTops, x
          sta   char_row

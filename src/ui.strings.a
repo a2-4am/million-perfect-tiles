@@ -183,6 +183,42 @@ sAboutCompression8
          !raw  "QKUMBA"
          !byte 0
 sAboutCompression9=sAboutCopyright3
+sAboutCompressed0
+         !byte 2
+         !raw  "C "
+sAboutCompressed1
+         !byte 3
+         !raw  "O  "
+sAboutCompressed2
+         !byte 4
+         !raw  "M   "
+sAboutCompressed3
+         !byte 5
+         !raw  "P    "
+sAboutCompressed4
+         !byte 6
+         !raw  "R     "
+sAboutCompressed5
+         !byte 7
+         !raw  "E      "
+sAboutCompressed6
+         !byte 8
+         !raw  "S       "
+sAboutCompressed7
+         !byte 9
+         !raw  "S        "
+sAboutCompressed8
+         !byte 10
+         !raw  "I         "
+sAboutCompressed9
+         !byte 11
+         !raw  "O          "
+sAboutCompressed10
+         !byte 12
+         !raw  "N           "
+sAboutCompressedHide
+         !byte 11
+         !raw  "           "
 sAboutMouse6
          !byte 14,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 sAboutMouse7
@@ -198,6 +234,19 @@ sAboutMouse8
          !raw  "DUNKI"
          !byte 0
 sAboutMouse9=sAboutCopyright6
+sAboutTesting6
+         !byte 9,0,0,0,0,0,0,0,0,0
+sAboutTesting7
+         !byte 14,0
+         !raw  "TESTING"
+         !byte 0,0,0,0,0,0
+sAboutTesting8
+         !byte 14,0,0,0,0
+         !raw  "BY"
+         !byte 0
+         !raw  "BESLEY"
+         !byte 0
+sAboutTesting9=sAboutCopyright3
 
 sRule1
          !byte 6

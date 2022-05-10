@@ -1,0 +1,117 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; functions for keyboard and mouse events
+;
+; Public functions:
+; - WaitForKeyWithTimeout
+; - LongWaitForKeyWithTimeout
+; - GetNextEvent
+; - WaitNextEvent
+;
+
+; event codes (public)
+kNoEvent = 0
+kEventKeypress = 1
+kEventMouseMove = 2
+kEventClick = 3
+
+;------------------------------------------------------------------------------
+; WaitForKeyWithTimeout
+; wait for an amount of time, keypress, or mouse click, whichever comes first
+;
+; in:    A = timeout length (like standard $FCA8 wait routine but slower)
+; out:   A = 0
+;        X,Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
+;------------------------------------------------------------------------------
+WaitForKeyWithTimeout
+         sec
+@wait1   pha
+@wait2   sbc   #1
+         bne   @wait2
+         pla
+         bit   $C000
+         bmi   @exit
+         bit   gPointerClicked
+         bmi   @exit
+         sbc   #1
+         bne   @wait1
+@exit    rts
+
+;------------------------------------------------------------------------------
+; LongWaitForKeyWithTimeout
+; wait for a long amount of time, keypress, or mouse click, whichever comes first
+;
+; in:    X = number of iterations for an A=0 wait loop
+; out:   A,X = 0
+;        Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
+;------------------------------------------------------------------------------
+LongWaitForKeyWithTimeout
+         lda   #0
+-        jsr   WaitForKeyWithTimeout
+         bmi   +
+         dex
+         bne   -
++        rts
+
+;------------------------------------------------------------------------------
+; GetNextEvent
+; check for any key, mouse movement, or mouse click, while incrementing
+; random seed
+;
+; in:    none
+; out:   X = event code (see above)
+;        if X = kEventKeypress, then
+;          A = gLastKeyPressed = unaltered key code
+;        Y preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+GetNextEvent
+         inc   RNDSEED
+         bne   +
+         inc   RNDSEED+1
++        bit   gPointerClicked       ; TEST BIT 7 ONLY
+         bmi   @onClick
+         bit   gPointerMoved         ; TEST BIT 7 ONLY
+         bmi   @onMouseMove
+         lda   KBD
+         bmi   @onKeypress
+         ldx   #kNoEvent
+         rts
+@onKeypress
+         bit   CLEARKBD
+         sta   gLastKeyPressed
+         ldx   #kEventKeypress
+         rts
+@onMouseMove
+         clc
+         ror   gPointerMoved         ; TEST BIT 7 ONLY
+         ldx   #kEventMouseMove
+         rts
+@onClick
+         clc
+         ror   gPointerClicked       ; TEST BIT 7 ONLY
+         ldx   #kEventClick
+         rts
+
+;------------------------------------------------------------------------------
+; WaitNextEvent
+; wait forever for any key, mouse movement, or mouse click, while incrementing
+; random seed
+;
+; in:    none
+; out:   X = event code (see above)
+;        if X = kEventKeypress, then
+;          A = gLastKeyPressed = unaltered key code
+;        Y preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+WaitNextEvent
+         jsr   GetNextEvent
+         cpx   #kNoEvent
+         beq   WaitNextEvent
+         rts

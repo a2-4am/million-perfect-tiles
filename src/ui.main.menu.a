@@ -7,8 +7,60 @@
 ; - MainMenuEventLoop
 ;
 
+;------------------------------------------------------------------------------
+; MainMenuEventLoop
+; display main menu
+;
+; in:    C clear if screen is already cleared and menu page is already drawn
+;          (will happen if using arrow keys to move selection indicator)
+;        C set if full screen clear & redraw is required
+;          (will happen the first time called, or
+;          if user returns to main menu from any other screen)
+; out:   Z = 0
+;------------------------------------------------------------------------------
+MainMenuEventLoop
+         bcc   @loop
+         jsr   Home
+         ; pointer is hidden (by Home)
+         jsr   DrawMainMenuBackground
+         jsr   DrawMainMenuText
+@loop
+         jsr   WaitNextEvent
+         cpx   #kEventMouseMove
+         beq   @onMouseMove
+         cpx   #kEventClick
+         beq   @onClick
+         cpx   #kEventKeypress
+         bne   @loop
+         ldx   #0
+-        ldy   kMainMenuKeys, x
+         beq   @loop                 ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed       ; populated by WaitForKey
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kMainMenuKeyHandlersLo, x
+         sta   @j+1
+         lda   kMainMenuKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   MainMenuEventLoop
+         rts
+@onMouseMove
+         +LDADDR MainMenuEventMouseMove
+         +ST16 @j+1
+         jmp   @j
+@onClick
+         +LDADDR MainMenuEventClick
+         +ST16 @j+1
+         jmp   @j
+
+;------------------------------------------------------------------------------
+; private
+
 ; Codes returned by event handlers
-kStayOnMainMenu = 0
+kStayOnMainMenu = 0                  ; This code is checked with BEQ/BNE, so it must be 0
 kQuit = 1
 
 kMainMenuMin = 10
@@ -71,85 +123,6 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventF
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
-
-MenuCode
-         !byte WPRINT, 1, 6
-         !word              sMainMenuLine1
-         !byte WPRINT, 2, 2
-         !word              sMainMenuLine2
-         !byte WPRINT, 3, 2
-         !word              sMainMenuLine3
-         !byte WPRINT, 4, 2
-         !word              sMainMenuLine4
-         !byte WPRINT, 5, 5
-         !word              sMainMenuLine5
-         !byte WPRINT, 6, 5
-         !word              sMainMenuLine6
-         !byte WPRINT, 7, 6
-         !word              sMainMenuLine7
-         ; nothing on line 8
-         !byte WPRINT, 9, 5
-         !word              sMainMenuLine9
-         !byte WPRINT,10, 5
-         !word              sMainMenuLine10
-         !byte WPRINT,11, 5
-         !word              sMainMenuLine11
-         !byte WPRINT,12, 5
-         !word              sMainMenuLine12
-         !byte WPRINT,13, 5
-         !word              sMainMenuLine13
-         !byte WPRINT,14, 5
-         !word              sMainMenuLine14
-         !byte EXIT
-
-;------------------------------------------------------------------------------
-; MainMenuEventLoop
-; display main menu
-;
-; in:    C clear if screen is already cleared and menu page is already drawn
-;          (will happen if using arrow keys to move selection indicator)
-;        C set if full screen clear & redraw is required
-;          (will happen the first time called, or
-;          if user returns to main menu from any other screen)
-; out:   Z = 0
-;------------------------------------------------------------------------------
-MainMenuEventLoop
-         bcc   @loop
-         jsr   Home
-         ; pointer is hidden (by Home)
-         jsr   DrawMainMenuBackground
-         jsr   DrawMainMenuText
-@loop
-         jsr   WaitNextEvent
-         cpx   #kEventMouseMove
-         beq   @onMouseMove
-         cpx   #kEventClick
-         beq   @onClick
-         cpx   #kEventKeypress
-         bne   @loop
-         ldx   #0
--        ldy   kMainMenuKeys, x
-         beq   @loop                 ; key has no associated handler, so ignore it
-         cpy   gLastKeyPressed       ; populated by WaitForKey
-         beq   @dispatch
-         inx
-         bne   -                     ; always branches
-@dispatch
-         lda   kMainMenuKeyHandlersLo, x
-         sta   @j+1
-         lda   kMainMenuKeyHandlersHi, x
-         sta   @j+2
-@j       jsr   $FDFD                 ; SMC
-         beq   MainMenuEventLoop
-         rts
-@onMouseMove
-         +LDADDR MainMenuEventMouseMove
-         +ST16 @j+1
-         jmp   @j
-@onClick
-         +LDADDR MainMenuEventClick
-         +ST16 @j+1
-         jmp   @j
 
 MainMenuEventMouseMove
          jsr   MousePositionToLogicalCoordinates
@@ -265,7 +238,7 @@ DrawMainMenuBackground
          rts
 
 DrawMainMenuText
-         +LDADDR MenuCode
+         +LDADDR MainMenuScript
          jsr   TileScript
          ldx   .mainMenuSelectedIndex
          ; /!\ execution falls through here to SetMainMenuSelectionIndexAndRedraw
@@ -273,14 +246,44 @@ DrawMainMenuText
 SetMainMenuSelectionIndexAndRedraw
 ; in:    X = new selection index
          stx   .mainMenuSelectedIndex
-         ldy   #$05
-         lda   #$01                  ; selection indicator character
+         ldy   #$05                  ; HTAB, must match menu strings
+         lda   #kSelectionIndicator
 -        jsr   HidePointer
          jsr   DrawLargeCharacter
          jmp   ShowPointer
 
 EraseMainMenuSelectionIndicator
          ldx   .mainMenuSelectedIndex
-         ldy   #$05
-         lda   #$00                  ; blank character
+         ldy   #$05                  ; HTAB, must match menu strings
+         lda   #kEmptyTile
          beq   -                     ; always branches
+
+MainMenuScript
+         !byte WPRINT, 1, 6
+         !word              sMainMenuLine1
+         !byte WPRINT, 2, 2
+         !word              sMainMenuLine2
+         !byte WPRINT, 3, 2
+         !word              sMainMenuLine3
+         !byte WPRINT, 4, 2
+         !word              sMainMenuLine4
+         !byte WPRINT, 5, 5
+         !word              sMainMenuLine5
+         !byte WPRINT, 6, 5
+         !word              sMainMenuLine6
+         !byte WPRINT, 7, 6
+         !word              sMainMenuLine7
+         ; nothing on line 8
+         !byte WPRINT, 9, 5
+         !word              sMainMenuLine9
+         !byte WPRINT,10, 5
+         !word              sMainMenuLine10
+         !byte WPRINT,11, 5
+         !word              sMainMenuLine11
+         !byte WPRINT,12, 5
+         !word              sMainMenuLine12
+         !byte WPRINT,13, 5
+         !word              sMainMenuLine13
+         !byte WPRINT,14, 5
+         !word              sMainMenuLine14
+         !byte EXIT

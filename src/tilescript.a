@@ -11,13 +11,14 @@
 EXIT     = 0
 WAIT     = 1
 HOME     = 2
-FIZZLE   = 3
-PRINT    = 4
-WPRINT   = 5
+PRINT    = 3
+WPRINT   = 4
+OFFPRINT = 5
 FOCUS    = 6
 UNFOCUS  = 7
 TILE     = 8
 BOARD    = 9
+CALL     = 10
 
 ;------------------------------------------------------------------------------
 ; TileScript
@@ -39,30 +40,32 @@ TileScript
          jmp   @loop
 
 ;------------------------------------------------------------------------------
-; internal functions
+; private
 
 ScriptDispatchLo
          !byte <ScriptOnEXIT
          !byte <ScriptOnWAIT
          !byte <ScriptOnHOME
-         !byte <ScriptOnFIZZLE
          !byte <ScriptOnPRINT
          !byte <ScriptOnWPRINT
+         !byte <ScriptOnOFFPRINT
          !byte <ScriptOnFOCUS
          !byte <ScriptOnUNFOCUS
          !byte <ScriptOnTILE
          !byte <ScriptOnBOARD
+         !byte <ScriptOnCALL
 ScriptDispatchHi
          !byte >ScriptOnEXIT
          !byte >ScriptOnWAIT
          !byte >ScriptOnHOME
-         !byte >ScriptOnFIZZLE
          !byte >ScriptOnPRINT
          !byte >ScriptOnWPRINT
+         !byte >ScriptOnOFFPRINT
          !byte >ScriptOnFOCUS
          !byte >ScriptOnUNFOCUS
          !byte >ScriptOnTILE
          !byte >ScriptOnBOARD
+         !byte >ScriptOnCALL
 
 ScriptOnEXIT
          jsr   ShowPointer
@@ -84,7 +87,6 @@ ScriptOnWAIT
          jmp   HidePointer
 
 ScriptOnHOME=Home
-ScriptOnFIZZLE=GridFizzle
 
 ScriptOnPRINT
          jsr   GetPrintParams
@@ -95,6 +97,29 @@ ScriptOnWPRINT
          jsr   GetPrintParams
          ; pointer is hidden
          jmp   DrawLargeString
+
+         bit   $ff58
+ScriptOnOFFPRINT
+         jsr   GetNextScriptByte
+         stx   @b+2
+         jsr   GetPrintParams
+         +ST16 string_ptr
+         ldy   HTAB
+         dey
+         sty   HTAB
+         ldx   VTAB
+         jsr   CalculateRowBase
+         clc
+         adc   HTAB
+         sta   @b+1
+         ldy   #0
+         lda   (string_ptr), y
+         tay
+@a       lda   (string_ptr), y
+@b       sta   $FDFD, y              ; SMC
+         dey
+         bne   @a
+         rts
 
 GetPrintParams
          jsr   GetNextScriptByte
@@ -126,11 +151,6 @@ ScriptOnTILE
          ; pointer is hidden
          jmp   DrawLargeCharacter
 
-ScriptOnBOARD
-         jsr   GetNextScriptByte
-         ; pointer is hidden
-         jmp   DrawBoardAt
-
 GetFocusParams
          jsr   GetNextScriptByte
          stx   tmpx
@@ -141,6 +161,18 @@ GetFocusParams
          txa
          ldx   tmpx
          rts
+
+ScriptOnBOARD
+         jsr   GetNextScriptByte
+         ; pointer is hidden
+         jmp   DrawBoardAt
+
+ScriptOnCALL
+         jsr   GetNextScriptByte
+         stx   @j+1
+         jsr   GetNextScriptByte
+         stx   @j+2
+@j       jmp   $FDFD                 ; SMC
 
 GetNextScriptByte
          ldx   $FDFD                 ; SMC

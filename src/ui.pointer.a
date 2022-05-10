@@ -9,12 +9,266 @@
 ; - PointerOnShutdown
 ; - HidePointer
 ; - ShowPointer
-; - MousePositionToLogicalCoordinates
 ; - ClickPositionToLogicalCoordinates
+; - MousePositionToLogicalCoordinates
 
 ; Additionally, these routines are called by the mouse driver (do not call them directly)
 ; - DrawPointer
 ; - UndrawPointer
+
+;------------------------------------------------------------------------------
+; PointerOnStartup
+; initialize mouse driver, register callbacks, and pointer internal state
+; (call this exactly once at program startup, or whenever you want to start
+;  using the mouse)
+;
+; in:    mouse driver NOT initialized
+; out:   mouse driver enabled
+;        pointer is shown
+;        all registers and flags clobbered
+;------------------------------------------------------------------------------
+PointerOnStartup
+         +LDADDR DrawPointer
+         +ST16 WGDrawPointerCallback
+         +LDADDR UndrawPointer
+         +ST16 WGUndrawPointerCallback
+         lda   #$00
+         sta   gPointerMoved         ; TEST BIT 7 ONLY
+         sta   gPointerClicked       ; TEST BIT 7 ONLY
+         sta   gPointerHasCache      ; TEST BIT 7 ONLY
+         jsr   ShowPointer
+         jmp   WGEnableMouse
+
+;------------------------------------------------------------------------------
+; PointerOnShutdown
+; shut down mouse driver
+; (call this exactly once at program shutdown, or whenever you want to stop
+;  using the mouse)
+;
+; in:    mouse driver enabled
+; out:   mouse driver disabled
+;        all registers and flags clobbered
+;------------------------------------------------------------------------------
+PointerOnShutdown=WGDisableMouse
+
+;------------------------------------------------------------------------------
+; HidePointer
+; undraw pointer and hide it until further notice
+; (safe to call more than once -- you do NOT need to balance calls between
+;  HidePointer and ShowPointer)
+;
+; in:    mouse driver enabled
+; out:   all registers preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+HidePointer
+         jsr   UndrawPointer
+         clc
+         +HIDE_NEXT_BYTE
+         ; /!\ execution falls through here to ShowPointer
+
+;------------------------------------------------------------------------------
+; ShowPointer
+; allow pointer to be drawn on mousemove events
+; NOTE: the pointer is not actually drawn until the next mousemove event
+; (safe to call more than once -- you do NOT need to balance calls between
+;  HidePointer and ShowPointer)
+;
+; in:    mouse driver enabled
+; out:   all registers preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+ShowPointer
+         sec
+         ror   gPointerVisible
+         rts
+
+ClickPositionToLogicalCoordinates
+         php
+         sei
+         +LD16 WG_MOUSECLICK_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSECLICK_Y
+         jmp   +
+MousePositionToLogicalCoordinates
+         php
+         sei
+         +LD16 WG_MOUSEPOS_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSEPOS_Y
++
+         +ST16 pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         ldx   #$FF
+         lda   pointer_tmp_y
+         sec
+         sbc   #8
+         bcc   +
+-        inx
+         sec
+         sbc   #11
+         bcs   -
++
+         lsr   pointer_tmp_x+1
+         ror   pointer_tmp_x
+         ldy   #0
+-        lda   pointer_tmp_x
+         sec
+         sbc   #7
+         bcs   +
+         dec   pointer_tmp_x+1
+         bmi   ++
++        sta   pointer_tmp_x
+         iny
+         bne   -
+++
+         jsr   PhysicalColumnToLogicalColumn
+         plp
+         rts
+
+DrawPointer
+         php
+         sei
+         +LD16 WG_MOUSEPOS_X
+         +ST16 pointer_tmp_x
+         +LD16 WG_MOUSEPOS_Y
+         +ST16 pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         lsr   pointer_tmp_y+1
+         ror   pointer_tmp_y
+         ldx   pointer_tmp_y
+         lsr   pointer_tmp_x+1
+         ror   pointer_tmp_x
+         ldy   #0
+-        lda   pointer_tmp_x
+         sec
+         sbc   #7
+         bcs   +
+         dec   pointer_tmp_x+1
+         bmi   ++
++        sta   pointer_tmp_x
+         iny
+         bne   -
+++       lda   pointer_tmp_x
+;DrawPointerAt
+; in:    X = top HGR row (0x00..0xBF)
+;        Y = column offset, byte (0x00..0x27)
+;        A = column offset, pixel offset within byte (0..6)
+         stx   gPointerCacheX
+         sty   gPointerCacheY
+         bit   gPointerVisible
+         bpl   @done
+         tax
+         lda   kPointerLeftLo, x
+         sta   @eorleft+1
+         lda   kPointerLeftHi, x
+         sta   @eorleft+2
+         lda   kPointerMaskLeftLo, x
+         sta   @andleft+1
+         lda   kPointerMaskLeftHi, x
+         sta   @andleft+2
+         lda   kPointerRightLo, x
+         sta   @eorright+1
+         lda   kPointerRightHi, x
+         sta   @eorright+2
+         lda   kPointerMaskRightLo, x
+         sta   @andright+1
+         lda   kPointerMaskRightHi, x
+         sta   @andright+2
+         lda   gPointerCacheX
+         clc
+         adc   #(kPointerHeight-1)
+         sta   pointer_hgr_row
+         tax
+         lda   #(kPointerHeight-1)
+         sta   pointer_logical_row
+@pointerRowLoop
+         ldx   pointer_hgr_row
+         cpx   #$C0
+         bcs   +
+         lda   HGRLO, x
+         sta   pointer_hgr_base_ptr
+         lda   HGRHI, x
+         sta   pointer_hgr_base_ptr+1
+         ldx   pointer_logical_row
+         lda   (pointer_hgr_base_ptr), y
+         sta   gPointerCacheLeft, x
+@eorleft
+         eor   kPointerLeft0, x      ; SMC
+@andleft
+         and   kPointerMaskLeft0, x  ; SMC
+         eor   (pointer_hgr_base_ptr), y
+         sta   (pointer_hgr_base_ptr), y
+         cpy   #$27
+         bcs   +
+         iny
+         lda   (pointer_hgr_base_ptr), y
+         sta   gPointerCacheRight, x
+@eorright
+         eor   kPointerRight0, x     ; SMC
+@andright
+         and   kPointerMaskRight0, x ; SMC
+         eor   (pointer_hgr_base_ptr), y
+         sta   (pointer_hgr_base_ptr), y
+         dey
++        dec   pointer_hgr_row
+         dec   pointer_logical_row
+         bpl   @pointerRowLoop
+         lda   #$80
+         sta   gPointerMoved
+         sta   gPointerHasCache
+@done
+         plp
+         rts
+
+UndrawPointer
+         php
+         sei
+         +SAVE_AXY
+         bit   gPointerHasCache
+         bpl   @done
+         ldx   gPointerCacheX
+         ldy   gPointerCacheY
+         txa
+         clc
+         adc   #(kPointerHeight-1)
+         sta   pointer_hgr_row
+         tax
+         lda   #(kPointerHeight-1)
+         sta   pointer_logical_row
+@pointerRowLoop
+         ldx   pointer_hgr_row
+         cpx   #$C0
+         bcs   +
+         lda   HGRLO, x
+         sta   pointer_hgr_base_ptr
+         lda   HGRHI, x
+         sta   pointer_hgr_base_ptr+1
+         ldx   pointer_logical_row
+         lda   gPointerCacheLeft, x
+         sta   (pointer_hgr_base_ptr), y
+         cpy   #$27
+         bcs   +
+         iny
+         lda   gPointerCacheRight, x
+         sta   (pointer_hgr_base_ptr), y
+         dey
++        dec   pointer_hgr_row
+         dec   pointer_logical_row
+         bpl   @pointerRowLoop
+         lda   #$00
+         sta   gPointerHasCache
+@done
+         +RESTORE_AXY
+         plp
+         rts
+
+;------------------------------------------------------------------------------
+; private
 
 kPointerHeight = 9
 
@@ -368,216 +622,3 @@ kPointerMaskRightHi
          !byte >kPointerMaskRight5
          !byte >kPointerMaskRight6
 
-PointerOnStartup
-         +LDADDR DrawPointer
-         +ST16 WGDrawPointerCallback
-         +LDADDR UndrawPointer
-         +ST16 WGUndrawPointerCallback
-         lda   #$00
-         sta   gPointerMoved
-         sta   gPointerClicked
-         sta   gPointerHasCache
-         jsr   ShowPointer
-         jmp   WGEnableMouse
-
-PointerOnShutdown
-         jmp   WGDisableMouse
-
-DrawPointer
-         php
-         sei
-         +LD16 WG_MOUSEPOS_X
-         +ST16 pointer_tmp_x
-         +LD16 WG_MOUSEPOS_Y
-         +ST16 pointer_tmp_y
-         lsr   pointer_tmp_y+1
-         ror   pointer_tmp_y
-         lsr   pointer_tmp_y+1
-         ror   pointer_tmp_y
-         ldx   pointer_tmp_y
-         lsr   pointer_tmp_x+1
-         ror   pointer_tmp_x
-         ldy   #0
--        lda   pointer_tmp_x
-         sec
-         sbc   #7
-         bcs   +
-         dec   pointer_tmp_x+1
-         bmi   ++
-+        sta   pointer_tmp_x
-         iny
-         bne   -
-++       lda   pointer_tmp_x
-;DrawPointerAt
-; in:    X = top HGR row (0x00..0xBF)
-;        Y = column offset, byte (0x00..0x27)
-;        A = column offset, pixel offset within byte (0..6)
-         stx   gPointerCacheX
-         sty   gPointerCacheY
-         bit   gPointerVisible
-         bpl   @done
-         tax
-         lda   kPointerLeftLo, x
-         sta   @eorleft+1
-         lda   kPointerLeftHi, x
-         sta   @eorleft+2
-         lda   kPointerMaskLeftLo, x
-         sta   @andleft+1
-         lda   kPointerMaskLeftHi, x
-         sta   @andleft+2
-         lda   kPointerRightLo, x
-         sta   @eorright+1
-         lda   kPointerRightHi, x
-         sta   @eorright+2
-         lda   kPointerMaskRightLo, x
-         sta   @andright+1
-         lda   kPointerMaskRightHi, x
-         sta   @andright+2
-         lda   gPointerCacheX
-         clc
-         adc   #(kPointerHeight-1)
-         sta   pointer_hgr_row
-         tax
-         lda   #(kPointerHeight-1)
-         sta   pointer_logical_row
-@pointerRowLoop
-         ldx   pointer_hgr_row
-         cpx   #$C0
-         bcs   +
-         lda   HGRLO, x
-         sta   pointer_hgr_base_ptr
-         lda   HGRHI, x
-         sta   pointer_hgr_base_ptr+1
-         ldx   pointer_logical_row
-         lda   (pointer_hgr_base_ptr), y
-         sta   gPointerCacheLeft, x
-@eorleft
-         eor   kPointerLeft0, x      ; SMC
-@andleft
-         and   kPointerMaskLeft0, x  ; SMC
-         eor   (pointer_hgr_base_ptr), y
-         sta   (pointer_hgr_base_ptr), y
-         cpy   #$27
-         bcs   +
-         iny
-         lda   (pointer_hgr_base_ptr), y
-         sta   gPointerCacheRight, x
-@eorright
-         eor   kPointerRight0, x     ; SMC
-@andright
-         and   kPointerMaskRight0, x ; SMC
-         eor   (pointer_hgr_base_ptr), y
-         sta   (pointer_hgr_base_ptr), y
-         dey
-+        dec   pointer_hgr_row
-         dec   pointer_logical_row
-         bpl   @pointerRowLoop
-         lda   #$80
-         sta   gPointerMoved
-         sta   gPointerHasCache
-@done
-         plp
-         rts
-
-UndrawPointer
-         php
-         sei
-         +SAVE_AXY
-         bit   gPointerHasCache
-         bpl   @done
-         ldx   gPointerCacheX
-         ldy   gPointerCacheY
-         txa
-         clc
-         adc   #(kPointerHeight-1)
-         sta   pointer_hgr_row
-         tax
-         lda   #(kPointerHeight-1)
-         sta   pointer_logical_row
-@pointerRowLoop
-         ldx   pointer_hgr_row
-         cpx   #$C0
-         bcs   +
-         lda   HGRLO, x
-         sta   pointer_hgr_base_ptr
-         lda   HGRHI, x
-         sta   pointer_hgr_base_ptr+1
-         ldx   pointer_logical_row
-         lda   gPointerCacheLeft, x
-         sta   (pointer_hgr_base_ptr), y
-         cpy   #$27
-         bcs   +
-         iny
-         lda   gPointerCacheRight, x
-         sta   (pointer_hgr_base_ptr), y
-         dey
-+        dec   pointer_hgr_row
-         dec   pointer_logical_row
-         bpl   @pointerRowLoop
-         lda   #$00
-         sta   gPointerHasCache
-@done
-         +RESTORE_AXY
-         plp
-         rts
-
-HidePointer
-         jsr   UndrawPointer
-         pha
-         lda   #$00
-         sta   gPointerVisible
-         pla
-         rts
-
-ShowPointer
-         pha
-         lda   #$80
-         sta   gPointerVisible
-         pla
-         rts
-
-ClickPositionToLogicalCoordinates
-         php
-         sei
-         +LD16 WG_MOUSECLICK_X
-         +ST16 pointer_tmp_x
-         +LD16 WG_MOUSECLICK_Y
-         jmp   +
-MousePositionToLogicalCoordinates
-         php
-         sei
-         +LD16 WG_MOUSEPOS_X
-         +ST16 pointer_tmp_x
-         +LD16 WG_MOUSEPOS_Y
-+
-         +ST16 pointer_tmp_y
-         lsr   pointer_tmp_y+1
-         ror   pointer_tmp_y
-         lsr   pointer_tmp_y+1
-         ror   pointer_tmp_y
-         ldx   #$FF
-         lda   pointer_tmp_y
-         sec
-         sbc   #8
-         bcc   +
--        inx
-         sec
-         sbc   #11
-         bcs   -
-+
-         lsr   pointer_tmp_x+1
-         ror   pointer_tmp_x
-         ldy   #0
--        lda   pointer_tmp_x
-         sec
-         sbc   #7
-         bcs   +
-         dec   pointer_tmp_x+1
-         bmi   ++
-+        sta   pointer_tmp_x
-         iny
-         bne   -
-++
-         +PhysicalColumnToLogicalColumn
-         plp
-         rts

@@ -11,6 +11,18 @@
 ; - FindValidMove
 ; - TransposeBoard
 
+; reason codes (public) returned by FindInvalidMove
+kInvalid3WhiteInRow          = 0x01
+kInvalid3BlueInRow           = 0x02
+kInvalidTooManyWhiteInRow    = 0x03
+kInvalidTooManyBlueInRow     = 0x04
+kInvalidIdenticalRows        = 0x05
+kInvalid3WhiteInColumn       = 0x81
+kInvalid3BlueInColumn        = 0x82
+kInvalidTooManyWhiteInColumn = 0x83
+kInvalidTooManyBlueInColumn  = 0x84
+kInvalidIdenticalColumns     = 0x85
+
 FindEmptyCoordinatesForUser
          ldx   #>kUserBoardBuffer
          ; /!\ execution falls through here to FindEmptyCoordinates
@@ -46,17 +58,6 @@ FindEmptyCoordinates
          tay
          clc
          rts
-
-kInvalid3WhiteInRow          = 0x01
-kInvalid3BlueInRow           = 0x02
-kInvalidTooManyWhiteInRow    = 0x03
-kInvalidTooManyBlueInRow     = 0x04
-kInvalidIdenticalRows        = 0x05
-kInvalid3WhiteInColumn       = 0x81
-kInvalid3BlueInColumn        = 0x82
-kInvalidTooManyWhiteInColumn = 0x83
-kInvalidTooManyBlueInColumn  = 0x84
-kInvalidIdenticalColumns     = 0x85
 
 FindInvalidMoveForUser
          ldx   #>kUserBoardBuffer
@@ -452,7 +453,7 @@ TransposeBoard
          rts
 
 ;------------------------------------------------------------------------------
-; internal functions
+; private
 
 .CountColorsInRow
          lda   #$00

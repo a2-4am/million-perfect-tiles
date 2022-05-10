@@ -7,9 +7,6 @@
 ; public functions:
 ; - ShowDemo
 
-kWhite = 2
-kBlue = 3
-
 ;------------------------------------------------------------------------------
 ; ShowDemo
 ; run self-running demo/tutorial until keypress or mouse click or completion
@@ -19,10 +16,13 @@ kBlue = 3
 ;------------------------------------------------------------------------------
 ShowDemo
          jsr   InitDemoBoard
-         +LDADDR @script
+         +LDADDR DemoScript
          jmp   TileScript
 
-@script
+;------------------------------------------------------------------------------
+; private
+
+DemoScript
          !byte HOME
 
          !byte BOARD,       >kDemoBoardBuffer
@@ -37,21 +37,21 @@ ShowDemo
 
          !byte FOCUS, 6, 7, kFocus1x3
          !byte WAIT ,10
-         !byte TILE , 6, 8, kBlue
+         !byte TILE , 6, 8, kBlueTile
          !byte WAIT , 5
          !byte UNFOCUS, 6, 7, kFocus1x3
          !byte WAIT , 2
 
          !byte FOCUS, 7, 8, kFocus1x3
          !byte WAIT ,10
-         !byte TILE , 7, 9, kWhite
+         !byte TILE , 7, 9, kWhiteTile
          !byte WAIT , 5
          !byte UNFOCUS, 7, 8, kFocus1x3
          !byte WAIT , 2
 
          !byte FOCUS, 5, 8, kFocus3x1
          !byte WAIT ,10
-         !byte TILE , 5, 8, kWhite
+         !byte TILE , 5, 8, kWhiteTile
          !byte FOCUS, 5, 8, kFocus3x1
          !byte WAIT , 5
          !byte UNFOCUS, 5, 8, kFocus3x1
@@ -59,7 +59,7 @@ ShowDemo
 
          !byte FOCUS, 6, 8, kFocus3x1
          !byte WAIT ,10
-         !byte TILE , 8, 8, kWhite
+         !byte TILE , 8, 8, kWhiteTile
          !byte FOCUS, 6, 8, kFocus3x1
          !byte WAIT , 5
          !byte UNFOCUS, 6, 8, kFocus3x1
@@ -67,7 +67,7 @@ ShowDemo
 
          !byte FOCUS, 5, 9, kFocus3x1
          !byte WAIT , 5
-         !byte TILE , 5, 9, kBlue
+         !byte TILE , 5, 9, kBlueTile
          !byte FOCUS, 5, 9, kFocus3x1
          !byte WAIT , 3
          !byte UNFOCUS, 5, 9, kFocus3x1
@@ -75,7 +75,7 @@ ShowDemo
 
          !byte FOCUS, 6, 9, kFocus3x1
          !byte WAIT , 5
-         !byte TILE , 8, 9, kBlue
+         !byte TILE , 8, 9, kBlueTile
          !byte FOCUS, 6, 9, kFocus3x1
          !byte WAIT , 3
          !byte UNFOCUS, 6, 9, kFocus3x1
@@ -83,7 +83,7 @@ ShowDemo
 
          !byte FOCUS, 8, 7, kFocus3x1
          !byte WAIT , 5
-         !byte TILE , 8, 7, kBlue
+         !byte TILE , 8, 7, kBlueTile
          !byte FOCUS, 8, 7, kFocus3x1
          !byte WAIT , 3
          !byte UNFOCUS, 8, 7, kFocus3x1
@@ -91,7 +91,7 @@ ShowDemo
 
          !byte FOCUS, 8, 9, kFocus3x1
          !byte WAIT , 5
-         !byte TILE , 9, 9, kWhite
+         !byte TILE , 9, 9, kWhiteTile
          !byte FOCUS, 8, 9, kFocus3x1
          !byte WAIT , 3
          !byte UNFOCUS, 8, 9, kFocus3x1
@@ -99,7 +99,7 @@ ShowDemo
 
          !byte FOCUS, 9, 7, kFocus1x3
          !byte WAIT , 5
-         !byte TILE , 9, 8, kBlue
+         !byte TILE , 9, 8, kBlueTile
          !byte WAIT , 3
          !byte UNFOCUS, 9, 7, kFocus1x3
          !byte WAIT , 1
@@ -112,7 +112,7 @@ ShowDemo
 
          !byte FOCUS, 5, 8, kFocusEntireColumn
          !byte WAIT ,10
-         !byte TILE ,10, 8, kWhite
+         !byte TILE ,10, 8, kWhiteTile
          !byte FOCUS, 5, 8, kFocusEntireColumn
          !byte WAIT , 5
          !byte UNFOCUS, 5, 8, kFocusEntireColumn
@@ -126,9 +126,6 @@ ShowDemo
 
          !byte WAIT , 255
          !byte EXIT
-
-;------------------------------------------------------------------------------
-; internal functions
 
 InitDemoBoard
          ldy   #$00

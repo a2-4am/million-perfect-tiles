@@ -5,18 +5,8 @@
 ;
 ; Public functions:
 ; - Home
-; - WaitForKeyWithTimeout
-; - LongWaitForKeyWithTimeout
-; - GetNextEvent
-; - WaitNextEvent
 ; - GridFizzle
 ;
-
-; event codes returned from GetNextEvent and WaitNextEvent
-kNoEvent = 0
-kEventKeypress = 1
-kEventMouseMove = 2
-kEventClick = 3
 
 ;------------------------------------------------------------------------------
 ; Home
@@ -75,116 +65,26 @@ Home
          rts
 
 ;------------------------------------------------------------------------------
-; WaitForKeyWithTimeout
-; wait for an amount of time, keypress, or mouse click, whichever comes first
+; GridFizzle
+; draw game board on screen one tile at a time, in a pseudo-random order
 ;
-; in:    A = timeout length (like standard $FCA8 wait routine but slower)
-; out:   A = 0
-;        X,Y preserved
-;        N = 1 if key was pressed to exit early
-;        N = 0 if time ran out
+; in:    X = high byte of page-aligned board buffer
+;        pointer is hidden
+; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
-WaitForKeyWithTimeout
-         sec
-@wait1   pha
-@wait2   sbc   #1
-         bne   @wait2
-         pla
-         bit   $C000
-         bmi   @exit
-         bit   gPointerClicked
-         bmi   @exit
-         sbc   #1
-         bne   @wait1
-@exit    rts
-
-;------------------------------------------------------------------------------
-; LongWaitForKeyWithTimeout
-; wait for a long amount of time, keypress, or mouse click, whichever comes first
-;
-; in:    X = number of iterations for an A=0 wait loop
-; out:   A,X = 0
-;        Y preserved
-;        N = 1 if key was pressed to exit early
-;        N = 0 if time ran out
-;------------------------------------------------------------------------------
-LongWaitForKeyWithTimeout
-         lda   #0
--        jsr   WaitForKeyWithTimeout
-         bmi   +
-         dex
-         bne   -
-+        rts
-
-;------------------------------------------------------------------------------
-; GetNextEvent
-; check for any key, mouse movement, or mouse click, while incrementing
-; random seed
-;
-; in:    none
-; out:   X = event code (see above)
-;        if X = kEventKeypress, then
-;          A = gLastKeyPressed = unaltered key code
-;        Y preserved
-;        flags clobbered
-;------------------------------------------------------------------------------
-GetNextEvent
-         inc   RNDSEED
-         bne   +
-         inc   RNDSEED+1
-+        bit   gPointerClicked
-         bmi   @onClick
-         bit   gPointerMoved
-         bmi   @onMouseMove
-         lda   KBD
-         bmi   @onKeypress
-         ldx   #kNoEvent
-         rts
-@onKeypress
-         bit   CLEARKBD
-         sta   gLastKeyPressed
-         ldx   #kEventKeypress
-         rts
-@onMouseMove
-         lda   #$00
-         sta   gPointerMoved
-         ldx   #kEventMouseMove
-         rts
-@onClick
-         lda   #$00
-         sta   gPointerClicked
-         ldx   #kEventClick
-         rts
-
-;------------------------------------------------------------------------------
-; WaitNextEvent
-; wait forever for any key, mouse movement, or mouse click, while incrementing
-; random seed
-;
-; in:    none
-; out:   X = event code (see above)
-;        if X = kEventKeypress, then
-;          A = gLastKeyPressed = unaltered key code
-;        Y preserved
-;        flags clobbered
-;------------------------------------------------------------------------------
-WaitNextEvent
-         jsr   GetNextEvent
-         cpx   #kNoEvent
-         beq   WaitNextEvent
-         rts
-
 GridFizzle
+         stx   @draw+2
          ldx   #0
          ldy   #0
 @loop    txa
-@loop1   eor   #$35                  ; LFSR form 0x3500 with period 0x3FFF
+@loop1   eor   #$05                  ; LFSR form 0x0500 with period 0x07FF
          tax                         ; X is LFSR high byte, Y is LFSR low byte
 @loop2   txa
-         bne   +                     ; ignore if high byte > 0 (absurdly high period instead of a wait loop)
+         bne   +                     ; ignore if high byte > 0
          pha
          tya
          pha
+         sta   @draw+1
          lsr
          lsr
          lsr
@@ -194,6 +94,8 @@ GridFizzle
          and   #$0F
          tay                         ; split LFSR low byte into nibbles and put in X (high nibble) and Y (low nibble)
          jsr   @draw
+         lda   #$14
+         jsr   ROM_WAIT
          pla
          tay
          pla
@@ -206,7 +108,7 @@ GridFizzle
          bne   @loop                 ; Z modified by tay
          txa
          bne   @loop1
-         bit   TEXTMODE
+         sta   @draw+1
          ; /!\ execution falls through here to draw final coordinates (0,0)
-@draw    lda   #$00
+@draw    lda   $FDFD                 ; SMC
          jmp   DrawLargeCharacter

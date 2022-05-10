@@ -14,38 +14,45 @@
 ; out:   all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 ShowCredits
-         +LDADDR @script
+         +LDADDR CreditsScript
          jmp   TileScript
 
-@script
-         !byte FIZZLE
-         !byte BOARD,       >kTitleBoardBuffer
-         !byte WPRINT, 3, 1
+;------------------------------------------------------------------------------
+; private
+
+CreditsScript
+         !byte CALL
+         !word              CreditsFizzleToBlack
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 3, 1
          !word              sAboutCopyright3
-         !byte WPRINT, 4, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 4, 1
          !word              sAboutCopyright4
-         !byte WPRINT, 5, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 5, 1
          !word              sAboutCopyright5
-         !byte WPRINT, 6, 2
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 2
          !word              sAboutCopyright6
-         !byte WPRINT,10, 5
+         !byte OFFPRINT,    >kCreditsBoardBuffer,10, 5
          !word              sAboutCopyright10
-         !byte WPRINT,11, 5
+         !byte OFFPRINT,    >kCreditsBoardBuffer,11, 5
          !word              sAboutCopyright11
-         !byte WPRINT,12, 5
+         !byte OFFPRINT,    >kCreditsBoardBuffer,12, 5
          !word              sAboutCopyright12
+         !byte CALL
+         !word              CreditsFizzle
          !byte WAIT ,30
 
-         !byte FIZZLE
-         !byte BOARD,       >kTitleBoardBuffer
-         !byte WPRINT, 6, 1
+         !byte CALL
+         !word              CreditsFizzleToBlack
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
          !word              sAboutCompression6
-         !byte WPRINT, 7, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
          !word              sAboutCompression7
-         !byte WPRINT, 8, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
          !word              sAboutCompression8
-         !byte WPRINT, 9, 4
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 4
          !word              sAboutCompression9
+         !byte CALL
+         !word              CreditsFizzle
          !byte WAIT ,15
 
          !byte PRINT , 7, 8
@@ -84,54 +91,53 @@ ShowCredits
          !byte PRINT , 7,8
          !word              sAboutCompressedHide
 
-         !byte FIZZLE
-         !byte BOARD,       >kTitleBoardBuffer
-         !byte WPRINT, 6, 1
+         !byte CALL
+         !word              CreditsFizzleToBlack
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
          !word              sAboutMouse6
-         !byte WPRINT, 7, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
          !word              sAboutMouse7
-         !byte WPRINT, 8, 1
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
          !word              sAboutMouse8
-         !byte WPRINT, 9, 2
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 2
          !word              sAboutMouse9
+         !byte CALL
+         !word              CreditsFizzle
          !byte WAIT ,30
 
-         !byte FIZZLE
+         !byte CALL
+         !word              CreditsFizzleToBlack
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
+         !word              sAboutTesting6
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
+         !word              sAboutTesting7
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
+         !word              sAboutTesting8
+         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 4
+         !word              sAboutTesting9
+         !byte CALL
+         !word              CreditsFizzle
+         !byte WAIT ,30
+
+         !byte CALL
+         !word              CreditsFizzleToBlack
          !byte EXIT
 
-sAboutCompressed0
-         !byte 2
-         !raw  "C "
-sAboutCompressed1
-         !byte 3
-         !raw  "O  "
-sAboutCompressed2
-         !byte 4
-         !raw  "M   "
-sAboutCompressed3
-         !byte 5
-         !raw  "P    "
-sAboutCompressed4
-         !byte 6
-         !raw  "R     "
-sAboutCompressed5
-         !byte 7
-         !raw  "E      "
-sAboutCompressed6
-         !byte 8
-         !raw  "S       "
-sAboutCompressed7
-         !byte 9
-         !raw  "S        "
-sAboutCompressed8
-         !byte 10
-         !raw  "I         "
-sAboutCompressed9
-         !byte 11
-         !raw  "O          "
-sAboutCompressed10
-         !byte 12
-         !raw  "N           "
-sAboutCompressedHide
-         !byte 11
-         !raw  "           "
+CreditsFizzleToBlack
+         ldy   #0
+         tya
+-        sta   kCreditsBoardBuffer, y
+         iny
+         bne   -
+         ; /!\ execution falls through here to CreditsFizzle
+
+CreditsFizzle
+         ldx   #>kCreditsBoardBuffer
+         jsr   GridFizzle
+
+         ldy   #0
+-        lda   kTitleBoardBuffer, y
+         sta   kCreditsBoardBuffer, y
+         iny
+         bne   -
+         rts

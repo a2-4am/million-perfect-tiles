@@ -15,10 +15,13 @@
 ; out:   all flags & registers clobbered
 ;------------------------------------------------------------------------------
 ShowHelp
-         +LDADDR @script
+         +LDADDR HelpScript
          jmp   TileScript
 
-@script
+;------------------------------------------------------------------------------
+; private
+
+HelpScript
          !byte HOME
          !byte PRINT, 0,10, <sHelp0, >sHelp0
          !byte PRINT, 2, 2, <sHelp2, >sHelp2

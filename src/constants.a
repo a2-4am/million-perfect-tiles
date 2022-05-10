@@ -13,7 +13,8 @@
 ; 1900..19FF - board buffer for gameplay
 ; 1A00..1AFF - board buffer for main menu
 ; 1B00..1BFF - used by nth() when decompressing puzzles read from disk
-;              board buffer for self-running demo (which does not call nth)
+;              board buffer for self-running demo
+;              board buffer for credits
 ; 1C00..1FFF - ProDOS file buffer
 ; 2000..3FFF - hi-res page
 ; 4000+      - program code (relocated to here at startup)
@@ -64,9 +65,9 @@ pointer_tmp_y             = $B9      ; word
 pointer_hgr_base_ptr      = $BB      ; word (used by DrawPointer/UndrawPointer)
 pointer_logical_row       = $BD      ; byte (used by DrawPointer/UndrawPointer)
 pointer_hgr_row           = $BE      ; byte (used by DrawPointer/UndrawPointer)
-gPointerVisible           = $BF      ; byte (used by DrawPointer/UndrawPointer)
-gPointerClicked           = $C0
-gPointerMoved             = $C1
+gPointerVisible           = $BF      ; byte USE BIT 7 ONLY (used by DrawPointer/UndrawPointer)
+gPointerClicked           = $C0      ; byte USE BIT 7 ONLY (used by mouse driver)
+gPointerMoved             = $C1      ; byte USE BIT 7 ONLY (used by DrawPointer/UndrawPointer)
 gPointerHasCache          = $C2      ; byte (used by DrawPointer/UndrawPointer)
 gPointerCacheLeft         = $C3      ; 9 bytes (used by DrawPointer/UndrawPointer)
 gPointerCacheRight        = $CC      ; 9 bytes (used by DrawPointer/UndrawPointer)
@@ -102,7 +103,8 @@ read_buffer               = $18C0    ; 0x2D bytes (used by nth, free before and 
 kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop, free before and after)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (lifetime, used by DrawMainMenuBackground)
 
-kDemoBoardBuffer          = $1B00    ; 0x0100 bytes, page-aligned (used by RunDemo, free before and after)
+kCreditsBoardBuffer       = $1B00    ; 0x0100 bytes, page-aligned (used by ShowCredits, free before and after)
+kDemoBoardBuffer          = $1B00    ; 0x0100 bytes, page-aligned (used by ShowDemo, free before and after)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth, free before and after)
 
 file_buffer               = $1C00    ; 0x0400 bytes (used by nth)
@@ -111,3 +113,9 @@ EnableAccelerator         = DisableAccelerator+3
 
 kTitleBoardSize           = 16
 kDemoBoardSize            = 6
+
+; character codes for game-specific characters
+kEmptyTile                = 0
+kSelectionIndicator       = 1
+kWhiteTile                = 2
+kBlueTile                 = 3

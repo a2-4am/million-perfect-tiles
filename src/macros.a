@@ -160,30 +160,6 @@
          bit   $c010
 }
 
-;------------------------------------------------------------------------------
-; LogicalColumnToPhysicalColumn
-;
-; in:    Y contains logical column number
-; out:   Y contains physical byte offset to use against an HGR base address
-;        A clobbered
-;        X preserved
-;------------------------------------------------------------------------------
-!macro LogicalColumnToPhysicalColumn {
-         iny
-         iny
-         tya
-         asl
-         tay
-}
-
-!macro PhysicalColumnToLogicalColumn {
-         tya
-         lsr
-         tay
-         dey
-         dey
-}
-
 ; Saves all registers
 !macro SAVE_AXY {
          pha
