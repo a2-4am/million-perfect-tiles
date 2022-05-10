@@ -132,10 +132,10 @@ GetNextEvent
          inc   RNDSEED
          bne   +
          inc   RNDSEED+1
-+        bit   gPointerMoved
-         bmi   @onMouseMove
-         bit   gPointerClicked
++        bit   gPointerClicked
          bmi   @onClick
+         bit   gPointerMoved
+         bmi   @onMouseMove
          lda   KBD
          bmi   @onKeypress
          ldx   #kNoEvent
@@ -177,7 +177,6 @@ WaitNextEvent
 GridFizzle
          ldx   #0
          ldy   #0
-; X,Y=0 on entry to LFSR
 @loop    txa
 @loop1   eor   #$35                  ; LFSR form 0x3500 with period 0x3FFF
          tax                         ; X is LFSR high byte, Y is LFSR low byte
@@ -207,6 +206,7 @@ GridFizzle
          bne   @loop                 ; Z modified by tay
          txa
          bne   @loop1
+         bit   TEXTMODE
          ; /!\ execution falls through here to draw final coordinates (0,0)
 @draw    lda   #$00
          jmp   DrawLargeCharacter

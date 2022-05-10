@@ -11,17 +11,19 @@
 EXIT     = 0
 WAIT     = 1
 HOME     = 2
-PRINT    = 3
-WPRINT   = 4
-FOCUS    = 5
-UNFOCUS  = 6
-TILE     = 7
-BOARD    = 8
+FIZZLE   = 3
+PRINT    = 4
+WPRINT   = 5
+FOCUS    = 6
+UNFOCUS  = 7
+TILE     = 8
+BOARD    = 9
 
 ScriptDispatchLo
          !byte <ScriptOnEXIT
          !byte <ScriptOnWAIT
          !byte <ScriptOnHOME
+         !byte <ScriptOnFIZZLE
          !byte <ScriptOnPRINT
          !byte <ScriptOnWPRINT
          !byte <ScriptOnFOCUS
@@ -32,6 +34,7 @@ ScriptDispatchHi
          !byte >ScriptOnEXIT
          !byte >ScriptOnWAIT
          !byte >ScriptOnHOME
+         !byte >ScriptOnFIZZLE
          !byte >ScriptOnPRINT
          !byte >ScriptOnWPRINT
          !byte >ScriptOnFOCUS
@@ -78,6 +81,7 @@ ScriptOnWAIT
          jmp   HidePointer
 
 ScriptOnHOME=Home
+ScriptOnFIZZLE=GridFizzle
 
 ScriptOnPRINT
          jsr   GetPrintParams

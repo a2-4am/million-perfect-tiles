@@ -33,7 +33,7 @@ sUnique
 
 ;------------------------------------------------------------------------------
 ; RunDemo
-; run self-running demo until keypress or completion
+; run self-running demo/tutorial until keypress or mouse click or completion
 ;
 ; in:    none
 ; out:   all other registers & flags clobbered

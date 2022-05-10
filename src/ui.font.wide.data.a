@@ -7,6 +7,8 @@ LeftFontRow0
          !byte $88
          !byte $FC
          !byte $D4
+         !byte $80
+         !byte $80
          !byte $F8
          !byte $F0
          !byte $FC
@@ -55,6 +57,8 @@ LeftFontRow1
          !byte $A8
          !byte $FC
          !byte $D4
+         !byte $80
+         !byte $80
          !byte $FC
          !byte $F0
          !byte $FC
@@ -103,6 +107,8 @@ LeftFontRow2
          !byte $A8
          !byte $FC
          !byte $D4
+         !byte $80
+         !byte $80
          !byte $9C
          !byte $E0
          !byte $8C
@@ -151,6 +157,8 @@ LeftFontRow3
          !byte $A8
          !byte $FC
          !byte $D4
+         !byte $80
+         !byte $80
          !byte $DC
          !byte $E0
          !byte $C0
@@ -199,6 +207,8 @@ LeftFontRow4
          !byte $A8
          !byte $FC
          !byte $D4
+         !byte $E0
+         !byte $80
          !byte $DC
          !byte $E0
          !byte $F8
@@ -247,6 +257,8 @@ LeftFontRow5
          !byte $A8
          !byte $FC
          !byte $D4
+         !byte $E0
+         !byte $80
          !byte $9C
          !byte $E0
          !byte $9C
@@ -295,6 +307,8 @@ LeftFontRow6
          !byte $88
          !byte $FC
          !byte $D4
+         !byte $E0
+         !byte $80
          !byte $FC
          !byte $F0
          !byte $FC
@@ -343,6 +357,8 @@ LeftFontRow7
          !byte $80
          !byte $FC
          !byte $D4
+         !byte $E0
+         !byte $80
          !byte $F8
          !byte $F0
          !byte $FC
@@ -391,6 +407,8 @@ RightFontRow0
          !byte $80
          !byte $8F
          !byte $8A
+         !byte $80
+         !byte $80
          !byte $87
          !byte $81
          !byte $87
@@ -439,6 +457,8 @@ RightFontRow1
          !byte $80
          !byte $8F
          !byte $8A
+         !byte $80
+         !byte $80
          !byte $8F
          !byte $81
          !byte $8F
@@ -487,6 +507,8 @@ RightFontRow2
          !byte $81
          !byte $8F
          !byte $8A
+         !byte $80
+         !byte $80
          !byte $8C
          !byte $81
          !byte $8C
@@ -535,6 +557,8 @@ RightFontRow3
          !byte $85
          !byte $8F
          !byte $8A
+         !byte $80
+         !byte $80
          !byte $8D
          !byte $81
          !byte $8F
@@ -583,6 +607,8 @@ RightFontRow4
          !byte $81
          !byte $8F
          !byte $8A
+         !byte $83
+         !byte $80
          !byte $8D
          !byte $81
          !byte $83
@@ -631,6 +657,8 @@ RightFontRow5
          !byte $80
          !byte $8F
          !byte $8A
+         !byte $83
+         !byte $80
          !byte $8C
          !byte $81
          !byte $80
@@ -679,6 +707,8 @@ RightFontRow6
          !byte $80
          !byte $8F
          !byte $8A
+         !byte $83
+         !byte $80
          !byte $8F
          !byte $83
          !byte $8F
@@ -727,6 +757,8 @@ RightFontRow7
          !byte $80
          !byte $8F
          !byte $8A
+         !byte $83
+         !byte $80
          !byte $87
          !byte $83
          !byte $8F
