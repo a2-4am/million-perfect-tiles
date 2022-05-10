@@ -87,7 +87,7 @@ MenuCode
          !word              sMainMenuLine6
          !byte WPRINT, 7, 6
          !word              sMainMenuLine7
-         ; nothing on line 9
+         ; nothing on line 8
          !byte WPRINT, 9, 5
          !word              sMainMenuLine9
          !byte WPRINT,10, 5
@@ -236,8 +236,6 @@ MainMenuEventQ
          rts
 
 DrawMainMenuBackground
-OneTimeLoad
-         jsr   LoadRandomBoardForTitle ; SMC opcode
          jsr   DrawBoardForTitle
 ;
 ; Auto-solve the randomly chosen board.
@@ -264,19 +262,6 @@ OneTimeLoad
          sta   (board_base_ptr), y
          bne   @loop                 ; always branches
 @exit
-         rts
-
-LoadRandomBoardForTitle
-         lda   #kTitleBoardSize
-         sta   logical_board_size
-         lda   RNDSEED+1
-         and   #1
-         tay
-         lda   RNDSEED
-         ldx   #>kTitleBoardBuffer
-         jsr   nth
-         lda   #$2C                  ; BIT opcode
-         sta   OneTimeLoad
          rts
 
 DrawMainMenuText

@@ -45,5 +45,14 @@ FMDEST   sta   $4000, x
          bcs   FM
 
          jsr   DisableAccelerator
+         ; load random board for title (out of first 512 16x16 boards)
+         lda   #kTitleBoardSize
+         sta   logical_board_size
+         lda   RNDSEED+1
+         and   #1
+         tay
+         lda   RNDSEED
+         ldx   #>kTitleBoardBuffer
+         jsr   nth
          bit   CLEARKBD
          jmp   Start
