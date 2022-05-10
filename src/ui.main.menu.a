@@ -116,10 +116,9 @@ MenuCode
 MainMenuEventLoop
          bcc   @loop
          jsr   Home
+         ; pointer is hidden (by Home)
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
-         jsr   ShowPointer
-         bit   GFXMODE
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove
@@ -295,10 +294,12 @@ SetMainMenuSelectionIndexAndRedraw
          stx   .mainMenuSelectedIndex
          ldy   #$05
          lda   #$01                  ; selection indicator character
-         jmp   DrawLargeCharacter
+-        jsr   HidePointer
+         jsr   DrawLargeCharacter
+         jmp   ShowPointer
 
 EraseMainMenuSelectionIndicator
          ldx   .mainMenuSelectedIndex
          ldy   #$05
          lda   #$00                  ; blank character
-         jmp   DrawLargeCharacter
+         beq   -                     ; always branches

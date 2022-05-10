@@ -17,6 +17,7 @@ DrawBoardForUser
          ; /!\ execution falls through here to DrawBoardAt
 DrawBoardAt
 ; in:    X = high byte of page-aligned board buffer
+;        pointer is hidden
 ; out:   all flags and registers clobbered
          stx   board_base_ptr+1
          stx   @a+2

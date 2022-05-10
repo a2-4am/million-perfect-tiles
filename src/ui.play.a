@@ -84,6 +84,7 @@ kPlayKeyHandlersHi
 PlayEventLoop
          bcc   @loop
          jsr   Home
+         ; pointer is hidden (by Home)
          jsr   DrawBoardForUser
          jsr   DrawFocusRectangle
          jsr   ShowPointer
