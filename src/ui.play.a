@@ -84,7 +84,6 @@ kPlayKeyHandlersHi
 PlayEventLoop
          bcc   @loop
          jsr   Home
-         jsr   HidePointer
          jsr   DrawBoardForUser
          jsr   DrawFocusRectangle
          jsr   ShowPointer
@@ -130,6 +129,7 @@ PlayEventMouseMove
 @maybeMoveFocus
          jsr   CanMoveFocusTo
          bcs   @done
+         jsr   HidePointer
          txa
          pha
          tya
@@ -142,6 +142,7 @@ PlayEventMouseMove
          stx   gFocusedRow
          sty   gFocusedColumn
          jsr   DrawFocusRectangle
+         jsr   ShowPointer
 @done
          ldx   #kKeepPlaying
          clc
@@ -173,7 +174,9 @@ kNextValue
          !byte $02,$FF,$03,$00
 
 PlayEventEsc
+         jsr   HidePointer
          jsr   ClearFocusRectangle
+         jsr   ShowPointer
          ldx   #kReturnToSelectSize  ; caller will exit play event loop
          rts
 
@@ -193,6 +196,7 @@ PlayEventUpArrow
          dex
          jsr   CanMoveFocusTo
          bcs   CantMoveFocus
+         jsr   HidePointer
          jsr   ClearFocusRectangle
          dec   gFocusedRow
          bpl   RedrawFocusAndKeepPlaying        ; always branches
@@ -202,6 +206,7 @@ PlayEventDownArrow
          inx
          jsr   CanMoveFocusTo
          bcs   CantMoveFocus
+         jsr   HidePointer
          jsr   ClearFocusRectangle
          inc   gFocusedRow
          bpl   RedrawFocusAndKeepPlaying        ; always branches
@@ -211,6 +216,7 @@ PlayEventLeftArrow
          dey
          jsr   CanMoveFocusTo
          bcs   CantMoveFocus
+         jsr   HidePointer
          jsr   ClearFocusRectangle
          dec   gFocusedColumn
          bpl   RedrawFocusAndKeepPlaying        ; always branches
@@ -220,12 +226,15 @@ PlayEventRightArrow
          iny
          jsr   CanMoveFocusTo
          bcs   CantMoveFocus
+         jsr   HidePointer
          jsr   ClearFocusRectangle
          inc   gFocusedColumn
          ; /!\ execution falls through here to RedrawFocusAndKeepPlaying
 
 RedrawFocusAndKeepPlaying
+         ; pointer is hidden
          jsr   DrawFocusRectangle
+         jsr   ShowPointer
          ldx   #kKeepPlaying
          clc
          rts
@@ -245,6 +254,7 @@ PlayEventW
          ; /!\ execution falls through here to Change
 
 Change
+         jsr   HidePointer
          sta   (board_base_ptr), y   ; populated by GetValueAt
          pha
          jsr   ClearFocusRectangle
@@ -254,6 +264,7 @@ Change
          jsr   FindEmptyCoordinatesForUser
          bcs   MaybeWin
          jsr   DrawFocusRectangle
+         jsr   ShowPointer
 CantMoveFocus
 CantChange
          ldx   #kKeepPlaying
@@ -282,6 +293,7 @@ PlayEventH
          jsr   SwapXY
          bcs   @exit                 ; should never branch but OK
 @foundValid
+         jsr   HidePointer
          txa
          pha
          tya
@@ -292,10 +304,12 @@ PlayEventH
          pla
          sta   gFocusedRow
          jsr   DrawFocusRectangle
+         jsr   ShowPointer
 @exit    ldx   #kKeepPlaying
          rts
 
 MaybeWin
+         ; pointer is hidden
          jsr   FindInvalidMove
          bcc   AWinnerIsNotYou
          jsr   TransposeBoard
@@ -308,6 +322,7 @@ MaybeWin
 
 AWinnerIsNotYou
          ; board is full but we found an invalid move so highlight it
+         ; pointer is hidden
          brk
 
 PlayEventQuestion

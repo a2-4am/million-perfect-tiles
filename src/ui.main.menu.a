@@ -72,42 +72,35 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
 
-; len(kMainMenuVTABs) == len(kMainMenuHTABs) == len(kMainMenuStringsLo) == len(kMainMenuStringsHi)
-; or you will regret this
-kMainMenuVTABs
-         !byte 1,2,3,4,5,6,7,9,10,11,12,13,14
-kMainMenuHTABs
-         !byte 6,2,2,2,5,5,6,5,5,5,5,5,5
-kMainMenuStringsLo
-         !byte <sMainMenuLine1
-         !byte <sMainMenuLine2
-         !byte <sMainMenuLine3
-         !byte <sMainMenuLine4
-         !byte <sMainMenuLine5
-         !byte <sMainMenuLine6
-         !byte <sMainMenuLine7
-         !byte <sMainMenuLine8
+MenuCode
+         !byte WPRINT, 1, 6
+         !word              sMainMenuLine1
+         !byte WPRINT, 2, 2
+         !word              sMainMenuLine2
+         !byte WPRINT, 3, 2
+         !word              sMainMenuLine3
+         !byte WPRINT, 4, 2
+         !word              sMainMenuLine4
+         !byte WPRINT, 5, 5
+         !word              sMainMenuLine5
+         !byte WPRINT, 6, 5
+         !word              sMainMenuLine6
+         !byte WPRINT, 7, 6
+         !word              sMainMenuLine7
          ; nothing on line 9
-         !byte <sMainMenuLine10
-         !byte <sMainMenuLine11
-         !byte <sMainMenuLine12
-         !byte <sMainMenuLine13
-         !byte <sMainMenuLine14
-kMainMenuStringsHi
-         !byte >sMainMenuLine1
-         !byte >sMainMenuLine2
-         !byte >sMainMenuLine3
-         !byte >sMainMenuLine4
-         !byte >sMainMenuLine5
-         !byte >sMainMenuLine6
-         !byte >sMainMenuLine7
-         !byte >sMainMenuLine8
-         ; nothing on line 9
-         !byte >sMainMenuLine10
-         !byte >sMainMenuLine11
-         !byte >sMainMenuLine12
-         !byte >sMainMenuLine13
-         !byte >sMainMenuLine14
+         !byte WPRINT, 9, 5
+         !word              sMainMenuLine9
+         !byte WPRINT,10, 5
+         !word              sMainMenuLine10
+         !byte WPRINT,11, 5
+         !word              sMainMenuLine11
+         !byte WPRINT,12, 5
+         !word              sMainMenuLine12
+         !byte WPRINT,13, 5
+         !word              sMainMenuLine13
+         !byte WPRINT,14, 5
+         !word              sMainMenuLine14
+         !byte EXIT
 
 ;------------------------------------------------------------------------------
 ; MainMenuEventLoop
@@ -123,7 +116,6 @@ kMainMenuStringsHi
 MainMenuEventLoop
          bcc   @loop
          jsr   Home
-         jsr   HidePointer
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
          jsr   ShowPointer
@@ -293,33 +285,20 @@ LoadRandomBoardForTitle
          rts
 
 DrawMainMenuText
-         lda   #12
-         sta   row1
--        ldy   row1
-         lda   kMainMenuVTABs, y
-         sta   VTAB
-         lda   kMainMenuHTABs, y
-         tax
-         lda   kMainMenuStringsLo, y
-         pha
-         lda   kMainMenuStringsHi, y
-         tay
-         pla
-         jsr   DrawLargeString
-         dec   row1
-         bpl   -
+         +LDADDR MenuCode
+         jsr   TileScript
          ldx   .mainMenuSelectedIndex
          ; /!\ execution falls through here to SetMainMenuSelectionIndexAndRedraw
 
 SetMainMenuSelectionIndexAndRedraw
 ; in:    X = new selection index
          stx   .mainMenuSelectedIndex
-         ldy   kMainMenuHTABs+8
+         ldy   #$05
          lda   #$01                  ; selection indicator character
          jmp   DrawLargeCharacter
 
 EraseMainMenuSelectionIndicator
          ldx   .mainMenuSelectedIndex
-         ldy   kMainMenuHTABs+8
+         ldy   #$05
          lda   #$00                  ; blank character
          jmp   DrawLargeCharacter

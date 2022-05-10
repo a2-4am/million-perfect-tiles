@@ -42,40 +42,34 @@ kSelectSizeKeyHandlersHi
          !byte >SelectSizeEventDown
          !byte >SelectSizeEventEsc
 
-; len(kSelectSizeVTABs) == len(kSelectSizeHTABs) == len(kSelectSizeStringsLo) == len(kSelectSizeStringsHi)
-; or you will regret this
-kSelectSizeVTABs
-         !byte 1,2,3,4,6,7,8,9,10,11,12,13
-kSelectSizeHTABs
-         !byte 3,3,3,7,6,6,6,6,6 ,6 ,6 ,6
-kSelectSizeStringsLo
-         !byte <sSelectSizeLine1
-         !byte <sSelectSizeLine2
-         !byte <sSelectSizeLine3
-         !byte <sSelectSizeLine4
+SelectSizeCode
+         !byte BOARD, >kTitleBoardBuffer
+         !byte WPRINT, 1, 3
+         !word              sSelectSizeLine1
+         !byte WPRINT, 2, 3
+         !word              sSelectSizeLine2
+         !byte WPRINT, 3, 3
+         !word              sSelectSizeLine3
+         !byte WPRINT, 4, 7
+         !word              sSelectSizeLine4
          ; nothing on line 5
-         !byte <sSelectSizeLine6
-         !byte <sSelectSizeLine7
-         !byte <sSelectSizeLine8
-         !byte <sSelectSizeLine9
-         !byte <sSelectSizeLine10
-         !byte <sSelectSizeLine11
-         !byte <sSelectSizeLine12
-         !byte <sSelectSizeLine13
-kSelectSizeStringsHi
-         !byte >sSelectSizeLine1
-         !byte >sSelectSizeLine2
-         !byte >sSelectSizeLine3
-         !byte >sSelectSizeLine4
-         ; nothing on line 5
-         !byte >sSelectSizeLine6
-         !byte >sSelectSizeLine7
-         !byte >sSelectSizeLine8
-         !byte >sSelectSizeLine9
-         !byte >sSelectSizeLine10
-         !byte >sSelectSizeLine11
-         !byte >sSelectSizeLine12
-         !byte >sSelectSizeLine13
+         !byte WPRINT, 6, 6
+         !word              sSelectSizeLine6
+         !byte WPRINT, 7, 6
+         !word              sSelectSizeLine7
+         !byte WPRINT, 8, 6
+         !word              sSelectSizeLine8
+         !byte WPRINT, 9, 6
+         !word              sSelectSizeLine9
+         !byte WPRINT,10, 6
+         !word              sSelectSizeLine10
+         !byte WPRINT,11, 6
+         !word              sSelectSizeLine11
+         !byte WPRINT,12, 6
+         !word              sSelectSizeLine12
+         !byte WPRINT,13, 6
+         !word              sSelectSizeLine13
+         !byte EXIT
 
 ;------------------------------------------------------------------------------
 ; SelectSizeEventLoop
@@ -90,9 +84,7 @@ kSelectSizeStringsHi
 SelectSizeEventLoop
          bcc   @loop
          jsr   Home
-         jsr   HidePointer
-         jsr   DrawSelectSizeBackground
-         jsr   DrawSelectSizeText
+         jsr   DrawSelectSize
          jsr   ShowPointer
          bit   GFXMODE
 @loop
@@ -233,37 +225,25 @@ SelectSizeEventEsc
          ldx   #kReturnToMainMenu
          rts
 
-DrawSelectSizeBackground
-         jmp   DrawBoardForTitle
-
-DrawSelectSizeText
-         lda   #11
-         sta   row1
--        ldy   row1
-         lda   kSelectSizeVTABs, y
-         sta   VTAB
-         lda   kSelectSizeHTABs, y
-         tax
-         lda   kSelectSizeStringsLo, y
-         pha
-         lda   kSelectSizeStringsHi, y
-         tay
-         pla
-         jsr   DrawLargeString
-         dec   row1
-         bpl   -
+DrawSelectSize
+         +LDADDR SelectSizeCode
+         jsr   TileScript
          ldx   .selectSizeSelectedIndex
          ; /!\ execution falls through here to DrawSelectSizeSelectionIndicator
 
 SetSelectSizeSelectionIndexAndRedraw
 ; in:    X = new selection index
          stx   .selectSizeSelectedIndex
-         ldy   kSelectSizeHTABs+8
+         ldy   #$06
          lda   #$01                  ; selection indicator character
-         jmp   DrawLargeCharacter
+         jsr   HidePointer
+         jsr   DrawLargeCharacter
+         jmp   ShowPointer
 
 EraseSelectSizeSelectionIndicator
          ldx   .selectSizeSelectedIndex
-         ldy   kSelectSizeHTABs+8
+         ldy   #$06
          lda   #$00                  ; blank character
-         jmp   DrawLargeCharacter
+         jsr   HidePointer
+         jsr   DrawLargeCharacter
+         jmp   ShowPointer

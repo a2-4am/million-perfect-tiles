@@ -40,11 +40,11 @@ sMainMenuLine7
          !byte 3
          !byte 0,0,0
 
-sMainMenuLine8
+; nothing on line 8
+
+sMainMenuLine9
          !byte 6
          !byte 0,0,0,0,0,0
-
-; nothing on line 9
 
 sMainMenuLine10
          !byte 6
@@ -70,7 +70,7 @@ sMainMenuLine13
          !raw  "QUIT"
          !byte 0
 
-sMainMenuLine14=sMainMenuLine8
+sMainMenuLine14=sMainMenuLine9
 
 sSelectSizeLine1
          !byte 8,0,0,0,0,0,0,0,0

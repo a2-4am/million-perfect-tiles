@@ -47,7 +47,7 @@ DrawFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
 ;        A = type (see above)
-         jsr   HidePointer
+;        assumes pointer is hidden
          pha
          jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
@@ -110,7 +110,7 @@ DrawFocusRectangleAt
          beq   @drawLastRow
          cpx   #$FF
          bne   @drawRowLoop
-         jmp   ShowPointer
+         rts
 
 ClearFocusRectangle
          jsr   GetFocusCoordinates
@@ -118,7 +118,7 @@ ClearFocusRectangle
 ClearFocusRectangleAt
 ; in:    X = logical row (0x00..0x0F)
 ;        Y = logical column (0x00..0x0F)
-         jsr   HidePointer
+;        assumes pointer is hidden
          pha
          jsr   MaybeUpdateFocusCounts
          +LogicalColumnToPhysicalColumn
@@ -180,7 +180,7 @@ ClearFocusRectangleAt
          beq   @clearLastRow
          cpx   #$FF
          bne   @clearRowLoop
-         jmp   ShowPointer
+         rts
 
 GetFocusCoordinates
          ldx   gFocusedRow

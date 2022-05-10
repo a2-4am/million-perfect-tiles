@@ -12,16 +12,18 @@ EXIT     = 0
 WAIT     = 1
 HOME     = 2
 PRINT    = 3
-FOCUS    = 4
-UNFOCUS  = 5
-TILE     = 6
-BOARD    = 7
+WPRINT   = 4
+FOCUS    = 5
+UNFOCUS  = 6
+TILE     = 7
+BOARD    = 8
 
 ScriptDispatchLo
          !byte <ScriptOnEXIT
          !byte <ScriptOnWAIT
          !byte <ScriptOnHOME
          !byte <ScriptOnPRINT
+         !byte <ScriptOnWPRINT
          !byte <ScriptOnFOCUS
          !byte <ScriptOnUNFOCUS
          !byte <ScriptOnTILE
@@ -31,6 +33,7 @@ ScriptDispatchHi
          !byte >ScriptOnWAIT
          !byte >ScriptOnHOME
          !byte >ScriptOnPRINT
+         !byte >ScriptOnWPRINT
          !byte >ScriptOnFOCUS
          !byte >ScriptOnUNFOCUS
          !byte >ScriptOnTILE
@@ -45,6 +48,7 @@ ScriptDispatchHi
 ;------------------------------------------------------------------------------
 TileScript
          +ST16 GetNextScriptByte+1
+         jsr   HidePointer
 @loop
          jsr   GetNextScriptByte
          lda   ScriptDispatchLo, x
@@ -55,26 +59,37 @@ TileScript
          jmp   @loop
 
 ScriptOnEXIT
-         pla
+         jsr   ShowPointer
+         bit   GFXMODE
+-        pla
          pla
          rts
 
 ScriptOnWAIT
+         jsr   ShowPointer
+         bit   GFXMODE
          jsr   GetNextScriptByte
          jsr   LongWaitForKeyWithTimeout
          jsr   GetNextEvent
          cpx   #kEventClick
-         beq   ScriptOnEXIT
+         beq   -
          cpx   #kEventKeypress
-         beq   ScriptOnEXIT
-         rts
+         beq   -
+         jmp   HidePointer
 
-ScriptOnHOME
-         jsr   Home
-         bit   GFXMODE
-         rts
+ScriptOnHOME=Home
 
 ScriptOnPRINT
+         jsr   GetPrintParams
+         ; pointer is hidden
+         jmp   DrawCondensedString
+
+ScriptOnWPRINT
+         jsr   GetPrintParams
+         ; pointer is hidden
+         jmp   DrawLargeString
+
+GetPrintParams
          jsr   GetNextScriptByte
          stx   VTAB
          jsr   GetNextScriptByte
@@ -87,22 +102,26 @@ ScriptOnPRINT
          tay
          pla
          ldx   HTAB
-         jmp   DrawCondensedString
+         rts
 
 ScriptOnFOCUS
          jsr   GetFocusParams
+         ; pointer is hidden
          jmp   DrawFocusRectangleAt
 
 ScriptOnUNFOCUS
          jsr   GetFocusParams
+         ; pointer is hidden
          jmp   ClearFocusRectangleAt
 
 ScriptOnTILE
          jsr   GetFocusParams
+         ; pointer is hidden
          jmp   DrawLargeCharacter
 
 ScriptOnBOARD
          jsr   GetNextScriptByte
+         ; pointer is hidden
          jmp   DrawBoardAt
 
 GetFocusParams

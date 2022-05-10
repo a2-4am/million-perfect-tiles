@@ -32,6 +32,7 @@ WideHGRTops
 ; in:    A/Y points to length-prefixed string (Pascal style)
 ;        X contains logical column number (0x00..0x0F)
 ;        VTAB contains logical line number (0x00..0x0F)
+;        assumes pointer is hidden
 ; out:   clobbers all registers & flags
 ;------------------------------------------------------------------------------
 DrawLargeString
@@ -60,6 +61,7 @@ DrawLargeString
 ;          high bit is stripped internally, so A=0x82 on entry is same as A=0x02
 ;        X contains logical line number (0x00..0x0F)
 ;        Y contains logical column number (0x00..0x0F)
+;        assumes pointer is hidden
 ;        top HGR row = 8 + (11 * X)
 ;        character will be drawn at byte offset = 2 + (2 * Y)
 ; out:   preserves all registers & flags

@@ -16,6 +16,7 @@ CondensedHGRTops
 ; in:    A/Y points to length-prefixed string (Pascal style)
 ;        X contains column number (0x00..0x27)
 ;        $25 (VTAB) contains logical line number (0x00..0x0F)
+;        assumes pointer is hidden
 ; out:   clobbers all registers & flags
 ;------------------------------------------------------------------------------
 DrawCondensedString

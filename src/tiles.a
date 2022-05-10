@@ -36,7 +36,7 @@ Start
          !source "src/ui.about.a"
          !source "src/ui.demo.a"
          !source "src/ui.help.a"
-         !source "src/ui.puzzle.a"
+         !source "src/ui.board.a"
          !source "src/ui.focus.a"
          !source "src/ui.pointer.a"
          !source "src/ui.font.wide.a"
