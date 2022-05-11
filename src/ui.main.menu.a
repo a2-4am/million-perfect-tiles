@@ -36,7 +36,7 @@ MainMenuEventLoop
          ldx   #0
 -        ldy   kMainMenuKeys, x
          beq   @loop                 ; key has no associated handler, so ignore it
-         cpy   gLastKeyPressed       ; populated by WaitForKey
+         cpy   gLastKeyPressed       ; populated by WaitNextEvent
          beq   @dispatch
          inx
          bne   -                     ; always branches
