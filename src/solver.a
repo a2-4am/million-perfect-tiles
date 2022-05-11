@@ -202,11 +202,13 @@ FindInvalidMove
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
          ldy   gLastSelectedBoardSize
-         bne   FindValidMove         ; always branches
+         sec                         ; return extended information
+         bcs   FindValidMove         ; always branches
 
 FindValidMoveForTitle
          ldx   #>kTitleBoardBuffer
          ldy   #kTitleBoardSize
+         clc                         ; don't return extended information
          ; /!\ execution falls through here to FindValidMove
 
 ;------------------------------------------------------------------------------
@@ -216,13 +218,17 @@ FindValidMoveForTitle
 ;
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
+;        C = 1 if caller wants extended information, or C = 0 or not
 ; out:   C = 0 if found valid move, then
 ;          A = tile value (0x02 or 0x03)
 ;          X = tile row (0x00..0x0F)
 ;          Y = tile column (0x00..0x0F)
+;        if C was 1 on entry, extended information is available in zero page:
+;          TODO
 ;        C = 1 if no valid move found
 ;------------------------------------------------------------------------------
 FindValidMove
+         ror   want_extended_info    ; test bit 7 only
          stx   board_base_ptr+1
          sty   logical_board_size
          ldx   #$0F                  ; tile row
@@ -238,19 +244,25 @@ FindValidMove
          jsr   iny_and_cmp_2
          bne   @not02x
          jsr   iny_and_cmp_2
-         bne   @nomatch
+         +LBNE @nomatch
          ;found 022, valid move to change 0 -> 3
-         lda   #$03
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kBlueTile
 -        ldy   tile_column
          clc
          rts
 @not02x
-         cmp   #$03
+         cmp   #kBlueTile
          bne   @nomatch
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 033, valid move to change 0 -> 2
-         lda   #$02
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kWhiteTile
          bne   -                     ; always branches
 @not0xx
          jsr   iny_and_cmp_0
@@ -262,18 +274,25 @@ FindValidMove
          jsr   iny_and_cmp_2
          bne   @nomatch
          ;found 202, valid move to change 0 -> 3
-         lda   #$03
--        dey
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kBlueTile
+-        ldy   tile_column
+         iny
          clc
          rts
 @not20x
-         cmp   #$03
+         cmp   #kBlueTile
          bne   @nomatch
          iny
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 303, valid move to change 0 -> 2
-         lda   #$02
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kWhiteTile
          bne   -                     ; always branches
 @notx0x
          jsr   iny_and_cmp_0
@@ -283,26 +302,33 @@ FindValidMove
          jsr   dey_and_cmp_2
          bne   @nomatch
          ;found 220, valid move to change 0 -> 3
-         lda   #$03
--        iny
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kBlueTile
+-        ldy   tile_column
+         iny
          iny
          clc
 @exit    rts
 @notx20
-         cmp   #$03
+         cmp   #kBlueTile
          bne   @nomatch
          jsr   dey_and_cmp_3
          bne   @nomatch
          ;found 330, valid move to change 0 -> 2
-         lda   #$02
+         bit   want_extended_info
+         bpl   +
+         jsr   @SetExtendedInfoFor1x3
++        lda   #kWhiteTile
          bne   -                     ; always branches
 @nomatch
          dec   tile_column
-         bpl   @CheckTile
+         +LBPL @CheckTile
          jsr   @IsRowFullOfOneColorButNotTheOther
          bcc   @exit
          dex
-         bpl   @CheckRow
+         +LBPL @CheckRow
 ;IsAnyRowAlmostADuplicateOfAnotherRow
          jsr   .CountEmptyPerRow
          lda   board_base_ptr+1
@@ -319,9 +345,10 @@ FindValidMove
 @row2loop
          ldx   row2
          lda   row_empty_counts, x
-         cmp   #$02
+         cmp   #kWhiteTile
          bne   @nextrow2
          ; found a row with 2 empty tiles
+         stx   extended_x
          jsr   CalculateRowBase
          sta   board_base_ptr2
          ldy   #$0F
@@ -342,17 +369,29 @@ FindValidMove
          ldy   #$0F
 @findemptyloop
          lda   (board_base_ptr2), y
-         bne   +
+         bne   @nextempty
          lda   (board_base_ptr), y
          and   #$7F
-         cmp   #$02
+         cmp   #kWhiteTile
          beq   @makeit3
-         lda   #$02
+         lda   #kWhiteTile
          +HIDE_NEXT_2_BYTES
-@makeit3 lda   #$03
-         clc
+@makeit3 lda   #kBlueTile
+         bit   want_extended_info
+         bpl   +
+         pha
+         lda   #<sUnique
+         sta   extended_message
+         lda   #>sUnique
+         sta   extended_message+1
+         lda   #kFocusEntireRow
+         sta   extended_type
+         sty   extended_y
+         pla
++        clc
          rts
-+        dey
+@nextempty
+         dey
          bpl   @findemptyloop
 @nextrow2
          dec   row2
@@ -381,10 +420,10 @@ FindValidMove
          sec
          rts
 @fullOf2
-         lda   #$03
+         lda   #kBlueTile
          +HIDE_NEXT_2_BYTES
 @fullOf3
-         lda   #$02
+         lda   #kWhiteTile
          pha
          ldy   #$0F
 -        lda   (board_base_ptr), y
@@ -392,8 +431,30 @@ FindValidMove
          dey
          bpl   -                     ; always branches
 @yes
-         pla                         ; A=1 or 2, X/Y contain row/column
-         clc
+         pla                         ; A=tile value, X/Y = row/column
+         bit   want_extended_info
+         bpl   +
+         pha
+         lda   #<sSame
+         sta   extended_message
+         lda   #>sSame
+         sta   extended_message+1
+         lda   #kFocusEntireRow
+         sta   extended_type
+         stx   extended_x
+         sty   extended_y
+         pla
++        clc
+         rts
+
+@SetExtendedInfoFor1x3
+         +LDADDR sNever
+         +ST16 extended_message
+         lda   #kFocus1x3
+         sta   extended_type
+         stx   extended_x
+         lda   tile_column
+         sta   extended_y
          rts
 
 ;------------------------------------------------------------------------------
@@ -406,11 +467,7 @@ FindValidMove
 ;------------------------------------------------------------------------------
 TransposeBoard
          php
-         pha
-         txa
-         pha
-         tya
-         pha
+         +SAVE_AXY
 
          lda   board_base_ptr+1
          sta   @a+2
@@ -444,13 +501,28 @@ TransposeBoard
 +        iny
          bne   @a
 ++
-         pla
-         tay
-         pla
-         tax
-         pla
+         +RESTORE_AXY
          plp
          rts
+
+TransposeExtendedInfo
+; out:   preserves all registers and flags
+         php
+         +SAVE_AXY
+         ldx   extended_x
+         txa
+         ldx   extended_y
+         stx   extended_x
+         sta   extended_y
+         ldx   extended_type
+         lda   kTransposeFocusTypes, x
+         sta   extended_type
+         +RESTORE_AXY
+         plp
+         rts
+
+kTransposeFocusTypes
+         !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
 
 ;------------------------------------------------------------------------------
 ; private
@@ -461,9 +533,9 @@ TransposeBoard
          sta   colorcount3
          ldy   #$0F
 -        jsr   cmp_0
-         cmp   #$02
+         cmp   #kWhiteTile
          beq   @inc2
-         cmp   #$03
+         cmp   #kBlueTile
          beq   @inc3
          +HIDE_NEXT_2_BYTES
 @inc2    inc   colorcount2
@@ -511,7 +583,7 @@ iny_and_cmp_2
          iny
 cmp_2    lda   (board_base_ptr), y
          and   #$7F
-         cmp   #$02
+         cmp   #kWhiteTile
          rts
 dey_and_cmp_3
          dey
@@ -520,5 +592,5 @@ iny_and_cmp_3
          iny
 cmp_3    lda   (board_base_ptr), y
          and   #$7F
-         cmp   #$03
+         cmp   #kBlueTile
          rts

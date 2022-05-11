@@ -17,7 +17,11 @@
          jsr   ROM_NORMAL
          jsr   ROM_IN0
          jsr   ROM_PR0
+
          +BUILD_HGR_LOOKUP_TABLES HGRLO, HGRHI
+
+         ; build EnableAccelerator and DisableAccelerator functions
+         ; and copy them into place
          jsr   BuildAcceleratorFunction
          +ST16 @accelSrc
          dex
@@ -28,7 +32,8 @@
          dex
          bpl   -
 
--        inc   FM+2                  ; relocate program code to $4000
+         ; relocate rest of program code to $4000
+-        inc   FM+2
          inc   FMDEST+2
          lda   FM+2
          cmp   #>LastMover
@@ -44,7 +49,9 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
+         ; disable accelerator for duration of play
          jsr   DisableAccelerator
+
          ; load random board for title (out of first 512 16x16 boards)
          lda   #kTitleBoardSize
          sta   logical_board_size
@@ -54,5 +61,6 @@ FMDEST   sta   $4000, x
          lda   RNDSEED
          ldx   #>kTitleBoardBuffer
          jsr   nth
+
          bit   CLEARKBD
          jmp   Start

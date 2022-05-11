@@ -39,6 +39,7 @@ Start
          !source "src/ui.help.a"
          !source "src/ui.board.a"
          !source "src/ui.focus.a"
+         !source "src/ui.message.a"
          !source "src/ui.pointer.a"
          !source "src/ui.font.wide.a"
          !source "src/ui.font.condensed.a"

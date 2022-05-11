@@ -34,7 +34,7 @@ CondensedRow0
          !byte $80        ; <
          !byte $80        ; =
          !byte $80        ; >
-         !byte $80        ; ?
+         !byte $9E        ; ?
          !byte $80        ; @
          !byte $BF        ; A
          !byte $9F        ; B
@@ -126,7 +126,7 @@ CondensedRow1
          !byte $80        ; <
          !byte $80        ; =
          !byte $80        ; >
-         !byte $80        ; ?
+         !byte $BF        ; ?
          !byte $80        ; @
          !byte $BF        ; A
          !byte $BF        ; B
@@ -218,7 +218,7 @@ CondensedRow2
          !byte $80        ; <
          !byte $80        ; =
          !byte $81        ; >
-         !byte $80        ; ?
+         !byte $B3        ; ?
          !byte $80        ; @
          !byte $B0        ; A
          !byte $B0        ; B
@@ -310,7 +310,7 @@ CondensedRow3
          !byte $80        ; <
          !byte $80        ; =
          !byte $85        ; >
-         !byte $80        ; ?
+         !byte $B0        ; ?
          !byte $80        ; @
          !byte $B3        ; A
          !byte $B3        ; B
@@ -402,7 +402,7 @@ CondensedRow4
          !byte $80        ; <
          !byte $80        ; =
          !byte $95        ; >
-         !byte $80        ; ?
+         !byte $98        ; ?
          !byte $80        ; @
          !byte $BF        ; A
          !byte $9F        ; B
@@ -494,7 +494,7 @@ CondensedRow5
          !byte $80        ; <
          !byte $80        ; =
          !byte $D5        ; >
-         !byte $80        ; ?
+         !byte $8C        ; ?
          !byte $80        ; @
          !byte $BF        ; A
          !byte $9F        ; B
@@ -586,7 +586,7 @@ CondensedRow6
          !byte $80        ; <
          !byte $80        ; =
          !byte $95        ; >
-         !byte $80        ; ?
+         !byte $8C        ; ?
          !byte $80        ; @
          !byte $B3        ; A
          !byte $B3        ; B
@@ -770,7 +770,7 @@ CondensedRow8
          !byte $80        ; <
          !byte $80        ; =
          !byte $81        ; >
-         !byte $80        ; ?
+         !byte $8C        ; ?
          !byte $80        ; @
          !byte $B3        ; A
          !byte $BF        ; B
@@ -862,7 +862,7 @@ CondensedRow9
          !byte $80        ; <
          !byte $80        ; =
          !byte $80        ; >
-         !byte $80        ; ?
+         !byte $8C        ; ?
          !byte $80        ; @
          !byte $B3        ; A
          !byte $9F        ; B

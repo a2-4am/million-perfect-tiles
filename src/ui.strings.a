@@ -284,3 +284,7 @@ sHelp4
 sHelp6
          !byte 21
          !raw  "> Every row is unique"
+
+sPressQuestionForHelp
+         !byte 16
+         !raw  "Press ? for help"

@@ -1,0 +1,95 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; utility functions for showing modeless auto-disappearing messages during play
+;
+; Public functions:
+; - MessageOnStartup
+; - HideMessage
+; - ShowMessage
+;
+
+;------------------------------------------------------------------------------
+; HideMessage
+; hide current message, if any
+; (safe to call multiple times, does nothing if no message is showing)
+;
+; in:    none
+; out:   all registers and flags preserved
+;------------------------------------------------------------------------------
+HideMessage
+         php
+         bit   gMessageVisible
+         bpl   +
+         +SAVE_AXY
+         +LDADDR gCurrentMessage
+         jsr   ShowMessage
+         +RESTORE_AXY
+         +HIDE_NEXT_BYTE
+         ; /!\ execution falls through here to MessageOnStartup
+
+;------------------------------------------------------------------------------
+; MessageOnStartup
+; initialize internal message state
+;
+; in:    none
+; out:   all registers and flags preserved
+;------------------------------------------------------------------------------
+MessageOnStartup
+         php
+         clc
+         ror   gMessageVisible       ; TEST BIT 7 ONLY
++        plp
+         rts
+
+;------------------------------------------------------------------------------
+; ShowMessage
+; display a message during play, if possible
+; if message is shorter than max length, it will be centered
+;
+; in:    none
+; out:   all registers and flags clobbered
+;        clobbers $string_ptr, $tmpx
+;------------------------------------------------------------------------------
+ShowMessage
+         ldx   gLastSelectedBoardSize
+         cpx   #14
+         bcs   +                     ; no space to print messages above 14x14 or 16x16 board
+         +ST16 string_ptr
+         ldy   gCurrentMessage
+         lda   #" "
+-        sta   gCurrentMessage, y
+         dey
+         bne   -
+         lda   (string_ptr), y       ; A = string length
+         tay
+         clc
+         adc   #$01
+         lsr
+         sta   tmpx
+         lda   gCurrentMessage
+         lsr
+         clc
+         adc   tmpx
+         tax
+-        lda   (string_ptr), y
+         sta   gCurrentMessage, x
+         dex
+         dey
+         bne   -
+         +LDADDR gCurrentMessage
+         ldx   #$00
+         stx   VTAB
+         jsr   HidePointer
+         jsr   DrawCondensedString
+         jsr   ShowPointer
+         sec
+         ror   gMessageVisible
++        rts
+
+;------------------------------------------------------------------------------
+; private
+
+gCurrentMessage
+         !byte 40
+         !raw  "                                        "

@@ -98,7 +98,6 @@ ScriptOnWPRINT
          ; pointer is hidden
          jmp   DrawLargeString
 
-         bit   $ff58
 ScriptOnOFFPRINT
          jsr   GetNextScriptByte
          stx   @b+2

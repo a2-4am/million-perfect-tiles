@@ -8,6 +8,7 @@
 ; - LongWaitForKeyWithTimeout
 ; - GetNextEvent
 ; - WaitNextEvent
+; - ClearPendingEvents
 ;
 
 ; event codes (public)
@@ -114,4 +115,11 @@ WaitNextEvent
          jsr   GetNextEvent
          cpx   #kNoEvent
          beq   WaitNextEvent
+         rts
+
+ClearPendingEvents
+         bit   CLEARKBD
+         lda   #$00
+         sta   gPointerMoved
+         sta   gPointerClicked
          rts

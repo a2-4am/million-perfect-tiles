@@ -30,6 +30,10 @@ PlayEventLoop
          jsr   DrawFocusRectangle
          jsr   ShowPointer
          bit   GFXMODE
+@showInitialHelp
+         jsr   MessageOnStartup
+         +LDADDR sPressQuestionForHelp
+         jsr   ShowMessage
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove
@@ -40,12 +44,13 @@ PlayEventLoop
          bne   @loop
          ldx   #0
 -        ldy   kPlayKeys, x
-         beq   @loop                 ; key has no associated handler, so ignore it
+         beq   @showInitialHelp      ; key has no associated handler, so show help message
          cpy   gLastKeyPressed       ; populated by WaitForKey
          beq   @dispatch
          inx
          bne   -                     ; always branches
 @dispatch
+         jsr   HideMessage
          lda   kPlayKeyHandlersLo, x
          sta   @j+1
          lda   kPlayKeyHandlersHi, x
@@ -58,6 +63,7 @@ PlayEventLoop
          +ST16 @j+1
          jmp   @j
 @onClick
+         jsr   HideMessage
          +LDADDR PlayEventClick
          +ST16 @j+1
          jmp   @j
@@ -266,7 +272,7 @@ Change
          pla
          jsr   DrawLargeCharacter
          jsr   FindEmptyCoordinatesForUser
-         bcs   MaybeWin
+         +LBCS MaybeWin
          jsr   DrawFocusRectangle
          jsr   ShowPointer
 CantMoveFocus
@@ -294,15 +300,53 @@ PlayEventH
          jsr   TransposeBoard
          jsr   FindValidMoveForUser
          jsr   TransposeBoard
+         jsr   TransposeExtendedInfo
          jsr   SwapXY
-         bcs   @exit                 ; should never branch but OK
 @foundValid
+         bit   $ff58
          jsr   HidePointer
          txa
          pha
          tya
          pha
          jsr   ClearFocusRectangle
+
+         ldx   extended_x
+         ldy   extended_y
+         lda   extended_type
+         cmp   #kFocusEntireRow
+         bne   +
+         lda   #16
+         sec
+         sbc   gLastSelectedBoardSize
+         lsr
+         tay
+         sty   extended_y
+         lda   extended_type
++        cmp   #kFocusEntireColumn
+         bne   +
+         lda   #16
+         sec
+         sbc   gLastSelectedBoardSize
+         lsr
+         tax
+         stx   extended_x
+         lda   extended_type
++
+         jsr   DrawFocusRectangleAt
+         +LD16 extended_message
+         jsr   ShowMessage
+         jsr   ShowPointer
+         ldx   #20
+         jsr   LongWaitForKeyWithTimeout
+         jsr   ClearPendingEvents
+         jsr   HidePointer
+         jsr   HideMessage
+         ldx   extended_x
+         ldy   extended_y
+         lda   extended_type
+         jsr   ClearFocusRectangleAt
+
          pla
          sta   gFocusedColumn
          pla
