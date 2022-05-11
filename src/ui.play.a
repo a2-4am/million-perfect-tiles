@@ -75,59 +75,89 @@ PlayEventLoop
 kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
          !byte $8B                   ; up arrow
+         !byte $C9                   ; I
+         !byte $E9                   ; i
          !byte $8A                   ; down arrow
+         !byte $CD                   ; M
+         !byte $ED                   ; m
          !byte $88                   ; left arrow
+         !byte $CA                   ; J
+         !byte $EA                   ; j
          !byte $95                   ; right arrow
-         !byte $C2                   ; B
-         !byte $E2                   ; b
+         !byte $CB                   ; K
+         !byte $EB                   ; k
+         !byte $C5                   ; E
+         !byte $E5                   ; e
          !byte $D7                   ; W
          !byte $F7                   ; w
+         !byte $C2                   ; B
+         !byte $E2                   ; b
+         !byte $A0                   ; space
+         !byte $8D                   ; Return
          !byte $C8                   ; H
          !byte $E8                   ; h
          !byte $9B                   ; Esc
          !byte $92                   ; Ctrl-R
          !byte $93                   ; Ctrl-S
-         !byte $8D                   ; Return
-         !byte $A0                   ; space
          !byte $AF                   ; /
          !byte $BF                   ; ?
          !byte $00
 
 kPlayKeyHandlersLo
          !byte <PlayEventUpArrow
+         !byte <PlayEventUpArrow
+         !byte <PlayEventUpArrow
+         !byte <PlayEventDownArrow
+         !byte <PlayEventDownArrow
          !byte <PlayEventDownArrow
          !byte <PlayEventLeftArrow
+         !byte <PlayEventLeftArrow
+         !byte <PlayEventLeftArrow
          !byte <PlayEventRightArrow
-         !byte <PlayEventB
-         !byte <PlayEventB
+         !byte <PlayEventRightArrow
+         !byte <PlayEventRightArrow
+         !byte <PlayEventE
+         !byte <PlayEventE
          !byte <PlayEventW
          !byte <PlayEventW
+         !byte <PlayEventB
+         !byte <PlayEventB
+         !byte <PlayEventSpace
+         !byte <PlayEventSpace
          !byte <PlayEventH
          !byte <PlayEventH
          !byte <PlayEventEsc
          !byte <PlayEventCtrlR
          !byte <PlayEventCtrlS
-         !byte <PlayEventReturn
-         !byte <PlayEventReturn
          !byte <PlayEventQuestion
          !byte <PlayEventQuestion
 
 kPlayKeyHandlersHi
          !byte >PlayEventUpArrow
+         !byte >PlayEventUpArrow
+         !byte >PlayEventUpArrow
+         !byte >PlayEventDownArrow
+         !byte >PlayEventDownArrow
          !byte >PlayEventDownArrow
          !byte >PlayEventLeftArrow
+         !byte >PlayEventLeftArrow
+         !byte >PlayEventLeftArrow
          !byte >PlayEventRightArrow
-         !byte >PlayEventB
-         !byte >PlayEventB
+         !byte >PlayEventRightArrow
+         !byte >PlayEventRightArrow
+         !byte >PlayEventE
+         !byte >PlayEventE
          !byte >PlayEventW
          !byte >PlayEventW
+         !byte >PlayEventB
+         !byte >PlayEventB
+         !byte >PlayEventSpace
+         !byte >PlayEventSpace
          !byte >PlayEventH
          !byte >PlayEventH
          !byte >PlayEventEsc
          !byte >PlayEventCtrlR
          !byte >PlayEventCtrlS
-         !byte >PlayEventReturn
-         !byte >PlayEventReturn
          !byte >PlayEventQuestion
          !byte >PlayEventQuestion
 
@@ -164,13 +194,13 @@ PlayEventClick
          cpx   gFocusedRow
          bne   @done
          cpy   gFocusedColumn
-         beq   PlayEventReturn
+         beq   PlayEventSpace
 @done
          ldx   #kKeepPlaying
          clc
          rts
 
-PlayEventReturn
+PlayEventSpace
          jsr   GetFocusCoordinates
          jsr   GetValueAt
          bmi   @done
@@ -182,7 +212,7 @@ PlayEventReturn
          clc
          rts
 kNextValue
-         !byte $02,$FF,$03,$00
+         !byte kWhiteTile,$FF,kBlueTile,kEmptyTile
 
 PlayEventEsc
          jsr   HidePointer
@@ -250,18 +280,11 @@ RedrawFocusAndKeepPlaying
          clc
          rts
 
-PlayEventB
+PlayEventE
          jsr   GetFocusCoordinates
          jsr   GetValueAt
          bmi   CantChange
-         lda   #$03
-         bne   Change                ; always branches
-
-PlayEventW
-         jsr   GetFocusCoordinates
-         jsr   GetValueAt
-         bmi   CantChange
-         lda   #$02
+         lda   #kEmptyTile
          ; /!\ execution falls through here to Change
 
 Change
@@ -273,7 +296,10 @@ Change
          pla
          jsr   DrawLargeCharacter
          jsr   FindEmptyCoordinatesForUser
-         +LBCS MaybeWin
+         bcs   PlayEventH            ; if board is full, act as if user pressed H
+                                     ; for a hint -- if we find an invalid move, we
+                                     ; will highlight it, and otherwise we will
+                                     ; display the win sequence
          jsr   DrawFocusRectangle
          jsr   ShowPointer
 CantMoveFocus
@@ -282,41 +308,62 @@ CantChange
          clc
          rts
 
+PlayEventW
+         jsr   GetFocusCoordinates
+         jsr   GetValueAt
+         bmi   CantChange
+         lda   #kWhiteTile
+         bne   Change                ; always branches
+
+PlayEventB
+         jsr   GetFocusCoordinates
+         jsr   GetValueAt
+         bmi   CantChange
+         lda   #kBlueTile
+         bne   Change                ; always branches
+
 PlayEventH
          jsr   FindInvalidMoveForUser
-         bcc   @foundInvalid
+         bcc   @showInvalidHint
          jsr   TransposeBoard
          jsr   FindInvalidMoveForUser
          jsr   TransposeBoard
          jsr   SwapXY
-         bcs   @noInvalid
-@foundInvalid
+         bcs   @findValidHint
+@showInvalidHint
          ; FIXME
          ldx   #kKeepPlaying
          clc
          rts
-@noInvalid
+@findValidHint
          jsr   FindValidMoveForUser
-         bcc   @foundValid
+         bcc   @showValidHint
          jsr   TransposeBoard
          jsr   FindValidMoveForUser
          jsr   TransposeBoard
          jsr   TransposeExtendedInfo
          jsr   SwapXY
-@foundValid
-         bit   $ff58
+         bcc   @showValidHint
+         ; no valid or invalid moves, which means you won
+         ; TODO win sequence
+         ldx   #kCompletedPuzzle     ; caller will exit event loop
+         rts
+@showValidHint
          jsr   HidePointer
          txa
          pha
          tya
          pha
-         jsr   ClearFocusRectangle
-
+         jsr   ClearFocusRectangle   ; clear 1x1 focus rectangle at
+                                     ; current tile position
          ldx   extended_x
          ldy   extended_y
          lda   extended_type
          cmp   #kFocusEntireRow
          bne   +
+         ; DrawFocusRectangeAt knows nothing about the board buffer.
+         ; In order to draw a rectangle around an entire row, we need
+         ; to calculate the actual coordinates of the left-most tile.
          lda   #16
          sec
          sbc   gLastSelectedBoardSize
@@ -326,6 +373,9 @@ PlayEventH
          lda   extended_type
 +        cmp   #kFocusEntireColumn
          bne   +
+         ; DrawFocusRectangeAt knows nothing about the board buffer.
+         ; In order to draw a rectangle around an entire column, we need
+         ; to calculate the actual coordinates of the top-most tile.
          lda   #16
          sec
          sbc   gLastSelectedBoardSize
@@ -334,46 +384,30 @@ PlayEventH
          stx   extended_x
          lda   extended_type
 +
-         jsr   DrawFocusRectangleAt
+         jsr   DrawFocusRectangleAt  ; draw focus rectangle for hint
          +LD16 extended_message
-         jsr   ShowMessage
+         jsr   ShowMessage           ; show message for hint
          jsr   ShowPointer
          ldx   #20
          jsr   LongWaitForKeyWithTimeout
-         jsr   ClearPendingEvents
+         jsr   ClearPendingEvents    ; swallow keypress or click (if any)
          jsr   HidePointer
          jsr   HideMessage
          ldx   extended_x
          ldy   extended_y
          lda   extended_type
-         jsr   ClearFocusRectangleAt
+         jsr   ClearFocusRectangleAt ; clear focus rectange for hint
 
          pla
          sta   gFocusedColumn
          pla
          sta   gFocusedRow
-         jsr   DrawFocusRectangle
+         jsr   DrawFocusRectangle    ; draw 1x1 focus rectangle around the
+                                     ; exact tile that FindValidMove found
          jsr   ShowPointer
-@exit    ldx   #kKeepPlaying
+         ldx   #kKeepPlaying
          clc
          rts
-
-MaybeWin
-         ; pointer is hidden
-         jsr   FindInvalidMove
-         bcc   AWinnerIsNotYou
-         jsr   TransposeBoard
-         jsr   FindInvalidMove
-         jsr   SwapXY
-         jsr   TransposeBoard
-         bcc   AWinnerIsNotYou
-         ldx   #kCompletedPuzzle     ; caller will exit event loop
-         rts
-
-AWinnerIsNotYou
-         ; board is full but we found an invalid move so highlight it
-         ; pointer is hidden
-         brk
 
 PlayEventQuestion
          jsr   ShowHelp

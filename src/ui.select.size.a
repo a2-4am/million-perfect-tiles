@@ -158,13 +158,10 @@ ReloadBoard
          +LD16 gLastSelectedBoardIndex
          jmp   ReloadBoard
 +        cpx   #kReturnToSelectSize
-         bne   +
+         bne   SelectSizeEventReturn ; completed puzzle, start another of same size
          ldx   #kStayOnSelectSize
          sec
          rts
-+
-         ; TODO completed puzzle
-         brk
 
 SelectSizeEventUp
          jsr   EraseSelectSizeSelectionIndicator
