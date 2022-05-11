@@ -46,7 +46,7 @@ PlayEventLoop
          ldx   #0
 -        ldy   kPlayKeys, x
          beq   @showInitialHelp      ; key has no associated handler, so show help message
-         cpy   gLastKeyPressed       ; populated by WaitForKey
+         cpy   gLastKeyPressed       ; populated by WaitNextEvent
          beq   @dispatch
          inx
          bne   -                     ; always branches
