@@ -30,6 +30,7 @@ PlayEventLoop
          jsr   DrawFocusRectangle
          jsr   ShowPointer
          bit   GFXMODE
+         jsr   ClearPendingEvents
 @showInitialHelp
          jsr   MessageOnStartup
          +LDADDR sPressQuestionForHelp

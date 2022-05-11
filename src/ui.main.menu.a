@@ -24,6 +24,7 @@ MainMenuEventLoop
          ; pointer is hidden (by Home)
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
+         jsr   ClearPendingEvents
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove

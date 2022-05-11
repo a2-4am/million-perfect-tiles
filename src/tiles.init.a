@@ -62,5 +62,4 @@ FMDEST   sta   $4000, x
          ldx   #>kTitleBoardBuffer
          jsr   nth
 
-         bit   CLEARKBD
          jmp   Start
