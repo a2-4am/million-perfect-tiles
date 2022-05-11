@@ -60,11 +60,10 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
-extended_message          = $B0      ; word
-extended_x                = $B2      ; byte
-extended_y                = $B3      ; byte
-extended_type             = $B4      ; byte
-want_extended_info        = $B5      ; byte USE BIT 7 ONLY (used by FindValidMove)
+extended_message          = $B1      ; word
+extended_x                = $B3      ; byte
+extended_y                = $B4      ; byte
+extended_type             = $B5      ; byte
 gMessageVisible           = $B6      ; byte USE BIT 7 ONLY (used by DrawMessage)
 pointer_tmp_x             = $B7      ; word
 pointer_tmp_y             = $B9      ; word

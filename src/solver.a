@@ -202,13 +202,11 @@ FindInvalidMove
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
          ldy   gLastSelectedBoardSize
-         sec                         ; return extended information
-         bcs   FindValidMove         ; always branches
+         bne   FindValidMove         ; always branches
 
 FindValidMoveForTitle
          ldx   #>kTitleBoardBuffer
          ldy   #kTitleBoardSize
-         clc                         ; don't return extended information
          ; /!\ execution falls through here to FindValidMove
 
 ;------------------------------------------------------------------------------
@@ -218,17 +216,19 @@ FindValidMoveForTitle
 ;
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
-;        C = 1 if caller wants extended information, or C = 0 or not
 ; out:   C = 0 if found valid move, then
 ;          A = tile value (0x02 or 0x03)
 ;          X = tile row (0x00..0x0F)
 ;          Y = tile column (0x00..0x0F)
-;        if C was 1 on entry, extended information is available in zero page:
-;          TODO
+;        extended information is available in zero page to help the caller
+;        draw a focus rectangle:
+;          $extended_message
+;          $extended_x
+;          $extended_y
+;          $extended_type
 ;        C = 1 if no valid move found
 ;------------------------------------------------------------------------------
 FindValidMove
-         ror   want_extended_info    ; test bit 7 only
          stx   board_base_ptr+1
          sty   logical_board_size
          ldx   #$0F                  ; tile row
@@ -246,10 +246,8 @@ FindValidMove
          jsr   iny_and_cmp_2
          +LBNE @nomatch
          ;found 022, valid move to change 0 -> 3
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kBlueTile
+         lda   #kBlueTile
 -        ldy   tile_column
          clc
          rts
@@ -259,10 +257,8 @@ FindValidMove
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 033, valid move to change 0 -> 2
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kWhiteTile
+         lda   #kWhiteTile
          bne   -                     ; always branches
 @not0xx
          jsr   iny_and_cmp_0
@@ -274,10 +270,8 @@ FindValidMove
          jsr   iny_and_cmp_2
          bne   @nomatch
          ;found 202, valid move to change 0 -> 3
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kBlueTile
+         lda   #kBlueTile
 -        ldy   tile_column
          iny
          clc
@@ -289,10 +283,8 @@ FindValidMove
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 303, valid move to change 0 -> 2
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kWhiteTile
+         lda   #kWhiteTile
          bne   -                     ; always branches
 @notx0x
          jsr   iny_and_cmp_0
@@ -302,10 +294,8 @@ FindValidMove
          jsr   dey_and_cmp_2
          bne   @nomatch
          ;found 220, valid move to change 0 -> 3
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kBlueTile
+         lda   #kBlueTile
 -        ldy   tile_column
          iny
          iny
@@ -317,10 +307,8 @@ FindValidMove
          jsr   dey_and_cmp_3
          bne   @nomatch
          ;found 330, valid move to change 0 -> 2
-         bit   want_extended_info
-         bpl   +
          jsr   @SetExtendedInfoFor1x3
-+        lda   #kWhiteTile
+         lda   #kWhiteTile
          bne   -                     ; always branches
 @nomatch
          dec   tile_column
@@ -377,8 +365,6 @@ FindValidMove
          lda   #kWhiteTile
          +HIDE_NEXT_2_BYTES
 @makeit3 lda   #kBlueTile
-         bit   want_extended_info
-         bpl   +
          pha
          lda   #<sUnique
          sta   extended_message
@@ -431,10 +417,6 @@ FindValidMove
          dey
          bpl   -                     ; always branches
 @yes
-         pla                         ; A=tile value, X/Y = row/column
-         bit   want_extended_info
-         bpl   +
-         pha
          lda   #<sSame
          sta   extended_message
          lda   #>sSame
@@ -443,7 +425,7 @@ FindValidMove
          sta   extended_type
          stx   extended_x
          sty   extended_y
-         pla
+         pla                         ; A=tile value, X/Y = row/column
 +        clc
          rts
 
