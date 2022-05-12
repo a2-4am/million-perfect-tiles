@@ -57,7 +57,7 @@ DrawLargeString
 ;------------------------------------------------------------------------------
 ; DrawLargeCharacter
 ;
-; in:    A contains 0x2E..0x5A (for characters) or 0x00..0x03 (for tiles)
+; in:    A contains 0x2E..0x5A (for characters) or 0x00..0x04 (for tiles)
 ;          high bit is stripped internally, so A=0x82 on entry is same as A=0x02
 ;        X contains logical line number (0x00..0x0F)
 ;        Y contains logical column number (0x00..0x0F)
@@ -70,9 +70,9 @@ DrawLargeCharacter
          php
          pha
          and   #$7F
-         cmp   #$04
+         cmp   #$05
          bcc   +
-         sbc   #$2A
+         sbc   #$29
 +        sta   char_index
          stx   tmpx
          sty   tmpy

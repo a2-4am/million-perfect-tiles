@@ -216,27 +216,9 @@ DrawMainMenuBackground
 ; This board buffer persists in memory, so coming back to the main menu
 ; will just show the solved board.
 ;
-@loop
-         jsr   FindValidMoveForTitle
-         bcc   @draw
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
-                                     ; preserves all flags and registers
-         jsr   FindValidMoveForTitle
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
-                                     ; preserves all flags and registers
-         bcs   @exit                 ; C is from FindValidMoveForTitle
-         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
-@draw
-         bit   GFXMODE
-         jsr   DrawLargeCharacter
-         pha
-         jsr   CalculateRowBase
-         sta   board_base_ptr
-         pla
-         sta   (board_base_ptr), y
-         bne   @loop                 ; always branches
-@exit
-         rts
+         ldx   #>kTitleBoardBuffer
+         ldy   #kTitleBoardSize
+         jmp   SolveBoardAt
 
 DrawMainMenuText
          +LDADDR MainMenuScript

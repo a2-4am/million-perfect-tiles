@@ -8,7 +8,7 @@ def myhex(bitstring):
 leftdata =  [ [], [], [], [], [], [], [], [] ]
 rightdata = [ [], [], [], [], [], [], [], [] ]
 with open("font.txt", "r") as f:
-    for c in ('empty tile','right-facing pointer','white tile','blue tile') + \
+    for c in ('empty tile','right-facing pointer','white tile','blue tile','purple tile') + \
         tuple('./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
         if f.readline().strip()[1:] != c:
             raise ValueError(c)
@@ -16,8 +16,12 @@ with open("font.txt", "r") as f:
             left = f.read(7)
             right = f.read(7)
             f.readline()
-            left = "0b1" + left[::-1]
-            right = "0b1" + right[::-1]
+            if c in ('purple tile',):
+                left = "0b0" + left[::-1]
+                right = "0b0" + right[::-1]
+            else:
+                left = "0b1" + left[::-1]
+                right = "0b1" + right[::-1]
             #print(myhex(left), myhex(right))
             leftdata[row].append(myhex(left))
             rightdata[row].append(myhex(right))

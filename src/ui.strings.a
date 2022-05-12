@@ -288,3 +288,7 @@ sHelp6
 sPressQuestionForHelp
          !byte 16
          !raw  "Press ? for help"
+
+sPerfection
+         !byte 10
+         !raw  "PERFECTION"

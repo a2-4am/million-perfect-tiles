@@ -101,6 +101,7 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $93                   ; Ctrl-S
          !byte $AF                   ; /
          !byte $BF                   ; ?
+         !byte $80                   ; Ctrl-@
          !byte $00
 
 kPlayKeyHandlersLo
@@ -131,6 +132,7 @@ kPlayKeyHandlersLo
          !byte <PlayEventCtrlS
          !byte <PlayEventQuestion
          !byte <PlayEventQuestion
+         !byte <PlayEventDevExit
 
 kPlayKeyHandlersHi
          !byte >PlayEventUpArrow
@@ -160,6 +162,7 @@ kPlayKeyHandlersHi
          !byte >PlayEventCtrlS
          !byte >PlayEventQuestion
          !byte >PlayEventQuestion
+         !byte >PlayEventDevExit
 
 PlayEventMouseMove
          jsr   MousePositionToLogicalCoordinates
@@ -345,7 +348,7 @@ PlayEventH
          jsr   SwapXY
          bcc   @showValidHint
          ; no valid or invalid moves, which means you won
-         ; TODO win sequence
+         jsr   AWinnerIsYou
          ldx   #kCompletedPuzzle     ; caller will exit event loop
          rts
 @showValidHint
@@ -444,3 +447,50 @@ GetValueAt
          rts
 +        sec
          rts
+
+AWinnerIsYou
+         bit   $ff58
+         +LDADDR WinScript
+         jmp   TileScript
+
+WinScript
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kBlueTile, kWhiteTile
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kPurpleTile
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kPurpleTile, kWhiteTile
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kBlueTile
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kBlackTile, kBlackTile
+         !byte WPRINT, 7, 3
+         !word              sPerfection
+         !byte WAIT, 40
+         !byte EXIT
+
+ColorCycleFizzle
+         jsr   GetNextScriptByte
+         stx   tmpx
+         jsr   GetNextScriptByte
+         stx   tmpy
+         ldx   #0
+-        lda   kUserBoardBuffer, x
+         and   #$7F
+         cmp   #kWhiteTile
+         beq   +
+         cmp   #kBlueTile
+         beq   ++
+         lda   #$00
+         +HIDE_NEXT_2_BYTES
++        lda   tmpx
+         +HIDE_NEXT_2_BYTES
+++       lda   tmpy
+         sta   kDemoBoardBuffer, x
+         inx
+         bne   -
+         ldx   #>kDemoBoardBuffer
+         jmp   GridFizzle
+
+PlayEventDevExit
+         jsr   HidePointer
+         jsr   ClearFocusRectangle
+         ldx   #>kUserBoardBuffer
+         ldy   gLastSelectedBoardSize
+         jsr   SolveBoardAt
+         jmp   PlayEventH

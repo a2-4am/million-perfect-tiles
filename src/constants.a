@@ -121,6 +121,8 @@ kDemoBoardSize            = 6
 
 ; character codes for game-specific characters
 kEmptyTile                = 0
+kBlackTile                = 0
 kSelectionIndicator       = 1
 kWhiteTile                = 2
 kBlueTile                 = 3
+kPurpleTile               = 4

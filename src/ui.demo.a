@@ -124,6 +124,7 @@ DemoScript
          !word              sUnique
          !byte WAIT ,20
 
+         ;TODO
          !byte WAIT , 255
          !byte EXIT
 

@@ -7,6 +7,7 @@
 ; DrawBoardForTitle
 ; DrawBoardForUser
 ; DrawBoardAt
+; SolveBoardAt
 
 DrawBoardForTitle
          ldx   #>kTitleBoardBuffer
@@ -43,4 +44,35 @@ DrawBoardAt
          bpl   @a
          dex
          bpl   -
+         rts
+
+SolveBoardAt
+; in:    X = high byte of page-aligned board buffer
+;        Y = logical board size (6,8,10,12,14,16)
+         stx   board_base_ptr+1
+         sty   logical_board_size
+@loop
+         ldx   board_base_ptr+1
+         ldy   logical_board_size
+         jsr   FindValidMove
+         bcc   @draw
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
+                                     ; preserves all flags and registers
+         ldx   board_base_ptr+1
+         ldy   logical_board_size
+         jsr   FindValidMove
+         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
+                                     ; preserves all flags and registers
+         bcs   @exit                 ; C is from FindValidMoveForTitle
+         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
+@draw
+         bit   GFXMODE
+         jsr   DrawLargeCharacter
+         pha
+         jsr   CalculateRowBase
+         sta   board_base_ptr
+         pla
+         sta   (board_base_ptr), y
+         bne   @loop                 ; always branches
+@exit
          rts
