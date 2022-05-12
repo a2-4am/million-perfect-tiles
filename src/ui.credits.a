@@ -6,6 +6,24 @@
 ; public functions:
 ; - ShowCredits
 
+!macro CFIZZLEOUT {
+         !byte CALL
+         !word CreditsFizzleToBlack
+}
+
+!macro CFIZZLEIN {
+         !byte CALL
+         !word CreditsFizzle
+}
+
+!macro OFFSCREENPRINT v, h, s {
+         !byte CALL
+         !word CreditsPrintToBuffer
+         !byte v
+         !byte h
+         !word s
+}
+
 ;------------------------------------------------------------------------------
 ; ShowCredits
 ; display credits until keypress or mouse click or completion
@@ -21,106 +39,66 @@ ShowCredits
 ; private
 
 CreditsScript
-         !byte CALL
-         !word              CreditsFizzleToBlack
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 3, 1
-         !word              sAboutCopyright3
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 4, 1
-         !word              sAboutCopyright4
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 5, 1
-         !word              sAboutCopyright5
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 2
-         !word              sAboutCopyright6
-         !byte OFFPRINT,    >kCreditsBoardBuffer,10, 5
-         !word              sAboutCopyright10
-         !byte OFFPRINT,    >kCreditsBoardBuffer,11, 5
-         !word              sAboutCopyright11
-         !byte OFFPRINT,    >kCreditsBoardBuffer,12, 5
-         !word              sAboutCopyright12
-         !byte CALL
-         !word              CreditsFizzle
+         +CFIZZLEOUT
+         +OFFSCREENPRINT 3, 1, sAboutCopyright3
+         +OFFSCREENPRINT 4, 1, sAboutCopyright4
+         +OFFSCREENPRINT 5, 1, sAboutCopyright5
+         +OFFSCREENPRINT 6, 2, sAboutCopyright6
+         +OFFSCREENPRINT 10, 5, sAboutCopyright10
+         +OFFSCREENPRINT 11, 5, sAboutCopyright11
+         +OFFSCREENPRINT 12, 5, sAboutCopyright12
+         +CFIZZLEIN
          !byte WAIT ,30
 
-         !byte CALL
-         !word              CreditsFizzleToBlack
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
-         !word              sAboutCompression6
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
-         !word              sAboutCompression7
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
-         !word              sAboutCompression8
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 4
-         !word              sAboutCompression9
-         !byte CALL
-         !word              CreditsFizzle
+         +CFIZZLEOUT
+         +OFFSCREENPRINT 6, 1, sAboutCompression6
+         +OFFSCREENPRINT 7, 1, sAboutCompression7
+         +OFFSCREENPRINT 8, 1, sAboutCompression8
+         +OFFSCREENPRINT 9, 4, sAboutCompression9
+         +CFIZZLEIN
          !byte WAIT ,15
 
-         !byte PRINT , 7, 8
-         !word              sAboutCompressed0
+         +CPRINT 7, 8, sAboutCompressed0
          !byte WAIT ,1
-         !byte PRINT , 7, 9
-         !word              sAboutCompressed1
+         +CPRINT 7, 9, sAboutCompressed1
          !byte WAIT ,1
-         !byte PRINT , 7,10
-         !word              sAboutCompressed2
+         +CPRINT 7,10, sAboutCompressed2
          !byte WAIT ,1
-         !byte PRINT , 7,11
-         !word              sAboutCompressed3
+         +CPRINT 7,11, sAboutCompressed3
          !byte WAIT ,1
-         !byte PRINT , 7,12
-         !word              sAboutCompressed4
+         +CPRINT 7,12, sAboutCompressed4
          !byte WAIT ,1
-         !byte PRINT , 7,13
-         !word              sAboutCompressed5
+         +CPRINT 7,13, sAboutCompressed5
          !byte WAIT ,1
-         !byte PRINT , 7,14
-         !word              sAboutCompressed6
+         +CPRINT 7,14, sAboutCompressed6
          !byte WAIT ,1
-         !byte PRINT , 7,15
-         !word              sAboutCompressed7
+         +CPRINT 7,15, sAboutCompressed7
          !byte WAIT ,1
-         !byte PRINT , 7,16
-         !word              sAboutCompressed8
+         +CPRINT 7,16, sAboutCompressed8
          !byte WAIT ,1
-         !byte PRINT , 7,17
-         !word              sAboutCompressed9
+         +CPRINT 7,17, sAboutCompressed9
          !byte WAIT ,1
-         !byte PRINT , 7,18
-         !word              sAboutCompressed10
+         +CPRINT 7,18, sAboutCompressed10
          !byte WAIT,15
-         !byte PRINT , 7,8
-         !word              sAboutCompressedHide
+         +CPRINT 7,8, sAboutCompressedHide
 
-         !byte CALL
-         !word              CreditsFizzleToBlack
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
-         !word              sAboutMouse6
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
-         !word              sAboutMouse7
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
-         !word              sAboutMouse8
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 2
-         !word              sAboutMouse9
-         !byte CALL
-         !word              CreditsFizzle
+         +CFIZZLEOUT
+         +OFFSCREENPRINT 6, 1, sAboutMouse6
+         +OFFSCREENPRINT 7, 1, sAboutMouse7
+         +OFFSCREENPRINT 8, 1, sAboutMouse8
+         +OFFSCREENPRINT 9, 2, sAboutMouse9
+         +CFIZZLEIN
          !byte WAIT ,30
 
-         !byte CALL
-         !word              CreditsFizzleToBlack
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 6, 1
-         !word              sAboutTesting6
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 7, 1
-         !word              sAboutTesting7
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 8, 1
-         !word              sAboutTesting8
-         !byte OFFPRINT,    >kCreditsBoardBuffer, 9, 4
-         !word              sAboutTesting9
-         !byte CALL
-         !word              CreditsFizzle
+         +CFIZZLEOUT
+         +OFFSCREENPRINT 6, 1, sAboutTesting6
+         +OFFSCREENPRINT 7, 1, sAboutTesting7
+         +OFFSCREENPRINT 8, 1, sAboutTesting8
+         +OFFSCREENPRINT 9, 4, sAboutTesting9
+         +CFIZZLEIN
          !byte WAIT ,30
 
-         !byte CALL
-         !word              CreditsFizzleToBlack
+         +CFIZZLEOUT
          !byte EXIT
 
 CreditsFizzleToBlack
@@ -140,4 +118,24 @@ CreditsFizzle
          sta   kCreditsBoardBuffer, y
          iny
          bne   -
+         rts
+
+CreditsPrintToBuffer
+         jsr   GetPrintParams
+         +ST16 string_ptr
+         ldy   HTAB
+         dey
+         sty   HTAB
+         ldx   VTAB
+         jsr   CalculateRowBase
+         clc
+         adc   HTAB
+         sta   @b+1
+         ldy   #0
+         lda   (string_ptr), y
+         tay
+@a       lda   (string_ptr), y
+@b       sta   kCreditsBoardBuffer, y           ; SMC low byte
+         dey
+         bne   @a
          rts

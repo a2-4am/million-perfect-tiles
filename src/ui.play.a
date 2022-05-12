@@ -449,7 +449,6 @@ GetValueAt
          rts
 
 AWinnerIsYou
-         bit   $ff58
          +LDADDR WinScript
          jmp   TileScript
 
@@ -459,8 +458,7 @@ WinScript
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kPurpleTile, kWhiteTile
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kBlueTile
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kBlackTile, kBlackTile
-         !byte WPRINT, 7, 3
-         !word              sPerfection
+         +WPRINT  7, 3, sPerfection
          !byte WAIT, 40
          !byte EXIT
 

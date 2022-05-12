@@ -8,17 +8,26 @@
 ;
 
 ; opcodes (public)
-EXIT     = 0
-WAIT     = 1
-HOME     = 2
-PRINT    = 3
-WPRINT   = 4
-OFFPRINT = 5
-FOCUS    = 6
-UNFOCUS  = 7
-TILE     = 8
-BOARD    = 9
-CALL     = 10
+EXIT     = 0   ; exit script
+WAIT     = 1   ; wait for keypress or click, with timeout
+HOME     = 2   ; clear screen
+CPR      = 3   ; print condensed
+WPR      = 4   ; print wide
+FOCUS    = 5   ; draw focus rectangle
+UNFOCUS  = 6   ; clear focus rectangle
+TILE     = 7   ; draw tile
+BOARD    = 8   ; draw board
+CALL     = 9   ; call assembly routine
+
+!macro CPRINT v, h, s {
+         !byte CPR, v, h
+         !word s
+}
+
+!macro WPRINT v, h, s {
+         !byte WPR, v, h
+         !word s
+}
 
 ;------------------------------------------------------------------------------
 ; TileScript
@@ -46,9 +55,8 @@ ScriptDispatchLo
          !byte <ScriptOnEXIT
          !byte <ScriptOnWAIT
          !byte <ScriptOnHOME
-         !byte <ScriptOnPRINT
-         !byte <ScriptOnWPRINT
-         !byte <ScriptOnOFFPRINT
+         !byte <ScriptOnCPR
+         !byte <ScriptOnWPR
          !byte <ScriptOnFOCUS
          !byte <ScriptOnUNFOCUS
          !byte <ScriptOnTILE
@@ -58,9 +66,8 @@ ScriptDispatchHi
          !byte >ScriptOnEXIT
          !byte >ScriptOnWAIT
          !byte >ScriptOnHOME
-         !byte >ScriptOnPRINT
-         !byte >ScriptOnWPRINT
-         !byte >ScriptOnOFFPRINT
+         !byte >ScriptOnCPR
+         !byte >ScriptOnWPR
          !byte >ScriptOnFOCUS
          !byte >ScriptOnUNFOCUS
          !byte >ScriptOnTILE
@@ -88,37 +95,15 @@ ScriptOnWAIT
 
 ScriptOnHOME=Home
 
-ScriptOnPRINT
+ScriptOnCPR
          jsr   GetPrintParams
          ; pointer is hidden
          jmp   DrawCondensedString
 
-ScriptOnWPRINT
+ScriptOnWPR
          jsr   GetPrintParams
          ; pointer is hidden
          jmp   DrawLargeString
-
-ScriptOnOFFPRINT
-         jsr   GetNextScriptByte
-         stx   @b+2
-         jsr   GetPrintParams
-         +ST16 string_ptr
-         ldy   HTAB
-         dey
-         sty   HTAB
-         ldx   VTAB
-         jsr   CalculateRowBase
-         clc
-         adc   HTAB
-         sta   @b+1
-         ldy   #0
-         lda   (string_ptr), y
-         tay
-@a       lda   (string_ptr), y
-@b       sta   $FDFD, y              ; SMC
-         dey
-         bne   @a
-         rts
 
 GetPrintParams
          jsr   GetNextScriptByte

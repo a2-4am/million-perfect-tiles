@@ -215,29 +215,17 @@ EraseSelectSizeSelectionIndicator
 SelectSizeScript
          !byte HOME
          !byte BOARD, >kTitleBoardBuffer
-         !byte WPRINT, 1, 3
-         !word              sSelectSizeLine1
-         !byte WPRINT, 2, 3
-         !word              sSelectSizeLine2
-         !byte WPRINT, 3, 3
-         !word              sSelectSizeLine3
-         !byte WPRINT, 4, 7
-         !word              sSelectSizeLine4
+         +WPRINT  1, 3, sSelectSizeLine1
+         +WPRINT  2, 3, sSelectSizeLine2
+         +WPRINT  3, 3, sSelectSizeLine3
+         +WPRINT  4, 7, sSelectSizeLine4
          ; nothing on line 5
-         !byte WPRINT, 6, 6
-         !word              sSelectSizeLine6
-         !byte WPRINT, 7, 6
-         !word              sSelectSizeLine7
-         !byte WPRINT, 8, 6
-         !word              sSelectSizeLine8
-         !byte WPRINT, 9, 6
-         !word              sSelectSizeLine9
-         !byte WPRINT,10, 6
-         !word              sSelectSizeLine10
-         !byte WPRINT,11, 6
-         !word              sSelectSizeLine11
-         !byte WPRINT,12, 6
-         !word              sSelectSizeLine12
-         !byte WPRINT,13, 6
-         !word              sSelectSizeLine13
+         +WPRINT  6, 6, sSelectSizeLine6
+         +WPRINT  7, 6, sSelectSizeLine7
+         +WPRINT  8, 6, sSelectSizeLine8
+         +WPRINT  9, 6, sSelectSizeLine9
+         +WPRINT 10, 6, sSelectSizeLine10
+         +WPRINT 11, 6, sSelectSizeLine11
+         +WPRINT 12, 6, sSelectSizeLine12
+         +WPRINT 13, 6, sSelectSizeLine13
          !byte EXIT

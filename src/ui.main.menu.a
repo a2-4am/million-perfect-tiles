@@ -242,31 +242,18 @@ EraseMainMenuSelectionIndicator
          beq   -                     ; always branches
 
 MainMenuScript
-         !byte WPRINT, 1, 6
-         !word              sMainMenuLine1
-         !byte WPRINT, 2, 2
-         !word              sMainMenuLine2
-         !byte WPRINT, 3, 2
-         !word              sMainMenuLine3
-         !byte WPRINT, 4, 2
-         !word              sMainMenuLine4
-         !byte WPRINT, 5, 5
-         !word              sMainMenuLine5
-         !byte WPRINT, 6, 5
-         !word              sMainMenuLine6
-         !byte WPRINT, 7, 6
-         !word              sMainMenuLine7
+         +WPRINT  1, 6, sMainMenuLine1
+         +WPRINT  2, 2, sMainMenuLine2
+         +WPRINT  3, 2, sMainMenuLine3
+         +WPRINT  4, 2, sMainMenuLine4
+         +WPRINT  5, 5, sMainMenuLine5
+         +WPRINT  6, 5, sMainMenuLine6
+         +WPRINT  7, 6, sMainMenuLine7
          ; nothing on line 8
-         !byte WPRINT, 9, 5
-         !word              sMainMenuLine9
-         !byte WPRINT,10, 5
-         !word              sMainMenuLine10
-         !byte WPRINT,11, 5
-         !word              sMainMenuLine11
-         !byte WPRINT,12, 5
-         !word              sMainMenuLine12
-         !byte WPRINT,13, 5
-         !word              sMainMenuLine13
-         !byte WPRINT,14, 5
-         !word              sMainMenuLine14
+         +WPRINT  9, 5, sMainMenuLine9
+         +WPRINT 10, 5, sMainMenuLine10
+         +WPRINT 11, 5, sMainMenuLine11
+         +WPRINT 12, 5, sMainMenuLine12
+         +WPRINT 13, 5, sMainMenuLine13
+         +WPRINT 14, 5, sMainMenuLine14
          !byte EXIT

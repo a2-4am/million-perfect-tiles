@@ -28,11 +28,9 @@ DemoScript
          !byte BOARD,       >kDemoBoardBuffer
          !byte WAIT ,10
 
-         !byte PRINT, 0,17
-         !word              sRule1
+         +CPRINT  0,17, sRule1
          !byte WAIT , 2
-         !byte PRINT, 2, 3
-         !word              sNever
+         +CPRINT  2, 3, sNever
          !byte WAIT ,20
 
          !byte FOCUS, 6, 7, kFocus1x3
@@ -104,10 +102,8 @@ DemoScript
          !byte UNFOCUS, 9, 7, kFocus1x3
          !byte WAIT , 1
 
-         !byte PRINT, 0,17
-         !word              sRule2
-         !byte PRINT, 2, 3
-         !word              sSame
+         +CPRINT  0,17, sRule2
+         +CPRINT  2, 3, sSame
          !byte WAIT ,20
 
          !byte FOCUS, 5, 8, kFocusEntireColumn
@@ -118,10 +114,8 @@ DemoScript
          !byte UNFOCUS, 5, 8, kFocusEntireColumn
          !byte WAIT , 2
 
-         !byte PRINT, 0,17
-         !word              sRule3
-         !byte PRINT, 2, 3
-         !word              sUnique
+         +CPRINT  0,17, sRule3
+         +CPRINT  2, 3, sUnique
          !byte WAIT ,20
 
          ;TODO
