@@ -60,6 +60,8 @@ VTAB         = $25        ; byte
 RNDSEED      = $4E        ; word
 
 ; application-specific addresses
+!source "src/pt3/zp.inc" ; $60-$7F
+gMockingboardAvailable    = $B0      ; byte USE BIT 7 ONLY
 extended_message          = $B1      ; word
 extended_x                = $B3      ; byte
 extended_y                = $B4      ; byte
@@ -91,23 +93,31 @@ hgr_base_ptr              = $F0      ; word (used by DrawLargeCharacter)
 char_index                = $F2      ; byte (used by DrawLargeCharacter)
 char_row                  = $F3      ; byte (used by DrawLargeCharacter)
 board_base_ptr            = $F4      ; word (used by FindValidMove)
+
 colorcount2               = $F6      ; byte (used by FindValidMove)
 row1                      = $F6      ; byte (used by FindValidMove)
+
 colorcount3               = $F7      ; byte (used by FindValidMove)
 row2                      = $F7      ; byte (used by FindValidMove)
+
 tile_column               = $F8      ; byte (used by FindValidMove)
+
 board_base_ptr2           = $F9      ; word (used by FindValidMove)
 unpack_ptr                = $F9      ; word (used by nth)
+
+board_base_ptr_backup     = $FB      ; byte (used by FindValidMove)
 string_len                = $FB      ; byte (used by DrawLargeString)
+
 string_ptr                = $FC      ; word (used by DrawLargeString)
-tmpx                      = $FE      ; byte (used by DrawLargeCharacter)
-tmpy                      = $FF      ; byte (used by DrawLargeCharacter)
+tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindValidMove)
+tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
 HGRHI                     = $1700    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 HGRLO                     = $1800    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 read_buffer               = $18C0    ; 0x2D bytes (used by nth, free before and after)
 kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop, free before and after)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (lifetime, used by DrawMainMenuBackground)
 
+kTransposedBoardBuffer    = $1B00    ; 0x0100 bytes, page-aligned (used by FindValidMove, free before and after)
 kCreditsBoardBuffer       = $1B00    ; 0x0100 bytes, page-aligned (used by ShowCredits, free before and after)
 kDemoBoardBuffer          = $1B00    ; 0x0100 bytes, page-aligned (used by ShowDemo, free before and after)
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth, free before and after)
@@ -126,3 +136,7 @@ kSelectionIndicator       = 1
 kWhiteTile                = 2
 kBlueTile                 = 3
 kPurpleTile               = 4
+
+; Comment this to disable Apple IIc support in PT3 player,
+; which will free a small amount of memory
+PT3_ENABLE_APPLE_IIC      = 1

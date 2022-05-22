@@ -231,6 +231,70 @@ FindValidMoveForTitle
 FindValidMove
          stx   board_base_ptr+1
          sty   logical_board_size
+         jsr   FindValidStage1And2
+         bcs   +
+         rts
++        lda   board_base_ptr+1
+         sta   board_base_ptr_backup
+         sta   board_base_ptr2+1
+         sta   @a+2
+         sta   @b+2
+         lda   #>kTransposedBoardBuffer
+         sta   board_base_ptr+1
+         sta   @c+2
+         sta   @d+2
+         ldy   #0
+         sty   board_base_ptr
+         sty   board_base_ptr2
+         ; (board_base_ptr2) -> originally passed in board buffer
+         ; (board_base_ptr) -> kTransposedBoardBuffer
+         ; transpose board_base_ptr2 into board_base_ptr
+         ldx   #$00
+@a       lda   $FD00, y              ; SMC
+         pha
+@b       lda   $FD00, x              ; SMC
+@c       sta   $FD00, y              ; SMC
+         pla
+@d       sta   $FD00, x              ; SMC
+         txa
+         clc
+         adc   #$10
+         tax
+         bcc   +
+         iny
+         beq   ++
+         sty   tmpy
+         inx
+         txa
+         clc
+         adc   tmpy
+         tax
+         tay
+         dey
++        iny
+         bne   @a
+++
+         ; now look for valid moves in the transposed board
+         jsr   FindValidStage1And2
+         bcs   +
+-        pha
+         lda   board_base_ptr_backup
+         sta   board_base_ptr+1
+         pla
+         jsr   TransposeExtendedInfo
+         jmp   SwapXY                ; swap X & Y because we found a move while the board was transposed
++
+         ; look for duplicate rows in transposed board (expensive)
+         jsr   IsAnyRowAlmostADuplicateOfAnotherRow
+         bcc   -
++
+         ; look for duplicate rows in original board (expensive)
+         lda   board_base_ptr_backup
+         sta   board_base_ptr+1
+         jmp   IsAnyRowAlmostADuplicateOfAnotherRow
+
+FindValidStage1And2
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
          ldx   #$0F                  ; tile row
 @CheckRow
          jsr   CalculateRowBase
@@ -246,7 +310,7 @@ FindValidMove
          jsr   iny_and_cmp_2
          +LBNE @nomatch
          ;found 022, valid move to change 0 -> 3
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          clc
@@ -257,7 +321,7 @@ FindValidMove
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 033, valid move to change 0 -> 2
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @not0xx
@@ -270,7 +334,7 @@ FindValidMove
          jsr   iny_and_cmp_2
          bne   @nomatch
          ;found 202, valid move to change 0 -> 3
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          iny
@@ -283,7 +347,7 @@ FindValidMove
          jsr   iny_and_cmp_3
          bne   @nomatch
          ;found 303, valid move to change 0 -> 2
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @notx0x
@@ -294,7 +358,7 @@ FindValidMove
          jsr   dey_and_cmp_2
          bne   @nomatch
          ;found 220, valid move to change 0 -> 3
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          iny
@@ -307,17 +371,20 @@ FindValidMove
          jsr   dey_and_cmp_3
          bne   @nomatch
          ;found 330, valid move to change 0 -> 2
-         jsr   @SetExtendedInfoFor1x3
+         jsr   .SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @nomatch
          dec   tile_column
          +LBPL @CheckTile
-         jsr   @IsRowFullOfOneColorButNotTheOther
+         jsr   .IsRowFullOfOneColorButNotTheOther
          bcc   @exit
          dex
          +LBPL @CheckRow
-;IsAnyRowAlmostADuplicateOfAnotherRow
+         sec
+         rts
+
+IsAnyRowAlmostADuplicateOfAnotherRow
          jsr   .CountEmptyPerRow
          lda   board_base_ptr+1
          sta   board_base_ptr2+1
@@ -333,7 +400,7 @@ FindValidMove
 @row2loop
          ldx   row2
          lda   row_empty_counts, x
-         cmp   #kWhiteTile
+         cmp   #2
          bne   @nextrow2
          ; found a row with 2 empty tiles
          stx   extended_x
@@ -374,7 +441,7 @@ FindValidMove
          sta   extended_type
          sty   extended_y
          pla
-+        clc
+         clc
          rts
 @nextempty
          dey
@@ -390,7 +457,7 @@ FindValidMove
          sec
          rts
 
-@IsRowFullOfOneColorButNotTheOther
+.IsRowFullOfOneColorButNotTheOther
          jsr   .CountColorsInRow
          lda   colorcount2
          cmp   colorcount3
@@ -429,7 +496,7 @@ FindValidMove
 +        clc
          rts
 
-@SetExtendedInfoFor1x3
+.SetExtendedInfoFor1x3
          +LDADDR sNever
          +ST16 extended_message
          lda   #kFocus1x3
