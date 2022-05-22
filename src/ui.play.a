@@ -24,6 +24,7 @@ kReturnToSelectSize = 4
 ;------------------------------------------------------------------------------
 PlayEventLoop
          bcc   @loop
+         jsr   StopMusic
          jsr   Home
          ; pointer is hidden (by Home)
          jsr   DrawBoardForUser
@@ -340,12 +341,6 @@ PlayEventH
          rts
 @findValidHint
          jsr   FindValidMoveForUser
-         bcc   @showValidHint
-         jsr   TransposeBoard
-         jsr   FindValidMoveForUser
-         jsr   TransposeBoard
-         jsr   TransposeExtendedInfo
-         jsr   SwapXY
          bcc   @showValidHint
          ; no valid or invalid moves, which means you won
          jsr   AWinnerIsYou

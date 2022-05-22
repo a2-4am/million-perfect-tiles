@@ -55,17 +55,7 @@ SolveBoardAt
          ldx   board_base_ptr+1
          ldy   logical_board_size
          jsr   FindValidMove
-         bcc   @draw
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
-                                     ; preserves all flags and registers
-         ldx   board_base_ptr+1
-         ldy   logical_board_size
-         jsr   FindValidMove
-         jsr   TransposeBoard        ; reuses board_base_ptr populated by FindValidMoveForTitle
-                                     ; preserves all flags and registers
-         bcs   @exit                 ; C is from FindValidMoveForTitle
-         jsr   SwapXY                ; swap X & Y because we found a move while the board was transposed
-@draw
+         bcs   @exit
          bit   GFXMODE
          jsr   DrawLargeCharacter
          pha

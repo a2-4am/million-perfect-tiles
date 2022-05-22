@@ -18,6 +18,7 @@ SelectSizeEventLoop
          bcc   @loop
          jsr   DrawSelectSize
          jsr   ClearPendingEvents
+         jsr   StartMusic
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove
@@ -127,6 +128,7 @@ SelectSizeEventClick
          ; /!\ execution falls through here to SelectSizeEventReturn
 
 SelectSizeEventReturn
+         jsr   StopMusic
          bit   TEXTMODE
          lda   .selectSizeSelectedIndex
          sec

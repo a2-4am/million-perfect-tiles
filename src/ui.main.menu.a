@@ -25,6 +25,7 @@ MainMenuEventLoop
          jsr   DrawMainMenuBackground
          jsr   DrawMainMenuText
          jsr   ClearPendingEvents
+         jsr   StartMusic
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove

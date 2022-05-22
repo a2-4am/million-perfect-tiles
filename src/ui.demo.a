@@ -25,7 +25,7 @@ ShowDemo
 DemoScript
          !byte HOME
 
-         !byte BOARD,       >kDemoBoardBuffer
+         !byte BOARD, >kDemoBoardBuffer
          !byte WAIT ,10
 
          +CPRINT  0,17, sRule1
