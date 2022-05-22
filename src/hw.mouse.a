@@ -1,4 +1,4 @@
-:MIT
+;MIT
 ;(c) 2014 One Girl, One Laptop Productions (Quinn Dunki)
 ;(c) 2022 Peter Ferrie
 ;
@@ -18,12 +18,12 @@ WGUndrawPointerCallback
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mouse clamping values.
 ; Hardware produces values 0-1023 in both dimensions if not clamped
-SCALE_X_IIE	= 559
-SCALE_Y_IIE	= 767
+SCALE_X_IIE     = 559
+SCALE_Y_IIE     = 767
 
 ; //c tracks much slower, so smaller clamps and no scaling works better
-;SCALE_X_IIC	= 279
-;SCALE_Y_IIC	= 191
+;SCALE_X_IIC    = 279
+;SCALE_Y_IIC    = 191
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ProDOS ROM entry points and constants
@@ -49,15 +49,15 @@ CLAMPMOUSE = $17
 HOMEMOUSE = $18
 INITMOUSE = $19
 
-MOUSTAT = $0778			; + Slot Num
-MOUSE_XL = $0478		; + Slot Num
-MOUSE_XH = $0578		; + Slot Num
-MOUSE_YL = $04f8		; + Slot Num
-MOUSE_YH = $05f8		; + Slot Num
-MOUSE_CLAMPL = $04f8	; Upper mouse clamp (LSB). Slot independent.
-MOUSE_CLAMPH = $05f8	; Upper mouse clamp (MSB). Slot independent.
-MOUSE_ZEROL = $0478		; Zero value of mouse (LSB). Slot independent.
-MOUSE_ZEROH = $0578		; Zero value of mouse (MSB). Slot independent.
+MOUSTAT = $0778                 ; + Slot Num
+MOUSE_XL = $0478                ; + Slot Num
+MOUSE_XH = $0578                ; + Slot Num
+MOUSE_YL = $04f8                ; + Slot Num
+MOUSE_YH = $05f8                ; + Slot Num
+MOUSE_CLAMPL = $04f8    ; Upper mouse clamp (LSB). Slot independent.
+MOUSE_CLAMPH = $05f8    ; Upper mouse clamp (MSB). Slot independent.
+MOUSE_ZEROL = $0478             ; Zero value of mouse (LSB). Slot independent.
+MOUSE_ZEROH = $0578             ; Zero value of mouse (MSB). Slot independent.
 
 MOUSTAT_MASK_BUTTONINT = %00000100
 MOUSTAT_MASK_VBLINT = %00001000
@@ -66,19 +66,19 @@ MOUSTAT_MASK_DOWN = %10000000
 MOUSTAT_MASK_WASDOWN = %01000000
 MOUSTAT_MASK_MOVED = %00100000
 
-MOUSEMODE_OFF = $00		; Mouse off
-MOUSEMODE_PASSIVE = $01	; Passive mode (polling only)
-MOUSEMODE_MOVEINT = $03	; Interrupts on movement
-MOUSEMODE_BUTINT = $05	; Interrupts on button
-MOUSEMODE_COMBINT = $0f	; Interrupts on VBL, movement and button
+MOUSEMODE_OFF = $00             ; Mouse off
+MOUSEMODE_PASSIVE = $01 ; Passive mode (polling only)
+MOUSEMODE_MOVEINT = $03 ; Interrupts on movement
+MOUSEMODE_BUTINT = $05  ; Interrupts on button
+MOUSEMODE_COMBINT = $0f ; Interrupts on VBL, movement and button
 
 
 ; Mouse firmware is all indirectly called, because
 ; it moved around a lot in different Apple II ROM
 ; versions. This macro helps abstracts this for us.
 !macro CALLMOUSE name {
-	ldx #name
-	jsr WGCallMouse
+        ldx #name
+        jsr WGCallMouse
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -86,86 +86,86 @@ MOUSEMODE_COMBINT = $0f	; Interrupts on VBL, movement and button
 ; Prepares the mouse for use
 ;
 WGEnableMouse:
-	; Find slot number and calculate the various indirections needed
-	jsr WGFindMouse
-	bcs WGEnableMouse_Error
+        ; Find slot number and calculate the various indirections needed
+        jsr WGFindMouse
+        bcs WGEnableMouse_Error
 
-	; Note if we're a //e or //c, because mouse tracking and interrupts are different
-	lda $fbb3
-	cmp #$06
-	bne WGEnableMouse_II		; II or II+
-	lda $fbc0
-	beq WGEnableMouse_II
-	sec
-	jsr $FE1F			; check for IIgs
-	bcs WGEnableMouse_II
-	lda #$ea			; NOP
-	sta WGMouseInterruptHandler_intDoneGS
+        ; Note if we're a //e or //c, because mouse tracking and interrupts are different
+        lda $fbb3
+        cmp #$06
+        bne WGEnableMouse_II            ; II or II+
+        lda $fbc0
+        beq WGEnableMouse_II
+        sec
+        jsr $FE1F                       ; check for IIgs
+        bcs WGEnableMouse_II
+        lda #$ea                        ; NOP
+        sta WGMouseInterruptHandler_intDoneGS
 
 WGEnableMouse_II:
-	; Install our interrupt handler via ProDOS (play nice!)
-	jsr PRODOS_MLI
-	!byte ALLOC_INTERRUPT
-	!word WG_PRODOS_ALLOC
-	bne WGEnableMouse_Error		; ProDOS will return here with Z clear on error
+        ; Install our interrupt handler via ProDOS (play nice!)
+        jsr PRODOS_MLI
+        !byte ALLOC_INTERRUPT
+        !word WG_PRODOS_ALLOC
+        bne WGEnableMouse_Error         ; ProDOS will return here with Z clear on error
 
-	; Initialize the mouse
-	sta WG_MOUSEPOS_X
-	sta WG_MOUSEPOS_X+1
-	sta WG_MOUSEPOS_Y
-	sta WG_MOUSEPOS_Y+1
+        ; Initialize the mouse
+        sta WG_MOUSEPOS_X
+        sta WG_MOUSEPOS_X+1
+        sta WG_MOUSEPOS_Y
+        sta WG_MOUSEPOS_Y+1
 
-	+CALLMOUSE INITMOUSE
-	bcc WGEnableMouse_Clear	; Firmware sets carry if mouse is not available
-	jsr WGUnhookInt
-	sec
+        +CALLMOUSE INITMOUSE
+        bcc WGEnableMouse_Clear ; Firmware sets carry if mouse is not available
+        jsr WGUnhookInt
+        sec
 
 WGEnableMouse_Error:
-	rts
+        rts
 
 WGEnableMouse_Clear:
-	+CALLMOUSE CLEARMOUSE
+        +CALLMOUSE CLEARMOUSE
 
-	lda #MOUSEMODE_COMBINT		; Enable combination interrupt mode
-	+CALLMOUSE SETMOUSE
+        lda #MOUSEMODE_COMBINT          ; Enable combination interrupt mode
+        +CALLMOUSE SETMOUSE
 
-	; Set the mouse's zero position to (1,1)
-	lda #0
-	sta MOUSE_ZEROH
-	sta MOUSE_ZEROL
-	lda #1
-	+CALLMOUSE CLAMPMOUSE
-	lda #0
-	+CALLMOUSE CLAMPMOUSE
+        ; Set the mouse's zero position to (1,1)
+        lda #0
+        sta MOUSE_ZEROH
+        sta MOUSE_ZEROL
+        lda #1
+        +CALLMOUSE CLAMPMOUSE
+        lda #0
+        +CALLMOUSE CLAMPMOUSE
 
-	; Scale the mouse's range into something easy to do math with,
-	; while retaining as much range of motion and precision as possible
+        ; Scale the mouse's range into something easy to do math with,
+        ; while retaining as much range of motion and precision as possible
          ; TODO
-;	lda WG_APPLEIIC
-;	bne WGEnableMouse_ConfigIIc		; Sorry //c, no scaling for you
+;       lda WG_APPLEIIC
+;       bne WGEnableMouse_ConfigIIc             ; Sorry //c, no scaling for you
 
-	lda #<SCALE_X_IIE
-	sta MOUSE_CLAMPL
-	lda #>SCALE_X_IIE
-	sta MOUSE_CLAMPH
-	lda #0
-	+CALLMOUSE CLAMPMOUSE
+        lda #<SCALE_X_IIE
+        sta MOUSE_CLAMPL
+        lda #>SCALE_X_IIE
+        sta MOUSE_CLAMPH
+        lda #0
+        +CALLMOUSE CLAMPMOUSE
 
-	lda #<SCALE_Y_IIE
-	sta MOUSE_CLAMPL
-	lda #>SCALE_Y_IIE
-	sta MOUSE_CLAMPH
-	lda #1
-	+CALLMOUSE CLAMPMOUSE
+        lda #<SCALE_Y_IIE
+        sta MOUSE_CLAMPL
+        lda #>SCALE_Y_IIE
+        sta MOUSE_CLAMPH
+        lda #1
+        +CALLMOUSE CLAMPMOUSE
 
 WGEnableMouse_Activate:
-	inc WG_MOUSEACTIVE
-	clc
+        inc WG_MOUSEACTIVE
+        clc
 
-	cli					; Once all setup is done, it's safe to enable interrupts
+        cli                                     ; Once all setup is done, it's safe to enable interrupts
 
-WGEnableMouse_done:			; Exit point here for branch range
-	rts
+WGEnableMouse_done:                     ; Exit point here for branch range
+        rts
 
 
 
@@ -175,29 +175,29 @@ WGEnableMouse_done:			; Exit point here for branch range
 ; Shuts off the mouse when we're done with it
 ;
 WGDisableMouse:
-	lda WG_MOUSEACTIVE			; Never activated the mouse
-	beq WGDisableMouse_done
+        lda WG_MOUSEACTIVE                      ; Never activated the mouse
+        beq WGDisableMouse_done
 
-	lda #MOUSEMODE_OFF
-	+CALLMOUSE SETMOUSE
+        lda #MOUSEMODE_OFF
+        +CALLMOUSE SETMOUSE
 
-	lda #0
-	sta WG_MOUSEACTIVE
+        lda #0
+        sta WG_MOUSEACTIVE
 
-	jsr WGUndrawPointer			; Be nice if we're disabled during a program
+        jsr WGUndrawPointer                     ; Be nice if we're disabled during a program
 
 WGUnhookInt:
-	; Remove our interrupt handler via ProDOS (done playing nice!)
-	dec WG_PRODOS_ALLOC		; change Alloc parm count to DeAlloc parm count
+        ; Remove our interrupt handler via ProDOS (done playing nice!)
+        dec WG_PRODOS_ALLOC             ; change Alloc parm count to DeAlloc parm count
 
-	jsr PRODOS_MLI
-	!byte DEALLOC_INTERRUPT
-	!word WG_PRODOS_ALLOC
+        jsr PRODOS_MLI
+        !byte DEALLOC_INTERRUPT
+        !word WG_PRODOS_ALLOC
 
-	inc WG_PRODOS_ALLOC		; restore DeAlloc parm count to Alloc parm count
+        inc WG_PRODOS_ALLOC             ; restore DeAlloc parm count to Alloc parm count
 
 WGDisableMouse_done:
-	rts
+        rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -209,30 +209,30 @@ WGDisableMouse_done:
 ; X: Name of routine (firmware offset constant)
 ; Side effects: Clobbers all registers
 WGCallMouse:
-	php					; Note that mouse firmware is not re-entrant,
-	sei					; so we must disable interrupts inside them
-						; and must be first to avoid interruption
-						; during the self-modification
-	stx WGCallMouseSMC+1	; Use self-modifying code to smooth out some indirection
+        php                                     ; Note that mouse firmware is not re-entrant,
+        sei                                     ; so we must disable interrupts inside them
+                                                ; and must be first to avoid interruption
+                                                ; during the self-modification
+        stx WGCallMouseSMC+1    ; Use self-modifying code to smooth out some indirection
 
-	; This load address is overwritten by the above code, AND by the mouse set
-	; up code, to make sure we have the right slot entry point and firmware
-	; offset
+        ; This load address is overwritten by the above code, AND by the mouse set
+        ; up code, to make sure we have the right slot entry point and firmware
+        ; offset
 WGCallMouseSMC:
-	ldx $c400			; Self-modifying code!
-	stx WGCallMouse_redirectSMC2+1	; Get low byte of final jump from firmware
+        ldx $c400                       ; Self-modifying code!
+        stx WGCallMouse_redirectSMC2+1  ; Get low byte of final jump from firmware
 
 WGCallMouse_redirect:
-	ldx WGCallMouse_redirectSMC2+2
+        ldx WGCallMouse_redirectSMC2+2
 WGCallMouse_redirectSMC1:
-	ldy #$40			; Self-modifying code!
+        ldy #$40                        ; Self-modifying code!
 WGCallMouse_redirectSMC2:
-	jsr $c400			; Self-modifying code!
-	lda #0
-	rol				; preserve returned carry
-	plp					; Restore interrupts to previous state
-	lsr				; return carry
-	rts
+        jsr $c400                       ; Self-modifying code!
+        lda #0
+        rol                             ; preserve returned carry
+        plp                                     ; Restore interrupts to previous state
+        lsr                             ; return carry
+        rts
 
 
 
@@ -242,48 +242,48 @@ WGCallMouse_redirectSMC2:
 ; It moved around a lot over the years.
 ; OUT C: Set if no mouse could be found
 WGFindMouse:
-	lda #0
-	sta WGReadMouseBits+1			; Self-modifying code!
-	ldx #$c7
+        lda #0
+        sta WGReadMouseBits+1                   ; Self-modifying code!
+        ldx #$c7
 
 WGFindMouse_loop:
-	stx WGFindMouse_loopModifySMC+2		; Self-modifying code!
-	ldy #4
+        stx WGFindMouse_loopModifySMC+2         ; Self-modifying code!
+        ldy #4
 
 WGFindMouse_loopModify:
-	; Check for the magic 5-byte pattern that gives away the mouse card
-	txa
-	pha
-	ldx WG_MOUSE_OFFSETS, y	
+        ; Check for the magic 5-byte pattern that gives away the mouse card
+        txa
+        pha
+        ldx WG_MOUSE_OFFSETS, y 
 WGFindMouse_loopModifySMC:
-	lda $c700, x				; Self-modifying code!
-	eor WG_MOUSE_IDBYTES, y
-	cmp #1
-	pla
-	tax
-	bcs WGFindMouse_nextSlot
-	dey
-	bpl WGFindMouse_loopModify
+        lda $c700, x                            ; Self-modifying code!
+        eor WG_MOUSE_IDBYTES, y
+        cmp #1
+        pla
+        tax
+        bcs WGFindMouse_nextSlot
+        dey
+        bpl WGFindMouse_loopModify
 
 WGFindMouse_found:
-	; Found it! Now configure all our indirection lookups
-	stx WGCallMouseSMC+2			; Self-modifying code!
-	stx WGCallMouse_redirectSMC2+2		; Self-modifying code!
-	txa
-	and #7
-	sta WGReadMouseBits+1			; Self-modifying code!
-	asl
-	asl
-	asl
-	asl					; shift clears the carry
-	sta WGCallMouse_redirectSMC1+1		; Self-modifying code!
-	rts
+        ; Found it! Now configure all our indirection lookups
+        stx WGCallMouseSMC+2                    ; Self-modifying code!
+        stx WGCallMouse_redirectSMC2+2          ; Self-modifying code!
+        txa
+        and #7
+        sta WGReadMouseBits+1                   ; Self-modifying code!
+        asl
+        asl
+        asl
+        asl                                     ; shift clears the carry
+        sta WGCallMouse_redirectSMC1+1          ; Self-modifying code!
+        rts
 
 WGFindMouse_nextSlot:
-	dex
-	cpx #$c0
-	bne WGFindMouse_loop			; Carry is set on exit
-	rts
+        dex
+        cpx #$c0
+        bne WGFindMouse_loop                    ; Carry is set on exit
+        rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -291,94 +291,94 @@ WGFindMouse_nextSlot:
 ; Handles interrupts that may be related to the mouse
 ; This is a ProDOS-compliant interrupt handling routine, and
 ; should be installed and removed via ProDOS as needed.
-; 
+;
 ; IMPORTANT: This routine is NOT MLI-reentrant, which means MLI
 ; calls can NOT be made within this handler. See page 108 of the
 ; ProDOS 8 Technical Reference Manual if this feature needs to be
 ; added.
 ;
 WGMouseInterruptHandler:
-	cld						; ProDOS interrupt handlers must open with this
-	+SAVE_AXY
+        cld                                             ; ProDOS interrupt handlers must open with this
+        +SAVE_AXY
 
-	+CALLMOUSE SERVEMOUSE
-	bcs WGMouseInterruptHandler_done		; work around 6805-firmware bug, claim all interrupts
+        +CALLMOUSE SERVEMOUSE
+        bcs WGMouseInterruptHandler_done                ; work around 6805-firmware bug, claim all interrupts
 
 WGMouseInterruptHandler_regard:
-	jsr WGReadMouseBits		; Check interrupt status bits first, because READMOUSE clears them
-	and #(MOUSTAT_MASK_BUTTONINT | MOUSTAT_MASK_MOVEINT)
-	tax				; conveniently mapping to values 0, 2, and 4
-	lda WG_MOUSE_DISPATCH, X
-	sta WG_MOUSE_DISPATCH_JMP+1
-	lda WG_MOUSE_DISPATCH+1, X
-	sta WG_MOUSE_DISPATCH_JMP+2
+        jsr WGReadMouseBits             ; Check interrupt status bits first, because READMOUSE clears them
+        and #(MOUSTAT_MASK_BUTTONINT | MOUSTAT_MASK_MOVEINT)
+        tax                             ; conveniently mapping to values 0, 2, and 4
+        lda WG_MOUSE_DISPATCH, X
+        sta WG_MOUSE_DISPATCH_JMP+1
+        lda WG_MOUSE_DISPATCH+1, X
+        sta WG_MOUSE_DISPATCH_JMP+2
 WG_MOUSE_DISPATCH_JMP:
-	jsr $0000			; SMC
+        jsr $0000                       ; SMC
 
 WGMouseInterruptHandler_done:
-	+RESTORE_AXY
+        +RESTORE_AXY
 
-	clc								; Notify ProDOS this was our interrupt
-	rts
+        clc                                                             ; Notify ProDOS this was our interrupt
+        rts
 
 WGReadMouse:
-	+CALLMOUSE READMOUSE
+        +CALLMOUSE READMOUSE
 
 WGReadMouseBits:
-	ldx #0				; Self-modifying code!
-	lda MOUSTAT,x
-	rts
+        ldx #0                          ; Self-modifying code!
+        lda MOUSTAT,x
+        rts
 
 WGMouseInterruptHandler_VBL:
-	jsr WGReadMouse			; Movement/button status bits are now valid
-	bmi WGMouseInterruptHandler_intDoneGS
+        jsr WGReadMouse                 ; Movement/button status bits are now valid
+        bmi WGMouseInterruptHandler_intDoneGS
 
-	lda #0
-	sta WGMouseButtonState+1	; Self-modifying code!
-	beq WGMouseInterruptHandler_intDoneGS		; always
+        lda #0
+        sta WGMouseButtonState+1        ; Self-modifying code!
+        beq WGMouseInterruptHandler_intDoneGS           ; always
 
 WGMouseInterruptHandler_button:
-	jsr WGReadMouse			; Movement/button status bits are now valid
-	bpl WGMouseInterruptHandler_intDoneGS	; Check for rising edge of button state
+        jsr WGReadMouse                 ; Movement/button status bits are now valid
+        bpl WGMouseInterruptHandler_intDoneGS   ; Check for rising edge of button state
 
 WGMouseButtonState:
-	lda #0				; Self-modifying code!
-	bne WGMouseInterruptHandler_intDoneGS
+        lda #0                          ; Self-modifying code!
+        bne WGMouseInterruptHandler_intDoneGS
 
 WGMouseInterruptHandler_buttonDown:
-	; Button went down, so make a note of location for later
-	inc WGMouseButtonState+1	; Self-modifying code!
+        ; Button went down, so make a note of location for later
+        inc WGMouseButtonState+1        ; Self-modifying code!
 
-	lda WG_MOUSEPOS_X
-	sta WG_MOUSECLICK_X
-	lda WG_MOUSEPOS_X+1
-	sta WG_MOUSECLICK_X+1
-	lda WG_MOUSEPOS_Y
-	sta WG_MOUSECLICK_Y
-	lda WG_MOUSEPOS_Y+1
-	sta WG_MOUSECLICK_Y+1
+        lda WG_MOUSEPOS_X
+        sta WG_MOUSECLICK_X
+        lda WG_MOUSEPOS_X+1
+        sta WG_MOUSECLICK_X+1
+        lda WG_MOUSEPOS_Y
+        sta WG_MOUSECLICK_Y
+        lda WG_MOUSEPOS_Y+1
+        sta WG_MOUSECLICK_Y+1
         sec
         ror gPointerClicked
 
 WGMouseInterruptHandler_intDoneGS:
-	rts				; Self-modifying code!
+        rts                             ; Self-modifying code!
 
 WGMouseInterruptHandler_mouse:
-	jsr WGUndrawPointer			; Erase the old mouse pointer
+        jsr WGUndrawPointer                     ; Erase the old mouse pointer
 
-	; Read the mouse state. Note that interrupts need to remain
-	; off until after the data is copied.
-	jsr WGReadMouse			; Movement/button status bits are now valid
+        ; Read the mouse state. Note that interrupts need to remain
+        ; off until after the data is copied.
+        jsr WGReadMouse                 ; Movement/button status bits are now valid
 
-	lda MOUSE_XL,x
-	sta WG_MOUSEPOS_X
-	lda MOUSE_XH,x
-	sta WG_MOUSEPOS_X+1
-	lda MOUSE_YL,x
-	sta WG_MOUSEPOS_Y
-	lda MOUSE_YH,x
-	sta WG_MOUSEPOS_Y+1
-;;	jmp WGDrawPointer				; Redraw the pointer
+        lda MOUSE_XL,x
+        sta WG_MOUSEPOS_X
+        lda MOUSE_XH,x
+        sta WG_MOUSEPOS_X+1
+        lda MOUSE_YL,x
+        sta WG_MOUSEPOS_Y
+        lda MOUSE_YH,x
+        sta WG_MOUSEPOS_Y+1
+;;      jmp WGDrawPointer                               ; Redraw the pointer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGDrawPointer
@@ -386,7 +386,7 @@ WGMouseInterruptHandler_mouse:
 ; Stub for your use
 ;
 WGDrawPointer:
-	jmp    (WGDrawPointerCallback)
+        jmp    (WGDrawPointerCallback)
 
 
 
@@ -396,7 +396,7 @@ WGDrawPointer:
 ; Stub for your use
 ;
 WGUndrawPointer:
-	jmp    (WGUndrawPointerCallback)
+        jmp    (WGUndrawPointerCallback)
 
 
 
@@ -428,12 +428,12 @@ WG_MOUSE_DISPATCH:
 !word WGMouseInterruptHandler_VBL
 !word WGMouseInterruptHandler_mouse
 !word WGMouseInterruptHandler_button
-!word WGMouseInterruptHandler_button			; in case of clicking while moving
+!word WGMouseInterruptHandler_button                    ; in case of clicking while moving
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ProDOS system call parameter blocks
 ;
 WG_PRODOS_ALLOC:
-	!byte 2
-	!byte 0						; ProDOS returns an ID number for the interrupt here
-	!word WGMouseInterruptHandler
+        !byte 2
+        !byte 0                                         ; ProDOS returns an ID number for the interrupt here
+        !word WGMouseInterruptHandler
