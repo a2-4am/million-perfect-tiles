@@ -203,12 +203,7 @@ mockingboard_setup_interrupt:
 
         sei                     ; disable interrupts just in case
 
-        lda     #$40            ; Continuous interrupts, don't touch PB7
-setup_irq_smc1:
-        sta     MOCK_6522_ACR   ; ACR register
-        lda     #$7F            ; clear all interrupt flags
-setup_irq_smc2:
-        sta     MOCK_6522_IER   ; IER register (interrupt enable)
+        jsr     mockingboard_clear_interrupt
 
         lda     #$C0
 setup_irq_smc3:
@@ -237,11 +232,17 @@ PT3_PRODOS_DEALLOC:
         !byte   1
         !byte   0
 
-mockingboard_shut_up:
-        jsr     reset_ay_both
-        jmp     clear_ay_both
+mockingboard_clear_interrupt:
+        lda     #$40            ; Continuous interrupts, don't touch PB7
+setup_irq_smc1:
+        sta     MOCK_6522_ACR   ; ACR register
+        lda     #$7F            ; clear all interrupt flags
+setup_irq_smc2:
+        sta     MOCK_6522_IER   ; IER register (interrupt enable)
+        rts
 
 mockingboard_shut_down:
+        jsr     mockingboard_clear_interrupt
         lda     PT3_PRODOS_ALLOC+1
         beq     +
         sta     PT3_PRODOS_DEALLOC+1
@@ -249,6 +250,9 @@ mockingboard_shut_down:
         !byte   DEALLOC_INTERRUPT
         !word   PT3_PRODOS_DEALLOC
 +       lda     #0
-        sta     PT3_PRODOS_ALLOC
-        sta     PT3_PRODOS_DEALLOC
-        jmp     mockingboard_shut_up
+        sta     PT3_PRODOS_ALLOC+1
+        sta     PT3_PRODOS_DEALLOC+1
+        ; /!\ execution falls through here to mockingboard_shut_up
+mockingboard_shut_up:
+        jsr     reset_ay_both
+        jmp     clear_ay_both

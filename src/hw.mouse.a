@@ -104,12 +104,13 @@ WGEnableMouse:
 
 WGEnableMouse_II:
         ; Install our interrupt handler via ProDOS (play nice!)
-        jsr PRODOS_MLI
-        !byte ALLOC_INTERRUPT
-        !word WG_PRODOS_ALLOC
-        bne WGEnableMouse_Error         ; ProDOS will return here with Z clear on error
+;        jsr PRODOS_MLI
+;        !byte ALLOC_INTERRUPT
+;        !word WG_PRODOS_ALLOC
+;        bne WGEnableMouse_Error         ; ProDOS will return here with Z clear on error
 
         ; Initialize the mouse
+        lda #0
         sta WG_MOUSEPOS_X
         sta WG_MOUSEPOS_X+1
         sta WG_MOUSEPOS_Y
@@ -126,7 +127,7 @@ WGEnableMouse_Error:
 WGEnableMouse_Clear:
         +CALLMOUSE CLEARMOUSE
 
-        lda #MOUSEMODE_COMBINT          ; Enable combination interrupt mode
+        lda #MOUSEMODE_PASSIVE;COMBINT          ; Enable combination interrupt mode
         +CALLMOUSE SETMOUSE
 
         ; Set the mouse's zero position to (1,1)
@@ -159,7 +160,8 @@ WGEnableMouse_Clear:
         +CALLMOUSE CLAMPMOUSE
 
 WGEnableMouse_Activate:
-        inc WG_MOUSEACTIVE
+        sec
+        ror WG_MOUSEACTIVE
         clc
 
         cli                                     ; Once all setup is done, it's safe to enable interrupts
@@ -188,13 +190,13 @@ WGDisableMouse:
 
 WGUnhookInt:
         ; Remove our interrupt handler via ProDOS (done playing nice!)
-        dec WG_PRODOS_ALLOC             ; change Alloc parm count to DeAlloc parm count
-
-        jsr PRODOS_MLI
-        !byte DEALLOC_INTERRUPT
-        !word WG_PRODOS_ALLOC
-
-        inc WG_PRODOS_ALLOC             ; restore DeAlloc parm count to Alloc parm count
+;        dec WG_PRODOS_ALLOC             ; change Alloc parm count to DeAlloc parm count
+;
+;        jsr PRODOS_MLI
+;        !byte DEALLOC_INTERRUPT
+;        !word WG_PRODOS_ALLOC
+;
+;        inc WG_PRODOS_ALLOC             ; restore DeAlloc parm count to Alloc parm count
 
 WGDisableMouse_done:
         rts
@@ -254,7 +256,7 @@ WGFindMouse_loopModify:
         ; Check for the magic 5-byte pattern that gives away the mouse card
         txa
         pha
-        ldx WG_MOUSE_OFFSETS, y 
+        ldx WG_MOUSE_OFFSETS, y
 WGFindMouse_loopModifySMC:
         lda $c700, x                            ; Self-modifying code!
         eor WG_MOUSE_IDBYTES, y
@@ -372,12 +374,16 @@ WGMouseInterruptHandler_mouse:
 
         lda MOUSE_XL,x
         sta WG_MOUSEPOS_X
+        sta WG_LAST_MOUSEPOS_X
         lda MOUSE_XH,x
         sta WG_MOUSEPOS_X+1
+        sta WG_LAST_MOUSEPOS_X+1
         lda MOUSE_YL,x
         sta WG_MOUSEPOS_Y
+        sta WG_LAST_MOUSEPOS_Y
         lda MOUSE_YH,x
         sta WG_MOUSEPOS_Y+1
+        sta WG_LAST_MOUSEPOS_Y+1
 ;;      jmp WGDrawPointer                               ; Redraw the pointer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -399,6 +405,54 @@ WGUndrawPointer:
         jmp    (WGUndrawPointerCallback)
 
 
+WGPollMouse:
+        bit WG_MOUSEACTIVE
+        bpl @exit
+        php
+        +SAVE_AXY
+        sei
+        jsr WGReadMouse                 ; Movement/button status bits are now valid
+        pha
+        lda MOUSE_XL,x
+        cmp WG_LAST_MOUSEPOS_X
+        bne @onMouseMove
+        lda MOUSE_XH,x
+        cmp WG_LAST_MOUSEPOS_X+1
+        bne @onMouseMove
+        lda MOUSE_YL,x
+        cmp WG_LAST_MOUSEPOS_Y
+        bne @onMouseMove
+        lda MOUSE_YH,x
+        cmp WG_LAST_MOUSEPOS_Y+1
+        beq @checkForClick
+@onMouseMove
+        jsr WGMouseInterruptHandler_mouse
+@checkForClick
+        pla
+        and #MOUSTAT_MASK_DOWN
+        bne @buttonIsDown
+        lda #0
+        sta @buttonIsDown+1
+        beq @donePoll                ; always branches
+@buttonIsDown
+        lda #0
+        bne @donePoll
+        lda #1
+        sta @buttonIsDown+1
+        lda WG_MOUSEPOS_X
+        sta WG_MOUSECLICK_X
+        lda WG_MOUSEPOS_X+1
+        sta WG_MOUSECLICK_X+1
+        lda WG_MOUSEPOS_Y
+        sta WG_MOUSECLICK_Y
+        lda WG_MOUSEPOS_Y+1
+        sta WG_MOUSECLICK_Y+1
+        sec
+        ror gPointerClicked
+@donePoll
+        +RESTORE_AXY
+        plp
+@exit   rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mouse API state
@@ -408,14 +462,17 @@ WGUndrawPointer:
 WG_MOUSEACTIVE:
 !byte 0
 WG_MOUSEPOS_X:
-!word 39
+!word 0
 WG_MOUSEPOS_Y:
-!word 11
+!word 0
 WG_MOUSECLICK_X:
 !word $ffff
 WG_MOUSECLICK_Y:
 !word 0
-
+WG_LAST_MOUSEPOS_X:
+!word 0
+WG_LAST_MOUSEPOS_Y:
+!word 0
 
 ; Mouse identification data
 WG_MOUSE_OFFSETS:

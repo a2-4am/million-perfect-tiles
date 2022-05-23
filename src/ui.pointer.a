@@ -38,6 +38,7 @@ PointerOnStartup
          sta   gPointerHasCache      ; TEST BIT 7 ONLY
          jsr   ShowPointer
          jmp   WGEnableMouse
+         ;rts
 
 ;------------------------------------------------------------------------------
 ; PointerOnShutdown
@@ -240,6 +241,7 @@ UndrawPointer
          tax
          lda   #(kPointerHeight-1)
          sta   pointer_logical_row
+         jsr   WaitForVBL
 @pointerRowLoop
          ldx   pointer_hgr_row
          cpx   #$C0
@@ -260,6 +262,7 @@ UndrawPointer
 +        dec   pointer_hgr_row
          dec   pointer_logical_row
          bpl   @pointerRowLoop
+         jsr   UnwaitForVBL
          lda   #$00
          sta   gPointerHasCache
 @done

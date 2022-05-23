@@ -35,6 +35,7 @@ WaitForKeyWithTimeout
          pla
          bit   $C000
          bmi   @exit
+         jsr   WGPollMouse
          bit   gPointerClicked
          bmi   @exit
          sbc   #1
@@ -75,7 +76,9 @@ GetNextEvent
          inc   RNDSEED
          bne   +
          inc   RNDSEED+1
-+        bit   gPointerClicked       ; TEST BIT 7 ONLY
++
+         jsr   WGPollMouse
+         bit   gPointerClicked       ; TEST BIT 7 ONLY
          bmi   @onClick
          bit   gPointerMoved         ; TEST BIT 7 ONLY
          bmi   @onMouseMove

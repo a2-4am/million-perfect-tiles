@@ -116,16 +116,15 @@ GridFizzle
 StartMusic
          bit   gMockingboardAvailable
          bpl   +                     ; no Mockingboard -> no music
-         lda   PT3_PRODOS_ALLOC+1
+         ldx   PT3_PRODOS_ALLOC+1
          bne   +                     ; Mockingboard interrupt already installed
+         stx   DONE_PLAYING
+         inx
+         stx   LOOP
          jsr   mockingboard_init
-         jsr   mockingboard_setup_interrupt
+         jsr   mockingboard_setup_interrupt     ; exits with I=1
          jsr   mockingboard_shut_up
-         lda   #0
-         sta   DONE_PLAYING
-         lda   #1
-         sta   LOOP
-         cli
+         cli                         ; I=0, will immediately start playing music
 +
 -        rts
 

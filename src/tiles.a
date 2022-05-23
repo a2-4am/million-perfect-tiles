@@ -13,19 +13,11 @@
 FirstMover
 !pseudopc $4000 {
 Start
-         jsr   mockingboard_detect
-         clc   ; DEBUG pretend no Mockingboard
-         php
-         ror   gMockingboardAvailable
-         plp
-         bcc   +
-         jsr   mockingboard_patch               ; self-modify code for slot independence
-         jsr   pt3_init_song                    ; prepare song data
-+        jsr   PointerOnStartup
+         jsr   PointerOnStartup
          sec
          jsr   MainMenuEventLoop
-         jsr   PointerOnShutdown
          jsr   StopMusic
+         jsr   PointerOnShutdown
          jsr   EnableAccelerator
          jsr   MLI
          !byte $65
@@ -37,6 +29,7 @@ Start
          !source "src/solver.a"
          !source "src/unpack.a"
          !source "src/events.a"
+         !source "src/hw.vbl.a"
          !source "src/hw.mouse.a"
          !source "src/ui.common.a"
          !source "src/ui.strings.a"

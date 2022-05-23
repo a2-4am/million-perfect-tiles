@@ -49,8 +49,7 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
-         ; disable accelerator for duration of play
-         jsr   DisableAccelerator
+         jsr   BuildVBLFunction
 
          ; load random board for title (out of first 512 16x16 boards)
          lda   #kTitleBoardSize
@@ -62,4 +61,19 @@ FMDEST   sta   $4000, x
          ldx   #>kTitleBoardBuffer
          jsr   nth
 
+         ; disable accelerator for Mockingboard detection (required)
+         ; but also leave it disabled for duration of play
+         jsr   DisableAccelerator
+
+         jsr   mockingboard_detect
+         ;clc   ; DEBUG uncomment to pretend there's no Mockingboard
+         php
+         ror   gMockingboardAvailable
+         plp
+         bcc   +
+         jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
+         jsr   pt3_init_song                    ; prepare song data
++
          jmp   Start
+
+         !source "src/hw.vbl.init.a"
