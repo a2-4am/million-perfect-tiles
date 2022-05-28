@@ -6,7 +6,6 @@
 ; - FindEmptyCoordinatesForUser
 ; - FindEmptyCoordinates
 ; - FindInvalidMove
-; - FindValidMoveForTitle
 ; - FindValidMoveForUser
 ; - FindValidMove
 ; - TransposeBoard
@@ -22,6 +21,41 @@ kInvalid3BlueInColumn        = 0x82
 kInvalidTooManyWhiteInColumn = 0x83
 kInvalidTooManyBlueInColumn  = 0x84
 kInvalidIdenticalColumns     = 0x85
+
+!macro iny_and_cmp_0 {
+         iny
+         +cmp_0
+}
+!macro cmp_0 {
+         lda   (board_base_ptr), y
+         and   #$7F
+}
+!macro dey_and_cmp_2 {
+         dey
+         +cmp_2
+}
+!macro iny_and_cmp_2 {
+         iny
+         +cmp_2
+}
+!macro cmp_2 {
+         lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #kWhiteTile
+}
+!macro dey_and_cmp_3 {
+         dey
+         +cmp_3
+}
+!macro iny_and_cmp_3 {
+         iny
+         +cmp_3
+}
+!macro cmp_3 {
+         lda   (board_base_ptr), y
+         and   #$7F
+         cmp   #kBlueTile
+}
 
 FindEmptyCoordinatesForUser
          ldx   #>kUserBoardBuffer
@@ -82,28 +116,28 @@ FindInvalidMove
          sty   logical_board_size
          ldx   #$0F                  ; tile row
 @CheckRow
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr
          ldy   #$0D
          sty   tile_column
 @CheckTile
          ldy   tile_column
-         jsr   cmp_2
+         +cmp_2
          bne   @not2xx
-         jsr   iny_and_cmp_2
+         +iny_and_cmp_2
          bne   @nomatch
-         jsr   iny_and_cmp_2
+         +iny_and_cmp_2
          bne   @nomatch
          ldy   tile_column
          lda   #kInvalid3WhiteInRow
          clc
 @exit    rts
 @not2xx
-         jsr   cmp_3
+         +cmp_3
          bne   @nomatch
-         jsr   iny_and_cmp_3
+         +iny_and_cmp_3
          bne   @nomatch
-         jsr   iny_and_cmp_3
+         +iny_and_cmp_3
          bne   @nomatch
          ldy   tile_column
          lda   #kInvalid3BlueInRow
@@ -116,11 +150,11 @@ FindInvalidMove
          bcc   @exit
          dex
          bpl   @CheckRow
-         jsr   .CountEmptyPerRow
+         jsr   CountEmptyPerRow
          lda   board_base_ptr+1
          sta   board_base_ptr2+1
 ;IsAnyFullRowADuplicateOfAnotherRow
-         jsr   .CountEmptyPerRow
+         jsr   CountEmptyPerRow
          lda   board_base_ptr+1
          sta   board_base_ptr2+1
 @row1loop
@@ -128,7 +162,7 @@ FindInvalidMove
          lda   row_empty_counts, x
          bne   @nextrow1
          ; found a full row
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr
          lda   #$0F
          sta   row2
@@ -137,7 +171,7 @@ FindInvalidMove
          lda   row_empty_counts, x
          bne   @nextrow2
          ; found another full row
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr2
          ldx   #0
          ldy   #$0F
@@ -175,7 +209,7 @@ FindInvalidMove
          rts
 
 @DoesRowHaveTooManyOfOneColor
-         jsr   .CountColorsInRow
+         jsr   CountColorsInRow
          lda   colorcount2
          asl
          cmp   logical_board_size
@@ -201,12 +235,11 @@ FindInvalidMove
 
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
+         jsr   TransposeBoardIntoBackupBuffer
+         ldx   #>kUserBoardBuffer
+         stx   board_base_ptr_original
          ldy   gLastSelectedBoardSize
-         bne   FindValidMove         ; always branches
-
-FindValidMoveForTitle
-         ldx   #>kTitleBoardBuffer
-         ldy   #kTitleBoardSize
+         sty   logical_board_size
          ; /!\ execution falls through here to FindValidMove
 
 ;------------------------------------------------------------------------------
@@ -214,8 +247,9 @@ FindValidMoveForTitle
 ; find empty coordinates where a tile could be placed in accordance with
 ; game rules, based on current board state
 ;
-; in:    X = high byte of page-aligned board buffer
-;        Y = logical board size (6,8,10,12,14,16)
+; in:    $board_base_ptr_original = high byte of board buffer
+;        $logical_board_size = logical board size (6,8,10,12,14,16)
+;        kTransposedBoardBuffer contains a copy of the board buffer but transposed
 ; out:   C = 0 if found valid move, then
 ;          A = tile value (0x02 or 0x03)
 ;          X = tile row (0x00..0x0F)
@@ -229,26 +263,55 @@ FindValidMoveForTitle
 ;        C = 1 if no valid move found
 ;------------------------------------------------------------------------------
 FindValidMove
-         stx   board_base_ptr+1
-         sty   logical_board_size
-         jsr   FindValidStage1And2
-         bcs   +
+         ldx   board_base_ptr_original
+         jsr   FindValidRule1
+         bcc   @foundInOriginal
+
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindValidRule1
+         bcc   @foundInTransposed
+
+         ldx   board_base_ptr_original
+         jsr   FindValidRule2
+         bcc   @foundInOriginal
+
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindValidRule2
+         bcc   @foundInTransposed
+
+         ldx   board_base_ptr_original
+         jsr   FindValidRule3
+         bcc   @foundInOriginal
+
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindValidRule3
+         bcc   @foundInTransposed
+         ; /!\ execution falls through here, but with C=1
+@foundInOriginal
          rts
-+        lda   board_base_ptr+1
-         sta   board_base_ptr_backup
-         sta   board_base_ptr2+1
+@foundInTransposed
+         jsr   TransposeExtendedInfo
+         jmp   SwapXY                ; swap X & Y because we found a move while the board was transposed
+
+;------------------------------------------------------------------------------
+; TransposeBoard
+; transpose game board (like a matrix, so rows become columns and
+; columns become rows)
+;
+; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+; out:   all flags & registers preserved
+;------------------------------------------------------------------------------
+TransposeBoard
+         php
+         +SAVE_AXY
+
+         lda   board_base_ptr+1
          sta   @a+2
          sta   @b+2
-         lda   #>kTransposedBoardBuffer
-         sta   board_base_ptr+1
          sta   @c+2
          sta   @d+2
-         ldy   #0
-         sty   board_base_ptr
-         sty   board_base_ptr2
-         ; (board_base_ptr2) -> originally passed in board buffer
-         ; (board_base_ptr) -> kTransposedBoardBuffer
-         ; transpose board_base_ptr2 into board_base_ptr
+
+         ldy   #$00
          ldx   #$00
 @a       lda   $FD00, y              ; SMC
          pha
@@ -274,67 +337,95 @@ FindValidMove
 +        iny
          bne   @a
 ++
-         ; now look for valid moves in the transposed board
-         jsr   FindValidStage1And2
-         bcs   +
--        pha
-         lda   board_base_ptr_backup
-         sta   board_base_ptr+1
-         pla
-         jsr   TransposeExtendedInfo
-         jmp   SwapXY                ; swap X & Y because we found a move while the board was transposed
-+
-         ; look for duplicate rows in transposed board (expensive)
-         jsr   IsAnyRowAlmostADuplicateOfAnotherRow
-         bcc   -
-+
-         ; look for duplicate rows in original board (expensive)
-         lda   board_base_ptr_backup
-         sta   board_base_ptr+1
-         jmp   IsAnyRowAlmostADuplicateOfAnotherRow
+         +RESTORE_AXY
+         plp
+         rts
 
-FindValidStage1And2
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
+TransposeBoardIntoBackupBuffer
+; transposes game board into kTransposedBoardBuffer
+; in:    X = high byte of page-aligned board buffer
+; out:   all registers & flags clobbered
+;        $tmpy clobbered
+         stx   @a+2
+         stx   @b+2
+         ldx   #>kTransposedBoardBuffer
+         stx   @c+2
+         stx   @d+2
+         ldx   #$00
+         ldy   #$00
+@a       lda   $FD00, y              ; SMC
+         pha
+@b       lda   $FD00, x              ; SMC
+@c       sta   $FD00, y              ; SMC
+         pla
+@d       sta   $FD00, x              ; SMC
+         txa
+         clc
+         adc   #$10
+         tax
+         bcc   +
+         iny
+         beq   ++
+         sty   tmpy
+         inx
+         txa
+         clc
+         adc   tmpy
+         tax
+         tay
+         dey
++        iny
+         bne   @a
+++       rts
+
+;------------------------------------------------------------------------------
+; private
+
+FindValidRule1
+; find a tile in any row that must be a certain color due to the
+; no-3-in-a-row rule
+; in:    X = high byte of page-aligned board buffer
+         stx   board_base_ptr+1
          ldx   #$0F                  ; tile row
 @CheckRow
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr
          ldy   #$0D
          sty   tile_column
 @CheckTile
          ldy   tile_column
-         jsr   cmp_0
+         +cmp_0
          bne   @not0xx
-         jsr   iny_and_cmp_2
+         +iny_and_cmp_2
          bne   @not02x
-         jsr   iny_and_cmp_2
+         +iny_and_cmp_2
          +LBNE @nomatch
          ;found 022, valid move to change 0 -> 3
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          clc
          rts
 @not02x
          cmp   #kBlueTile
-         bne   @nomatch
-         jsr   iny_and_cmp_3
-         bne   @nomatch
+         +LBNE @nomatch
+         +iny_and_cmp_3
+         +LBNE @nomatch
          ;found 033, valid move to change 0 -> 2
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @not0xx
-         jsr   iny_and_cmp_0
+         +iny_and_cmp_0
          bne   @notx0x
          dey
-         jsr   cmp_2
+         +cmp_2
          bne   @not20x
          iny
-         jsr   iny_and_cmp_2
+         +iny_and_cmp_2
          bne   @nomatch
          ;found 202, valid move to change 0 -> 3
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          iny
@@ -344,21 +435,21 @@ FindValidStage1And2
          cmp   #kBlueTile
          bne   @nomatch
          iny
-         jsr   iny_and_cmp_3
+         +iny_and_cmp_3
          bne   @nomatch
          ;found 303, valid move to change 0 -> 2
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @notx0x
-         jsr   iny_and_cmp_0
+         +iny_and_cmp_0
          bne   @nomatch
-         jsr   dey_and_cmp_2
+         +dey_and_cmp_2
          bne   @notx20
-         jsr   dey_and_cmp_2
+         +dey_and_cmp_2
          bne   @nomatch
          ;found 220, valid move to change 0 -> 3
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kBlueTile
 -        ldy   tile_column
          iny
@@ -368,32 +459,82 @@ FindValidStage1And2
 @notx20
          cmp   #kBlueTile
          bne   @nomatch
-         jsr   dey_and_cmp_3
+         +dey_and_cmp_3
          bne   @nomatch
          ;found 330, valid move to change 0 -> 2
-         jsr   .SetExtendedInfoFor1x3
+         jsr   SetExtendedInfoFor1x3
          lda   #kWhiteTile
          bne   -                     ; always branches
 @nomatch
          dec   tile_column
          +LBPL @CheckTile
-         jsr   .IsRowFullOfOneColorButNotTheOther
-         bcc   @exit
          dex
          +LBPL @CheckRow
          sec
          rts
 
-IsAnyRowAlmostADuplicateOfAnotherRow
-         jsr   .CountEmptyPerRow
-         lda   board_base_ptr+1
-         sta   board_base_ptr2+1
+FindValidRule2
+; find a tile in any row that must be a certain color due to the
+; equal-colors-in-each-row rule
+; in:    X = high byte of page-aligned board buffer
+         stx   board_base_ptr+1
+         ldx   #$0F                  ; tile row
+@CheckRow
+         +CalculateRowBaseInline
+         sta   board_base_ptr
+         jsr   CountColorsInRow
+         lda   colorcount2
+         cmp   colorcount3
+         beq   @no                   ; if color counts are the same, we're done (and the answer is no)
+         asl
+         cmp   logical_board_size
+         beq   @fullOf2
+         lda   colorcount3
+         asl
+         cmp   logical_board_size
+         beq   @fullOf3
+@no
+         dex
+         bpl   @CheckRow
+         sec
+         rts
+@fullOf2
+         lda   #kBlueTile
+         +HIDE_NEXT_2_BYTES
+@fullOf3
+         lda   #kWhiteTile
+         pha
+         ldy   #$0F
+-        lda   (board_base_ptr), y
+         beq   @yes
+         dey
+         bpl   -                     ; always branches
+@yes
+         lda   #<sSame
+         sta   extended_message
+         lda   #>sSame
+         sta   extended_message+1
+         lda   #kFocusEntireRow
+         sta   extended_type
+         stx   extended_x
+         sty   extended_y
+         pla                         ; A=tile value, X/Y = row/column
++        clc
+         rts
+
+FindValidRule3
+; find a tile in any row that must be a certain color due to the
+; no-duplicate-rows rule
+; in:    X = high byte of page-aligned board buffer
+         stx   board_base_ptr+1
+         stx   board_base_ptr2+1
+         jsr   CountEmptyPerRow
 @row1loop
          ldx   row1
          lda   row_empty_counts, x
          bne   @nextrow1
          ; found a full row
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr
          lda   #$0F
          sta   row2
@@ -404,7 +545,7 @@ IsAnyRowAlmostADuplicateOfAnotherRow
          bne   @nextrow2
          ; found a row with 2 empty tiles
          stx   extended_x
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr2
          ldy   #$0F
 @comparerowsloop
@@ -457,46 +598,7 @@ IsAnyRowAlmostADuplicateOfAnotherRow
          sec
          rts
 
-.IsRowFullOfOneColorButNotTheOther
-         jsr   .CountColorsInRow
-         lda   colorcount2
-         cmp   colorcount3
-         beq   @no                   ; if color counts are the same, we're done (and the answer is no)
-         asl
-         cmp   logical_board_size
-         beq   @fullOf2
-         lda   colorcount3
-         asl
-         cmp   logical_board_size
-         beq   @fullOf3
-@no
-         sec
-         rts
-@fullOf2
-         lda   #kBlueTile
-         +HIDE_NEXT_2_BYTES
-@fullOf3
-         lda   #kWhiteTile
-         pha
-         ldy   #$0F
--        lda   (board_base_ptr), y
-         beq   @yes
-         dey
-         bpl   -                     ; always branches
-@yes
-         lda   #<sSame
-         sta   extended_message
-         lda   #>sSame
-         sta   extended_message+1
-         lda   #kFocusEntireRow
-         sta   extended_type
-         stx   extended_x
-         sty   extended_y
-         pla                         ; A=tile value, X/Y = row/column
-+        clc
-         rts
-
-.SetExtendedInfoFor1x3
+SetExtendedInfoFor1x3
          +LDADDR sNever
          +ST16 extended_message
          lda   #kFocus1x3
@@ -506,82 +608,12 @@ IsAnyRowAlmostADuplicateOfAnotherRow
          sta   extended_y
          rts
 
-;------------------------------------------------------------------------------
-; TransposeBoard
-; transpose game board (like a matrix, so rows become columns and
-; columns become rows)
-;
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
-; out:   all flags & registers preserved
-;------------------------------------------------------------------------------
-TransposeBoard
-         php
-         +SAVE_AXY
-
-         lda   board_base_ptr+1
-         sta   @a+2
-         sta   @b+2
-         sta   @c+2
-         sta   @d+2
-
-         ldy   #$00
-         ldx   #$00
-@a       lda   $FD00, y              ; SMC
-         pha
-@b       lda   $FD00, x              ; SMC
-@c       sta   $FD00, y              ; SMC
-         pla
-@d       sta   $FD00, x              ; SMC
-         txa
-         clc
-         adc   #$10
-         tax
-         bcc   +
-         iny
-         beq   ++
-         sty   tmpy
-         inx
-         txa
-         clc
-         adc   tmpy
-         tax
-         tay
-         dey
-+        iny
-         bne   @a
-++
-         +RESTORE_AXY
-         plp
-         rts
-
-TransposeExtendedInfo
-; out:   preserves all registers and flags
-         php
-         +SAVE_AXY
-         ldx   extended_x
-         txa
-         ldx   extended_y
-         stx   extended_x
-         sta   extended_y
-         ldx   extended_type
-         lda   kTransposeFocusTypes, x
-         sta   extended_type
-         +RESTORE_AXY
-         plp
-         rts
-
-kTransposeFocusTypes
-         !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
-
-;------------------------------------------------------------------------------
-; private
-
-.CountColorsInRow
+CountColorsInRow
          lda   #$00
          sta   colorcount2
          sta   colorcount3
          ldy   #$0F
--        jsr   cmp_0
+-        +cmp_0
          cmp   #kWhiteTile
          beq   @inc2
          cmp   #kBlueTile
@@ -594,7 +626,7 @@ kTransposeFocusTypes
          bpl   -
          rts
 
-.CountEmptyPerRow
+CountEmptyPerRow
          ldx   #$0E
          stx   row1
          inx
@@ -620,26 +652,21 @@ kTransposeFocusTypes
          bne   --
          rts
 
-iny_and_cmp_0
-         iny
-cmp_0    lda   (board_base_ptr), y
-         and   #$7F
-         rts
-dey_and_cmp_2
-         dey
-         +HIDE_NEXT_BYTE
-iny_and_cmp_2
-         iny
-cmp_2    lda   (board_base_ptr), y
-         and   #$7F
-         cmp   #kWhiteTile
-         rts
-dey_and_cmp_3
-         dey
-         +HIDE_NEXT_BYTE
-iny_and_cmp_3
-         iny
-cmp_3    lda   (board_base_ptr), y
-         and   #$7F
-         cmp   #kBlueTile
+kTransposeFocusTypes
+         !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
+
+TransposeExtendedInfo
+; out:   preserves all registers and flags
+         php
+         +SAVE_AXY
+         ldx   extended_x
+         txa
+         ldx   extended_y
+         stx   extended_x
+         sta   extended_y
+         ldx   extended_type
+         lda   kTransposeFocusTypes, x
+         sta   extended_type
+         +RESTORE_AXY
+         plp
          rts

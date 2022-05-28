@@ -105,7 +105,7 @@ tile_column               = $F8      ; byte (used by FindValidMove)
 board_base_ptr2           = $F9      ; word (used by FindValidMove)
 unpack_ptr                = $F9      ; word (used by nth)
 
-board_base_ptr_backup     = $FB      ; byte (used by FindValidMove)
+board_base_ptr_original   = $FB      ; byte (used by FindValidMove)
 string_len                = $FB      ; byte (used by DrawLargeString)
 
 string_ptr                = $FC      ; word (used by DrawLargeString)

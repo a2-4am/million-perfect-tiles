@@ -49,20 +49,39 @@ DrawBoardAt
 SolveBoardAt
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
-         stx   board_base_ptr+1
+         stx   board_base_ptr_original
          sty   logical_board_size
+         jsr   TransposeBoardIntoBackupBuffer
+
 @loop
-         ldx   board_base_ptr+1
+         ldx   board_base_ptr_original
          ldy   logical_board_size
          jsr   FindValidMove
          bcs   @exit
+
+         ; draw tile
          bit   GFXMODE
          jsr   DrawLargeCharacter
+
+         ; update board buffer
          pha
-         jsr   CalculateRowBase
+         +CalculateRowBaseInline
          sta   board_base_ptr
+         lda   board_base_ptr_original
+         sta   board_base_ptr+1
          pla
          sta   (board_base_ptr), y
+
+         ; update transposed board buffer
+         +SwapXYInline
+         pha
+         +CalculateRowBaseInline
+         sta   board_base_ptr2
+         lda   #>kTransposedBoardBuffer
+         sta   board_base_ptr2+1
+         pla
+         sta   (board_base_ptr2), y
+
          bne   @loop                 ; always branches
 @exit
          rts

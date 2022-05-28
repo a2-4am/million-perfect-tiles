@@ -16,12 +16,15 @@
 ; in:    X = logical row number (0x00..0x0F)
 ; out:   A = low byte of address of board buffer for this row
 ;------------------------------------------------------------------------------
-CalculateRowBase
+!macro CalculateRowBaseInline {
          txa
          asl
          asl
          asl
          asl
+}
+CalculateRowBase
+         +CalculateRowBaseInline
          rts
 
 ;------------------------------------------------------------------------------
@@ -31,11 +34,14 @@ CalculateRowBase
 ; in:    none
 ; out:   $tmpx, $tmpy clobbered
 ;------------------------------------------------------------------------------
-SwapXY
+!macro SwapXYInline {
          stx   tmpx
          sty   tmpy
          ldx   tmpy
          ldy   tmpx
+}
+SwapXY
+         +SwapXYInline
          rts
 
 ;------------------------------------------------------------------------------
