@@ -48,7 +48,7 @@ CreditsScript
          +OFFSCREENPRINT 11, 5, sAboutCopyright11
          +OFFSCREENPRINT 12, 5, sAboutCopyright12
          +CFIZZLEIN
-         !byte WAIT ,30
+         !byte WAIT ,20
 
          +CFIZZLEOUT
          +OFFSCREENPRINT 6, 1, sAboutCompression6
@@ -56,7 +56,7 @@ CreditsScript
          +OFFSCREENPRINT 8, 1, sAboutCompression8
          +OFFSCREENPRINT 9, 4, sAboutCompression9
          +CFIZZLEIN
-         !byte WAIT ,15
+         !byte WAIT ,10
 
          +CPRINT 7, 8, sAboutCompressed0
          !byte WAIT ,1
@@ -83,12 +83,29 @@ CreditsScript
          +CPRINT 7,8, sAboutCompressedHide
 
          +CFIZZLEOUT
+         +OFFSCREENPRINT 5, 3, sAboutMusic5
+         +OFFSCREENPRINT 6, 1, sAboutMusic6
+         +OFFSCREENPRINT 7, 1, sAboutMusic7
+         +OFFSCREENPRINT 8, 1, sAboutMusic8
+         +OFFSCREENPRINT 9, 3, sAboutMusic9
+         +CFIZZLEIN
+         !byte WAIT ,20
+
+         +CFIZZLEOUT
+         +OFFSCREENPRINT 6, 1, sAboutPT3Lib6
+         +OFFSCREENPRINT 7, 1, sAboutPT3Lib7
+         +OFFSCREENPRINT 8, 1, sAboutPT3Lib8
+         +OFFSCREENPRINT 9, 4, sAboutPT3Lib9
+         +CFIZZLEIN
+         !byte WAIT ,20
+
+         +CFIZZLEOUT
          +OFFSCREENPRINT 6, 1, sAboutMouse6
          +OFFSCREENPRINT 7, 1, sAboutMouse7
          +OFFSCREENPRINT 8, 1, sAboutMouse8
          +OFFSCREENPRINT 9, 2, sAboutMouse9
          +CFIZZLEIN
-         !byte WAIT ,30
+         !byte WAIT ,20
 
          +CFIZZLEOUT
          +OFFSCREENPRINT 6, 1, sAboutTesting6
@@ -96,7 +113,7 @@ CreditsScript
          +OFFSCREENPRINT 8, 1, sAboutTesting8
          +OFFSCREENPRINT 9, 4, sAboutTesting9
          +CFIZZLEIN
-         !byte WAIT ,30
+         !byte WAIT ,20
 
          +CFIZZLEOUT
          !byte EXIT

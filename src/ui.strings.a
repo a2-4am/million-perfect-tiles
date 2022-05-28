@@ -234,6 +234,37 @@ sAboutMouse8
          !raw  "DUNKI"
          !byte 0
 sAboutMouse9=sAboutCopyright6
+sAboutPT3Lib6=sAboutMouse6
+sAboutPT3Lib7
+         !byte 14,0
+         !raw "MUSIC"
+         !byte 0
+         !raw "PLAYER"
+         !byte 0
+sAboutPT3Lib8
+         !byte 14,0,0,0,0
+         !raw  "DEATER"
+         !byte 0,0,0,0
+sAboutPT3Lib9=sSelectSizeLine1
+sAboutMusic5
+         !byte 10,0,0,0,0,0,0,0,0,0,0
+sAboutMusic6
+         !byte 14,0,0,0
+         !raw  "MUSIC"
+         !byte 0
+         !raw  "BY"
+         !byte 0,0,0
+sAboutMusic7
+         !byte 14,0
+         !raw  "MIGUEL"
+         !byte 0
+         !raw  "ANGEL"
+         !byte 0
+sAboutMusic8
+         !byte 14,0,0,0
+         !raw  "LABOLIDA"
+         !byte 0,0,0
+sAboutMusic9=sAboutMusic5
 sAboutTesting6
          !byte 9,0,0,0,0,0,0,0,0,0
 sAboutTesting7
