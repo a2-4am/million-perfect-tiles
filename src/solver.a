@@ -381,13 +381,15 @@ FindValidRule1
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
          stx   board_base_ptr+1
-         ldy   #0
-         sty   board_base_ptr
+         ldx   #0
+         stx   board_base_ptr
+         ldy   start_y
 @loop
+         dey
          lda   (board_base_ptr), y
          beq   @found_empty
-@nextY
-         dey
+@next_tile
+         dex
          bne   @loop
 @no_tile_found
          sec
@@ -426,12 +428,12 @@ FindValidRule1
          beq   @tile_found
 @not_x0x
          lda   maybe_0xx, y
-         bne   @nextY
+         bne   @next_tile
          iny
          lda   (board_base_ptr), y
          dey
          and   #TILE_MASK
-         beq   @nextY
+         beq   @next_tile
          sta   tile_a
          iny
          iny
@@ -440,8 +442,9 @@ FindValidRule1
          dey
          and   #TILE_MASK
          cmp   tile_a
-         bne   @nextY
+         bne   @next_tile
 @tile_found
+         sty   start_y
          eor   #(kWhiteTile XOR kBlueTile)
          pha
          ldx   #<sNever

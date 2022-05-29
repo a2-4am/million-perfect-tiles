@@ -61,8 +61,8 @@ RNDSEED      = $4E        ; word
 
 ; application-specific addresses
 !source "src/pt3/zp.inc" ; $60-$7F
-tile_a                    = $CE
-tile_b                    = $CF
+start_y                   = $CE
+tile_a                    = $CF
 gMockingboardAvailable    = $B0      ; byte USE BIT 7 ONLY
 extended_message          = $B1      ; word
 extended_x                = $B3      ; byte
