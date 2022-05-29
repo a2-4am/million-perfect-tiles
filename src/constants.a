@@ -61,6 +61,8 @@ RNDSEED      = $4E        ; word
 
 ; application-specific addresses
 !source "src/pt3/zp.inc" ; $60-$7F
+tile_a                    = $CE
+tile_b                    = $CF
 gMockingboardAvailable    = $B0      ; byte USE BIT 7 ONLY
 extended_message          = $B1      ; word
 extended_x                = $B3      ; byte
@@ -111,6 +113,7 @@ string_len                = $FB      ; byte (used by DrawLargeString)
 string_ptr                = $FC      ; word (used by DrawLargeString)
 tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindValidMove)
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
+
 HGRHI                     = $1700    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 HGRLO                     = $1800    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 read_buffer               = $18C0    ; 0x2D bytes (used by nth, free before and after)
@@ -123,6 +126,7 @@ kDemoBoardBuffer          = $1B00    ; 0x0100 bytes, page-aligned (used by ShowD
 unpack_base               = $1B00    ; 0x0100 bytes, page-aligned (used by nth, free before and after)
 
 file_buffer               = $1C00    ; 0x0400 bytes (used by nth)
+
 DisableAccelerator        = $BEB4
 EnableAccelerator         = DisableAccelerator+3
 
@@ -131,12 +135,11 @@ kDemoBoardSize            = 6
 
 ; character codes for game-specific characters
 kEmptyTile                = 0
-kBlackTile                = 0
 kSelectionIndicator       = 1
 kWhiteTile                = 2
 kBlueTile                 = 3
 kPurpleTile               = 4
-kPadding                  = 0xFF
+kPadding                  = 0xFD
 
 ; Comment this to disable Apple IIc support in PT3 player,
 ; which will free a small amount of memory

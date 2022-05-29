@@ -117,10 +117,17 @@ nth
 
 .fillline
          ldy   #0
+.fillchar=*+1
          lda   #$FF
 -        sta   (unpack_ptr), y
          inc   unpack_ptr
-         dex
+         dec   .fillchar
+         lda   .fillchar
+         cmp   #$FD
+         bcs   +
+         lda   #$FF
+         sta   .fillchar
++        dex
          bne   -
          rts
 

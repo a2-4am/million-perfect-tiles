@@ -139,12 +139,12 @@ FindInvalidMove
 @comparerowsloop
          lda   (board_base_ptr2), y
          cmp   #kPadding
-         beq   +
+         bcs   +
          and   #TILE_MASK
          sta   tmpx
          lda   (board_base_ptr), y
          cmp   #kPadding
-         beq   +
+         bcs   +
          and   #TILE_MASK
          cmp   tmpx
          bne   @nextrow2
@@ -349,6 +349,31 @@ TransposeBoardIntoBackupBuffer
 ;------------------------------------------------------------------------------
 ; private
 
+; TODO move this out of program space and build it at runtime
+!align 255,0
+maybe_xx0
+         !byte $FF
+maybe_x0x
+         !byte     $FF
+maybe_0xx
+         !byte         $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+         !byte $FF,$FF
+
 FindValidRule1
 ; find a tile in any row that must be a certain color due to the
 ; no-3-in-a-row rule
@@ -356,110 +381,79 @@ FindValidRule1
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
          stx   board_base_ptr+1
-         ldx   #$0F                  ; tile row
-@CheckRow
-         +CalculateRowBase
-         sta   board_base_ptr
-         ldy   #$0D
-         sty   tile_column
-@CheckTile
-         ldy   tile_column
-         +cmp_0
-         bne   @not0xx
-         iny
-         +cmp_white
-         bne   @not02x
-         iny
-         +cmp_white
-         +LBNE @nomatch
-         ;found 022, valid move to change 0 -> 3
-         +SetExtendedInfoFor1x3
-         lda   #kBlueTile
-         ldy   tile_column
-         clc
-         rts
-@not02x
-         cmp   #kBlueTile
-         +LBNE @nomatch
-         iny
-         +cmp_blue
-         +LBNE @nomatch
-         ;found 033, valid move to change 0 -> 2
-         +SetExtendedInfoFor1x3
-         lda   #kWhiteTile
-         ldy   tile_column
-         clc
-         rts
-@not0xx
-         iny
-         +cmp_0
-         bne   @notx0x
+         ldy   #0
+         sty   board_base_ptr
+@loop
+         lda   (board_base_ptr), y
+         beq   @found_empty
+@nextY
          dey
-         +cmp_white
-         bne   @not20x
-         iny
-         iny
-         +cmp_white
-         +LBNE @nomatch
-         ;found 202, valid move to change 0 -> 3
-         +SetExtendedInfoFor1x3
-         lda   #kBlueTile
-         ldy   tile_column
-         iny
-         clc
-         rts
-@not20x
-         cmp   #kBlueTile
-         bne   @nomatch
-         iny
-         iny
-         +cmp_blue
-         bne   @nomatch
-         ;found 303, valid move to change 0 -> 2
-         +SetExtendedInfoFor1x3
-         lda   #kWhiteTile
-         ldy   tile_column
-         iny
-         clc
-         rts
-@notx0x
-         iny
-         +cmp_0
-         bne   @nomatch
-         dey
-         +cmp_white
-         bne   @notx20
-         dey
-         +cmp_white
-         bne   @nomatch
-         ;found 220, valid move to change 0 -> 3
-         +SetExtendedInfoFor1x3
-         lda   #kBlueTile
-         ldy   tile_column
-         iny
-         iny
-         clc
-         rts
-@notx20
-         cmp   #kBlueTile
-         bne   @nomatch
-         dey
-         +cmp_blue
-         bne   @nomatch
-         ;found 330, valid move to change 0 -> 2
-         +SetExtendedInfoFor1x3
-         lda   #kWhiteTile
-         ldy   tile_column
-         iny
-         iny
-         clc
-         rts
-@nomatch
-         dec   tile_column
-         +LBPL @CheckTile
-         dex
-         +LBPL @CheckRow
+         bne   @loop
+@no_tile_found
          sec
+         rts
+@found_empty
+         lda   maybe_xx0, y
+         bne   @not_xx0
+         dey
+         lda   (board_base_ptr), y
+         iny
+         and   #TILE_MASK
+         beq   @not_xx0
+         sta   tile_a
+         dey
+         dey
+         lda   (board_base_ptr), y
+         iny
+         iny
+         and   #TILE_MASK
+         cmp   tile_a
+         beq   @tile_found
+@not_xx0
+         lda   maybe_x0x, y
+         bne   @not_x0x
+         dey
+         lda   (board_base_ptr), y
+         iny
+         and   #TILE_MASK
+         beq   @not_x0x
+         sta   tile_a
+         iny
+         lda   (board_base_ptr), y
+         dey
+         and   #TILE_MASK
+         cmp   tile_a
+         beq   @tile_found
+@not_x0x
+         lda   maybe_0xx, y
+         bne   @nextY
+         iny
+         lda   (board_base_ptr), y
+         dey
+         and   #TILE_MASK
+         beq   @nextY
+         sta   tile_a
+         iny
+         iny
+         lda   (board_base_ptr), y
+         dey
+         dey
+         and   #TILE_MASK
+         cmp   tile_a
+         bne   @nextY
+@tile_found
+         eor   #(kWhiteTile XOR kBlueTile)
+         pha
+         ldx   #<sNever
+         stx   extended_message
+         ldx   #>sNever
+         stx   extended_message+1
+         ldx   #kFocus1x3
+         stx   extended_type
+         jsr   YIndexToXYCoordinates
+         stx   extended_x
+         sty   extended_y
+         pla
          rts
 
 FindValidRule2

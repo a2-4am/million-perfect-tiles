@@ -452,7 +452,7 @@ WinScript
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kPurpleTile
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kPurpleTile, kWhiteTile
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kBlueTile
-         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kBlackTile, kBlackTile
+         !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kEmptyTile, kEmptyTile
          +WPRINT  7, 3, sPerfection
          !byte WAIT, 40
          !byte EXIT
@@ -464,12 +464,12 @@ ColorCycleFizzle
          stx   tmpy
          ldx   #0
 -        lda   kUserBoardBuffer, x
-         and   #$7F
+         and   #TILE_MASK
          cmp   #kWhiteTile
          beq   +
          cmp   #kBlueTile
          beq   ++
-         lda   #$00
+         lda   #kEmptyTile
          +HIDE_NEXT_2_BYTES
 +        lda   tmpx
          +HIDE_NEXT_2_BYTES

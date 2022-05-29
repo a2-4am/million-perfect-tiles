@@ -34,10 +34,10 @@ DrawBoardAt
          ldx   #$0F
 -        ldy   #$0F
 @a       lda   $FDFD                 ; SMC
-         and   #$7F
-         cmp   #$02
+         and   #TILE_MASK
+         cmp   #kWhiteTile
          beq   @draw
-         cmp   #$03
+         cmp   #kBlueTile
          bne   @nodraw
 @draw    jsr   DrawLargeCharacter
 @nodraw  dec   @a+1
@@ -94,12 +94,13 @@ FindEmptyCoordinatesForUser
          ldy   #0
          sty   board_base_ptr
 -        lda   (board_base_ptr), y
-         beq   +
+         beq   YIndexToXYCoordinates
          iny
          bne   -
          sec
          rts
-+        tya
+YIndexToXYCoordinates
+         tya
          lsr
          lsr
          lsr
