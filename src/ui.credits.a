@@ -144,7 +144,7 @@ CreditsPrintToBuffer
          dey
          sty   HTAB
          ldx   VTAB
-         jsr   CalculateRowBase
+         +CalculateRowBase
          clc
          adc   HTAB
          sta   @b+1

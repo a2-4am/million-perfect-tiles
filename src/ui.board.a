@@ -3,11 +3,12 @@
 ;
 ; drawing routines for the puzzle board
 ;
-
-; DrawBoardForTitle
-; DrawBoardForUser
-; DrawBoardAt
-; SolveBoardAt
+; Public functions:
+; - DrawBoardForTitle
+; - DrawBoardForUser
+; - DrawBoardAt
+; - SolveBoardAt
+; - FindEmptyCoordinatesForUser
 
 DrawBoardForTitle
          ldx   #>kTitleBoardBuffer
@@ -51,11 +52,11 @@ SolveBoardAt
 ;        Y = logical board size (6,8,10,12,14,16)
          stx   board_base_ptr_original
          sty   logical_board_size
+
+         ; create transposed board buffer to speed up solving
          jsr   TransposeBoardIntoBackupBuffer
 
 @loop
-         ldx   board_base_ptr_original
-         ldy   logical_board_size
          jsr   FindValidMove
          bcs   @exit
 
@@ -65,7 +66,7 @@ SolveBoardAt
 
          ; update board buffer
          pha
-         +CalculateRowBaseInline
+         +CalculateRowBase
          sta   board_base_ptr
          lda   board_base_ptr_original
          sta   board_base_ptr+1
@@ -75,7 +76,7 @@ SolveBoardAt
          ; update transposed board buffer
          +SwapXYInline
          pha
-         +CalculateRowBaseInline
+         +CalculateRowBase
          sta   board_base_ptr2
          lda   #>kTransposedBoardBuffer
          sta   board_base_ptr2+1
@@ -84,4 +85,37 @@ SolveBoardAt
 
          bne   @loop                 ; always branches
 @exit
+         rts
+
+;------------------------------------------------------------------------------
+; FindEmptyCoordinatesForUser
+; find the top-left-most board coordinates with no tile
+;
+; in:    none
+; out:   C = 0 if found empty coordinates, then
+;          X = logical row (0x00..0x0F)
+;          Y = logical column (0x00..0x0F)
+;        C = 1 if no empty coordinates found (board is full)
+;------------------------------------------------------------------------------
+FindEmptyCoordinatesForUser
+         ldx   #>kUserBoardBuffer
+         stx   board_base_ptr+1
+         ldy   #0
+         sty   board_base_ptr
+-        lda   (board_base_ptr), y
+         beq   +
+         iny
+         bne   -
+         sec
+         rts
++        tya
+         lsr
+         lsr
+         lsr
+         lsr
+         tax
+         tya
+         and   #$0F
+         tay
+         clc
          rts

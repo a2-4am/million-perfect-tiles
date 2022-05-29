@@ -431,7 +431,7 @@ CanMoveFocusTo
          cpy   #16
          bcs   +
 GetValueAt
-         jsr   CalculateRowBase
+         +CalculateRowBase
          sta   board_base_ptr
          lda   #>kUserBoardBuffer
          sta   board_base_ptr+1
