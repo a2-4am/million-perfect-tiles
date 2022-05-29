@@ -51,6 +51,7 @@ SolveBoardAt
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
          stx   board_base_ptr_original
+         stx   @a+2
          sty   logical_board_size
 
          ; create transposed board buffer to speed up solving
@@ -64,25 +65,15 @@ SolveBoardAt
          bit   GFXMODE
          jsr   DrawLargeCharacter
 
-         ; update board buffer
+         ; update board buffer and transposed board buffer
          pha
          +CalculateRowBase
-         sta   board_base_ptr
-         lda   board_base_ptr_original
-         sta   board_base_ptr+1
+         sta   @a+1
+         lda   kRowBases, y
+         sta   @b+1
          pla
-         sta   (board_base_ptr), y
-
-         ; update transposed board buffer
-         +SwapXYInline
-         pha
-         +CalculateRowBase
-         sta   board_base_ptr2
-         lda   #>kTransposedBoardBuffer
-         sta   board_base_ptr2+1
-         pla
-         sta   (board_base_ptr2), y
-
+@a       sta   $FDFD, y              ; SMC
+@b       sta   kTransposedBoardBuffer, x ; SMC
          bne   @loop                 ; always branches
 @exit
          rts

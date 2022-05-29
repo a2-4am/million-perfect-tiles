@@ -319,17 +319,14 @@ TransposeBoardIntoBackupBuffer
 ;        $tmpy clobbered
          stx   @a+2
          stx   @b+2
-         ldx   #>kTransposedBoardBuffer
-         stx   @c+2
-         stx   @d+2
          ldx   #$00
          ldy   #$00
 @a       lda   $FD00, y              ; SMC
          pha
 @b       lda   $FD00, x              ; SMC
-@c       sta   $FD00, y              ; SMC
+         sta   kTransposedBoardBuffer, y
          pla
-@d       sta   $FD00, x              ; SMC
+         sta   kTransposedBoardBuffer, x
          txa
          clc
          adc   #$10
