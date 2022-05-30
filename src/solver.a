@@ -25,15 +25,6 @@ TILE_MASK = %01111111
 kTransposeFocusTypes
          !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
 
-!macro SetExtendedInfoFor1x3 {
-         +LDADDR sNever
-         +ST16 extended_message
-         lda   #kFocus1x3
-         sta   extended_type
-         stx   extended_x
-         lda   tile_column
-         sta   extended_y
-}
 !macro cmp_0 {
          lda   (board_base_ptr), y
 }
@@ -199,6 +190,10 @@ FindValidMoveForUser
          jsr   TransposeBoardIntoBackupBuffer
          ldx   #>kUserBoardBuffer
          stx   board_base_ptr_original
+         lda   #$48                  ; PHA opcode
+         sta   FindValidRule1_SetExtendedInfo_Patch
+         ldy   #0
+         sty   start_y
          ldy   gLastSelectedBoardSize
          sty   logical_board_size
          ; /!\ execution falls through here to FindValidMove
@@ -381,6 +376,11 @@ FindValidRule1
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
          stx   board_base_ptr+1
+         stx   board_base_shift_plus_1+1
+         stx   board_base_shift_plus_2+1
+         dex
+         stx   board_base_shift_minus_1+1
+         stx   board_base_shift_minus_2+1
          ldx   #0
          stx   board_base_ptr
          ldy   start_y
@@ -397,66 +397,66 @@ FindValidRule1
 @found_empty
          lda   maybe_xx0, y
          bne   @not_xx0
-         dey
-         lda   (board_base_ptr), y
-         iny
-         and   #TILE_MASK
+         lda   (board_base_shift_minus_1), y
          beq   @not_xx0
+         and   #TILE_MASK
          sta   tile_a
-         dey
-         dey
-         lda   (board_base_ptr), y
-         iny
-         iny
+         lda   (board_base_shift_minus_2), y
          and   #TILE_MASK
          cmp   tile_a
-         beq   @tile_found
+         beq   @tile_found_shift_minus_2
 @not_xx0
          lda   maybe_x0x, y
          bne   @not_x0x
-         dey
-         lda   (board_base_ptr), y
-         iny
-         and   #TILE_MASK
+         lda   (board_base_shift_minus_1), y
          beq   @not_x0x
+         and   #TILE_MASK
          sta   tile_a
-         iny
-         lda   (board_base_ptr), y
-         dey
+         lda   (board_base_shift_plus_1), y
          and   #TILE_MASK
          cmp   tile_a
-         beq   @tile_found
+         beq   @tile_found_shift_minus_1
 @not_x0x
          lda   maybe_0xx, y
          bne   @next_tile
-         iny
-         lda   (board_base_ptr), y
-         dey
-         and   #TILE_MASK
+         lda   (board_base_shift_plus_1), y
          beq   @next_tile
+         and   #TILE_MASK
          sta   tile_a
-         iny
-         iny
-         lda   (board_base_ptr), y
-         dey
-         dey
+         lda   (board_base_shift_plus_2), y
          and   #TILE_MASK
          cmp   tile_a
          bne   @next_tile
+         ldx   #$00
+         beq   @tile_found           ; always branches
+@tile_found_shift_minus_2
+         ldx   #$FE
+         bne   @tile_found           ; always branches
+@tile_found_shift_minus_1
+         ldx   #$FF
 @tile_found
+         stx   y_shift
          sty   start_y
          eor   #(kWhiteTile XOR kBlueTile)
          pha
-         ldx   #<sNever
-         stx   extended_message
-         ldx   #>sNever
-         stx   extended_message+1
-         ldx   #kFocus1x3
-         stx   extended_type
          jsr   YIndexToXYCoordinates
+         pla
+FindValidRule1_SetExtendedInfo_Patch
+         pha                         ; SMC
+         lda   #<sNever
+         sta   extended_message
+         lda   #>sNever
+         sta   extended_message+1
+         lda   #kFocus1x3
+         sta   extended_type
          stx   extended_x
          sty   extended_y
+         lda   extended_y
+         ;C=0 here (set in YIndexToXYCoordinates)
+         adc   y_shift
+         sta   extended_y
          pla
+         clc
          rts
 
 FindValidRule2

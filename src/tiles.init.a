@@ -48,7 +48,16 @@ FMDEST   sta   $4000, x
          lda   FMDEST+2
          cmp   #$40
          bcs   FM
+         ;X=0
          stx   start_y               ; used by FindValidMove
+         dex
+         stx   board_base_shift_minus_1
+         dex
+         stx   board_base_shift_minus_2
+         ldx   #1
+         stx   board_base_shift_plus_1
+         inx
+         stx   board_base_shift_plus_2
 
          jsr   BuildVBLFunction
 

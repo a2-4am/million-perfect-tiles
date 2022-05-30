@@ -217,6 +217,8 @@ DrawMainMenuBackground
 ; This board buffer persists in memory, so coming back to the main menu
 ; will just show the solved board.
 ;
+         lda   #$60                  ; RTS opcode
+         sta   FindValidRule1_SetExtendedInfo_Patch ; don't need extended info, so save a few cycles
          ldx   #>kTitleBoardBuffer
          ldy   #kTitleBoardSize
          jmp   SolveBoardAt
