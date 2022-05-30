@@ -506,7 +506,7 @@ FindValidRule2
          stx   extended_x
          sty   extended_y
          pla                         ; A=tile value, X/Y = row/column
-+        clc
+         clc
          rts
 
 FindValidRule3
@@ -540,6 +540,8 @@ FindValidRule3
 @comparerowsloop
          lda   (board_base_ptr2), y
          beq   +
+         cmp   #kPadding
+         bcs   +
          and   #TILE_MASK
          sta   tmpx
          lda   (board_base_ptr), y
