@@ -436,8 +436,8 @@ GetValueAt
          lda   #>kUserBoardBuffer
          sta   board_base_ptr+1
          lda   (board_base_ptr), y
-         cmp   #$FF
-         beq   +
+         cmp   #kPadding
+         bcs   +
          clc
          rts
 +        sec
