@@ -450,8 +450,7 @@ FindValidRule1_SetExtendedInfo_Patch
          lda   #kFocus1x3
          sta   extended_type
          stx   extended_x
-         sty   extended_y
-         lda   extended_y
+         tya
          ;C=0 here (set in YIndexToXYCoordinates)
          adc   y_shift
          sta   extended_y
