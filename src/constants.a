@@ -119,9 +119,13 @@ string_ptr                = $FC      ; word (used by DrawLargeString)
 tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindValidMove)
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
 
-HGRHI                     = $1700    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
-HGRLO                     = $1800    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
-read_buffer               = $18C0    ; 0x2D bytes (used by nth, free before and after)
+maybe_xx0                 = $1600
+maybe_x0x                 = $1601
+maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove)
+                                     ; 0x11 free bytes here if anyone needs any
+HGRLO                     = $1713    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
+read_buffer               = $17D3    ; 0x2D bytes (used by nth, free before and after)
+HGRHI                     = $1800    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop, free before and after)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (lifetime, used by DrawMainMenuBackground)
 

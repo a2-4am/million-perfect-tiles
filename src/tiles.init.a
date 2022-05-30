@@ -49,15 +49,31 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
          ;X=0
-         stx   start_y               ; used by FindValidMove
+         ; set up some globals used by FindValidMove
+         stx   start_y
          dex
          stx   board_base_shift_minus_1
+         stx   maybe_xx0
+         stx   maybe_x0x
          dex
          stx   board_base_shift_minus_2
          ldx   #1
          stx   board_base_shift_plus_1
          inx
          stx   board_base_shift_plus_2
+         ldy   #$00
+--       ldx   #$0E
+         lda   #$00
+-        sta   maybe_0xx, y
+         iny
+         dex
+         bne   -
+         lda   #$FF
+         sta   maybe_0xx, y
+         iny
+         sta   maybe_0xx, y
+         iny
+         bne   --
 
          jsr   BuildVBLFunction
 
