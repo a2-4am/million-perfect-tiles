@@ -144,13 +144,22 @@ EnableAccelerator         = DisableAccelerator+3
 kTitleBoardSize           = 16
 kDemoBoardSize            = 6
 
-; character codes for game-specific characters
+; character codes for game-specific characters (wide font)
 kEmptyTile                = 0
 kSelectionIndicator       = 1
 kWhiteTile                = 2
 kBlueTile                 = 3
 kPurpleTile               = 4
 kPadding                  = 0xFD
+
+; character codes for game-specific characters (condensed font)
+cDot                      = 0x19
+cBlue                     = 0x1A
+cWhite                    = 0x1B
+cUpArrow                  = 0x1C
+cDownArrow                = 0x1D
+cLeftArrow                = 0x1E
+cRightArrow               = 0x1F
 
 ; Comment this to disable Apple IIc support in PT3 player,
 ; which will free a small amount of memory

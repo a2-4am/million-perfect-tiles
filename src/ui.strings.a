@@ -316,6 +316,47 @@ sHelp6
          !byte 21
          !raw  "> Every row is unique"
 
+sHelp8
+         !byte 32
+         !raw  " I        "
+         !byte cUpArrow
+         !raw  "         B to place "
+         !byte cBlue
+sHelp9
+         !byte 32
+         !raw  "J K  or  "
+         !byte cLeftArrow
+         !raw  " "
+         !byte cRightArrow
+         !raw  "  then  W to place "
+         !byte cWhite
+sHelp10
+         !byte 34
+         !raw  " M        "
+         !byte cDownArrow
+         !raw "         Space to cycle"
+
+sHelp12
+         !byte 34
+         !raw  "Ctrl-Z "
+         !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
+         !raw  " undo move"
+sHelp13
+         !byte 34
+         !raw  "H"
+         !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
+         !raw  "display hint"
+sHelp14
+         !byte 34
+         !raw  "Ctrl-R "
+         !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
+         !raw  " restart level"
+sHelp15
+         !byte 34
+         !raw  "Esc"
+         !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
+         !raw  "quit level"
+
 sPressQuestionForHelp
          !byte 16
          !raw  "Press ? for help"

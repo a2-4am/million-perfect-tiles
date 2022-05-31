@@ -6,7 +6,7 @@ def myhex(bitstring):
 data = [ [], [], [], [], [], [], [], [], [], [], [], [] ]
 descriptions = []
 with open("font.txt", "r") as f:
-    for c in map(chr, range(0x20,0x7B)):
+    for c in map(chr, range(0x19,0x7B)):
         descriptions.append(f.readline().strip()[1:])
         for row in range(10):
             rawbits = f.readline().strip()

@@ -94,7 +94,6 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $C2                   ; B
          !byte $E2                   ; b
          !byte $A0                   ; space
-         !byte $8D                   ; Return
          !byte $C8                   ; H
          !byte $E8                   ; h
          !byte $9B                   ; Esc
@@ -125,7 +124,6 @@ kPlayKeyHandlersLo
          !byte <PlayEventB
          !byte <PlayEventB
          !byte <PlayEventSpace
-         !byte <PlayEventSpace
          !byte <PlayEventH
          !byte <PlayEventH
          !byte <PlayEventEsc
@@ -154,7 +152,6 @@ kPlayKeyHandlersHi
          !byte >PlayEventW
          !byte >PlayEventB
          !byte >PlayEventB
-         !byte >PlayEventSpace
          !byte >PlayEventSpace
          !byte >PlayEventH
          !byte >PlayEventH

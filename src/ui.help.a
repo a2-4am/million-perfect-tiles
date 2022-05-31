@@ -23,10 +23,17 @@ ShowHelp
 
 HelpScript
          !byte HOME
-         +CPRINT 0,10, sHelp0
-         +CPRINT 2, 2, sHelp2
-         +CPRINT 4, 2, sHelp4
-         +CPRINT 6, 2, sHelp6
+         +CPRINT  0,10, sHelp0
+         +CPRINT  2, 2, sHelp2
+         +CPRINT  4, 2, sHelp4
+         +CPRINT  6, 2, sHelp6
+         +CPRINT  8, 4, sHelp8
+         +CPRINT  9, 4, sHelp9
+         +CPRINT 10, 4, sHelp10
+         +CPRINT 12, 4, sHelp12
+         +CPRINT 13, 4, sHelp13
+         +CPRINT 14, 4, sHelp14
+         +CPRINT 15, 4, sHelp15
          ; TODO
          !byte WAIT, 255
          !byte EXIT

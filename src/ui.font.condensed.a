@@ -35,7 +35,7 @@ DrawCondensedString
 ;------------------------------------------------------------------------------
 ; DrawCondensedBuffer
 ;
-; in:    A/Y contains address of character buffer (characters 0x20+ only)
+; in:    A/Y contains address of character buffer (characters 0x19+ only)
 ;        X contains buffer length (0x01..0x28)
 ;        $24 (HTAB) contains starting column (0x00..0x27)
 ;        $25 (VTAB) contains logical line number (0x00..0x0F)
@@ -111,25 +111,25 @@ DrawCondensedString
          lda   HGRHI, y
          sta   @row9+2
 @loop    ldy   $FDFD, x
-         lda   CondensedRow0-$20, y
+         lda   CondensedRow0-$19, y
 @row0    sta   $FDFD, x
-         lda   CondensedRow1-$20, y
+         lda   CondensedRow1-$19, y
 @row1    sta   $FDFD, x
-         lda   CondensedRow2-$20, y
+         lda   CondensedRow2-$19, y
 @row2    sta   $FDFD, x
-         lda   CondensedRow3-$20, y
+         lda   CondensedRow3-$19, y
 @row3    sta   $FDFD, x
-         lda   CondensedRow4-$20, y
+         lda   CondensedRow4-$19, y
 @row4    sta   $FDFD, x
-         lda   CondensedRow5-$20, y
+         lda   CondensedRow5-$19, y
 @row5    sta   $FDFD, x
-         lda   CondensedRow6-$20, y
+         lda   CondensedRow6-$19, y
 @row6    sta   $FDFD, x
-         lda   CondensedRow7-$20, y
+         lda   CondensedRow7-$19, y
 @row7    sta   $FDFD, x
-         lda   CondensedRow8-$20, y
+         lda   CondensedRow8-$19, y
 @row8    sta   $FDFD, x
-         lda   CondensedRow9-$20, y
+         lda   CondensedRow9-$19, y
 @row9    sta   $FDFD, x
          inc   HTAB
          dex
