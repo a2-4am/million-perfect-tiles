@@ -48,8 +48,9 @@ FMDEST   sta   $4000, x
          lda   FMDEST+2
          cmp   #$40
          bcs   FM
-         ;X=0
+
          ; set up some globals used by FindValidMove
+         ;X=0
          stx   start_y
          dex
          stx   board_base_shift_minus_1
@@ -75,15 +76,23 @@ FMDEST   sta   $4000, x
          iny
          bne   --
 
+         ; build model-specific VBL code (used for drawing pointer)
          jsr   BuildVBLFunction
 
          ; load random board for title (out of first 512 16x16 boards)
-         lda   #kTitleBoardSize
-         sta   logical_board_size
-         lda   RNDSEED+1
-         and   #1
+         jsr   MLI
+         !byte $82                   ; GET_TIME
+         !word 0
+         lda   $BF93
+         and   #%00000001
          tay
-         lda   RNDSEED
+         lda   $BF93
+         and   #%11111110
+         eor   $BF92
+         eor   $BF91
+         eor   $BF90
+         ldx   #kTitleBoardSize
+         stx   logical_board_size
          ldx   #>kTitleBoardBuffer
          jsr   nth
 
@@ -91,6 +100,8 @@ FMDEST   sta   $4000, x
          ; but also leave it disabled for duration of play
          jsr   DisableAccelerator
 
+         ; detect Mockingboard
+         ; TODO replace this with TR code
          jsr   mockingboard_detect
          ;clc   ; DEBUG uncomment to pretend there's no Mockingboard
          php

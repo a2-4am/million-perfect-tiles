@@ -34,7 +34,7 @@ SCALE_Y_IIE     = 767
 ;SCALE_Y_IIC    = 191
 
 ; ProDOS ROM entry points and constants
-PRODOS_MLI = $Bf00
+PRODOS_MLI = $BF00
 ALLOC_INTERRUPT = $40
 DEALLOC_INTERRUPT = $41
 

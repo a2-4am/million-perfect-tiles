@@ -54,16 +54,16 @@ nth
 .found
          sta   .offset
          sty   .offset + 1
-         jsr   $bf00
+         jsr   MLI
          !byte $c8
          !word .c8_parms
-         jsr   $bf00
+         jsr   MLI
          !byte $ce
          !word .ce_parms
-         jsr   $bf00
+         jsr   MLI
          !byte $ca
          !word .ca_parms
-         jsr   $bf00
+         jsr   MLI
          !byte $cc
          !word .cc_parms
          jsr   .unpack
