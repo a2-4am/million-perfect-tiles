@@ -97,6 +97,7 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $C8                   ; H
          !byte $E8                   ; h
          !byte $9B                   ; Esc
+         !byte $8E                   ; Ctrl-N
          !byte $92                   ; Ctrl-R
          !byte $93                   ; Ctrl-S
          !byte $AF                   ; /
@@ -127,6 +128,7 @@ kPlayKeyHandlersLo
          !byte <PlayEventH
          !byte <PlayEventH
          !byte <PlayEventEsc
+         !byte <PlayEventCtrlN
          !byte <PlayEventCtrlR
          !byte <PlayEventCtrlS
          !byte <PlayEventQuestion
@@ -156,6 +158,7 @@ kPlayKeyHandlersHi
          !byte >PlayEventH
          !byte >PlayEventH
          !byte >PlayEventEsc
+         !byte >PlayEventCtrlN
          !byte >PlayEventCtrlR
          !byte >PlayEventCtrlS
          !byte >PlayEventQuestion
@@ -231,6 +234,7 @@ PlayEventCtrlN
          rts
 
 PlayEventCtrlS
+         ; TODO
          brk
 
 PlayEventUpArrow
