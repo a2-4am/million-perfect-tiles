@@ -149,7 +149,6 @@ ReloadBoard
          sty   gFocusedColumn
          sec
          jsr   PlayEventLoop
-         ; TODO maybe another dispatch table here?
          cpx   #kRequestedSkip
          beq   SelectSizeEventReturn
          cpx   #kRequestedRestart

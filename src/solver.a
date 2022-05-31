@@ -3,186 +3,70 @@
 ;
 ; solving routines
 ;
-; - FindInvalidMove
+; - FindInvalidMoveForUser
 ; - FindValidMoveForUser
 ; - FindValidMove
-; - TransposeBoard
-
-; reason codes (public) returned by FindInvalidMove
-kInvalid3WhiteInRow          = 0x01
-kInvalid3BlueInRow           = 0x02
-kInvalidTooManyWhiteInRow    = 0x03
-kInvalidTooManyBlueInRow     = 0x04
-kInvalidIdenticalRows        = 0x05
-kInvalid3WhiteInColumn       = 0x81
-kInvalid3BlueInColumn        = 0x82
-kInvalidTooManyWhiteInColumn = 0x83
-kInvalidTooManyBlueInColumn  = 0x84
-kInvalidIdenticalColumns     = 0x85
+; - TransposeBoardIntoBackupBuffer
 
 TILE_MASK = %01111111
 
 kTransposeFocusTypes
          !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
 
-!macro cmp_0 {
-         lda   (board_base_ptr), y
-}
-!macro cmp_and_0 {
-         +cmp_0
-         and   #TILE_MASK
-}
-!macro cmp_white {
-         +cmp_and_0
-         cmp   #kWhiteTile
-}
-!macro cmp_blue {
-         +cmp_and_0
-         cmp   #kBlueTile
-}
-
 FindInvalidMoveForUser
          ldx   #>kUserBoardBuffer
+         jsr   TransposeBoardIntoBackupBuffer
+         ldx   #>kUserBoardBuffer
+         stx   board_base_ptr_original
+         ldx   #>kUserBoardBuffer
          ldy   gLastSelectedBoardSize
+         sty   logical_board_size
          ; /!\ execution falls through here to FindInvalidMove
 
 ;------------------------------------------------------------------------------
 ; FindInvalidMove
 ; find a tile, row, or column that does not adhere to game rules
 ;
-; in:    X = high byte of page-aligned board buffer
-;        Y = logical board size (6,8,10,12,14,16)
+; in:    $board_base_ptr_original = high byte of board buffer
+;        $logical_board_size = logical board size (6,8,10,12,14,16)
+;        $kTransposedBoardBuffer contains a copy of the board buffer but transposed
 ; out:   C = 0 if found invalid move, then
-;          A = reason code (see above)
-;          Z set by A
-;          X = starting tile row (0x00..0x0F)
-;          Y = starting tile column (0x00..0x0F)
+;          X = tile row (0x00..0x0F)
+;          Y = tile column (0x00..0x0F)
+;        extended information is available in zero page to help the caller
+;        draw a focus rectangle:
+;          $extended_message
+;          $extended_x
+;          $extended_y
+;          $extended_type
 ;        C = 1 if no invalid move found
 ;------------------------------------------------------------------------------
-FindInvalidMove
-         stx   board_base_ptr+1
-         sty   logical_board_size
-         ldx   #$0F                  ; tile row
-@CheckRow
-         +CalculateRowBase
-         sta   board_base_ptr
-         ldy   #$0D
-         sty   tile_column
-@CheckTile
-         ldy   tile_column
-         +cmp_white
-         bne   @not2xx
-         iny
-         +cmp_white
-         bne   @nomatch
-         iny
-         +cmp_white
-         bne   @nomatch
-         ldy   tile_column
-         lda   #kInvalid3WhiteInRow
-         clc
-@exit    rts
-@not2xx
-         +cmp_blue
-         bne   @nomatch
-         iny
-         +cmp_blue
-         bne   @nomatch
-         iny
-         +cmp_blue
-         bne   @nomatch
-         ldy   tile_column
-         lda   #kInvalid3BlueInRow
-         clc
-         rts
-@nomatch
-         dec   tile_column
-         bpl   @CheckTile
-         jsr   @DoesRowHaveTooManyOfOneColor
-         bcc   @exit
-         dex
-         bpl   @CheckRow
-         jsr   CountEmptyPerRow
-         lda   board_base_ptr+1
-         sta   board_base_ptr2+1
-;IsAnyFullRowADuplicateOfAnotherRow
-         jsr   CountEmptyPerRow
-         lda   board_base_ptr+1
-         sta   board_base_ptr2+1
-@row1loop
-         ldx   row1
-         lda   row_empty_counts, x
-         bne   @nextrow1
-         ; found a full row
-         +CalculateRowBase
-         sta   board_base_ptr
-         lda   #$0F
-         sta   row2
-@row2loop
-         ldx   row2
-         lda   row_empty_counts, x
-         bne   @nextrow2
-         ; found another full row
-         +CalculateRowBase
-         sta   board_base_ptr2
-         ldx   #0
-         ldy   #$0F
-@comparerowsloop
-         lda   (board_base_ptr2), y
-         cmp   #kPadding
-         bcs   +
-         and   #TILE_MASK
-         sta   tmpx
-         lda   (board_base_ptr), y
-         cmp   #kPadding
-         bcs   +
-         and   #TILE_MASK
-         cmp   tmpx
-         bne   @nextrow2
-         inx
-+        dey
-         bpl   @comparerowsloop
-         txa
-         beq   @nextrow2
-         ldx   row1
-         ldy   row2
-         lda   #kInvalidIdenticalRows
-         clc
-         rts
-@nextrow2
-         dec   row2
-         lda   row1
-         cmp   row2
-         bcc   @row2loop
-@nextrow1
-         dec   row1
-         bpl   @row1loop
-         sec
-         rts
+;FindInvalidMove
+         ldx   board_base_ptr_original
+         jsr   FindInvalidRule1
+         bcc   @foundInOriginal
 
-@DoesRowHaveTooManyOfOneColor
-         jsr   CountColorsInRow
-         lda   colorcount2
-         asl
-         cmp   logical_board_size
-         beq   @notTooMany2
-         bcc   @notTooMany2
-         ldy   #0
-         lda   #kInvalidTooManyWhiteInRow
-         clc
-         rts
-@notTooMany2
-         lda   colorcount3
-         asl
-         cmp   logical_board_size
-         beq   @notTooMany3
-         bcc   @notTooMany3
-         ldy   #0
-         lda   #kInvalidTooManyBlueInRow
-         clc
-         rts
-@notTooMany3
-         sec
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindInvalidRule1
+         bcc   foundInTransposed
+
+         ldx   board_base_ptr_original
+         jsr   FindInvalidRule2
+         bcc   @foundInOriginal
+
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindInvalidRule2
+         bcc   foundInTransposed
+
+         ldx   board_base_ptr_original
+         jsr   FindInvalidRule3
+         bcc   @foundInOriginal
+
+         ldx   #>kTransposedBoardBuffer
+         jsr   FindInvalidRule3
+         bcc   foundInTransposed
+         ; /!\ execution falls through here, but with C=1
+@foundInOriginal
          rts
 
 FindValidMoveForUser
@@ -192,7 +76,7 @@ FindValidMoveForUser
          stx   board_base_ptr_original
          lda   #$48                  ; PHA opcode
          sta   FindValidRule1_SetExtendedInfo_Patch
-         ldy   #0
+         ldy   #$00
          sty   start_y
          ldy   gLastSelectedBoardSize
          sty   logical_board_size
@@ -225,7 +109,7 @@ FindValidMove
 
          ldx   #>kTransposedBoardBuffer
          jsr   FindValidRule1
-         bcc   @foundInTransposed
+         bcc   foundInTransposed
 
          ldx   board_base_ptr_original
          jsr   FindValidRule2
@@ -233,7 +117,7 @@ FindValidMove
 
          ldx   #>kTransposedBoardBuffer
          jsr   FindValidRule2
-         bcc   @foundInTransposed
+         bcc   foundInTransposed
 
          ldx   board_base_ptr_original
          jsr   FindValidRule3
@@ -241,11 +125,11 @@ FindValidMove
 
          ldx   #>kTransposedBoardBuffer
          jsr   FindValidRule3
-         bcc   @foundInTransposed
+         bcc   foundInTransposed
          ; /!\ execution falls through here, but with C=1
 @foundInOriginal
          rts
-@foundInTransposed
+foundInTransposed
          stx   tmpx
          sty   tmpy
          ldy   extended_x
@@ -257,54 +141,6 @@ FindValidMove
          sty   extended_type
          ldx   tmpy                  ; X/Y swapped
          ldy   tmpx
-         rts
-
-;------------------------------------------------------------------------------
-; TransposeBoard
-; transpose game board (like a matrix, so rows become columns and
-; columns become rows)
-;
-; in:    board_base_ptr+1 populated with high byte of page-aligned board buffer
-; out:   all flags & registers preserved
-;------------------------------------------------------------------------------
-TransposeBoard
-         php
-         +SAVE_AXY
-
-         lda   board_base_ptr+1
-         sta   @a+2
-         sta   @b+2
-         sta   @c+2
-         sta   @d+2
-
-         ldy   #$00
-         ldx   #$00
-@a       lda   $FD00, y              ; SMC
-         pha
-@b       lda   $FD00, x              ; SMC
-@c       sta   $FD00, y              ; SMC
-         pla
-@d       sta   $FD00, x              ; SMC
-         txa
-         clc
-         adc   #$10
-         tax
-         bcc   +
-         iny
-         beq   ++
-         sty   tmpy
-         inx
-         txa
-         clc
-         adc   tmpy
-         tax
-         tay
-         dey
-+        iny
-         bne   @a
-++
-         +RESTORE_AXY
-         plp
          rts
 
 TransposeBoardIntoBackupBuffer
@@ -344,6 +180,179 @@ TransposeBoardIntoBackupBuffer
 ;------------------------------------------------------------------------------
 ; private
 
+FindInvalidRule1
+; find a tile in any row that violates the no-3-in-a-row rule
+; in:    X = high byte of page-aligned board buffer
+; out:   C = 0 if tile was found (+ all the things listed in FindInvalidMove)
+;        C = 1 if no tile was found
+         stx   board_base_ptr+1
+         stx   board_base_shift_plus_1+1
+         stx   board_base_shift_plus_2+1
+         ldy   #$00
+         sty   board_base_ptr
+@loop
+         lda   maybe_0xx, y
+         bne   @next_tile
+         lda   (board_base_ptr), y
+         cmp   #kPadding
+         bcs   @next_tile
+         and   #TILE_MASK
+         bne   @found_nonempty
+@next_tile
+         iny
+         bne   @loop
+@no_tile_found
+         sec
+         rts
+@found_nonempty
+         sta   tile_a
+         lda   (board_base_shift_plus_1), y
+         and   #TILE_MASK
+         cmp   tile_a
+         bne   @next_tile
+         lda   (board_base_shift_plus_2), y
+         and   #TILE_MASK
+         cmp   tile_a
+         bne   @next_tile
+         ldx   #$00
+         lda   (board_base_ptr), y
+         bpl   @tile_found
+         dex
+         iny
+         lda   (board_base_ptr), y
+         bpl   @tile_found
+         dex
+         iny
+@tile_found
+         stx   y_shift
+         sty   start_y
+         jsr   YIndexToXYCoordinates
+         lda   #<sNever
+         sta   extended_message
+         lda   #>sNever
+         sta   extended_message+1
+         lda   #kFocus1x3
+         sta   extended_type
+         stx   extended_x
+         tya
+         ;C=0 here (set in YIndexToXYCoordinates)
+         adc   y_shift
+         sta   extended_y
+         lda   #kEmptyTile
+         clc
+         rts
+
+FindInvalidRule2
+; find a row that violates the equal-colors-in-each-row rule
+; in:    X = high byte of page-aligned board buffer
+; out:   C = 0 if row was found (+ all the things listed in FindInvalidMove)
+;        C = 1 if no row was found
+         stx   board_base_ptr+1
+         ldx   #$0F                  ; tile row
+@CheckRow
+         +CalculateRowBase
+         sta   board_base_ptr
+         jsr   CountColorsInRow
+         lda   colorcount2
+         asl
+         cmp   logical_board_size
+         beq   +
+         bcs   @tooMany
++        lda   colorcount3
+         asl
+         cmp   logical_board_size
+         beq   +
+         bcs   @tooMany
++        dex
+         bpl   @CheckRow
+         sec
+         rts
+@tooMany
+         lda   #<sSame
+         sta   extended_message
+         lda   #>sSame
+         sta   extended_message+1
+         lda   #kFocusEntireRow
+         sta   extended_type
+         stx   extended_x
+         ldy   #$0F
+-        lda   (board_base_ptr), y
+         bpl   +
+         dey
+         bpl   -
++        clc
+         rts
+
+FindInvalidRule3
+; find a tile in any row that violates the every-row-is-unique rule
+; in:    X = high byte of page-aligned board buffer
+; out:   C = 0 if tile was found (+ all the things listed in FindInvalidMove)
+;        C = 1 if no tile was found
+         stx   board_base_ptr+1
+         stx   board_base_ptr2+1
+         jsr   CountEmptyPerRow
+@row1loop
+         ldx   row1
+         lda   row_empty_counts, x
+         bne   @nextrow1
+         ; found a full row
+         +CalculateRowBase
+         sta   board_base_ptr
+         lda   #$0F
+         sta   row2
+@row2loop
+         ldx   row2
+         lda   row_empty_counts, x
+         bne   @nextrow2
+         ; found another full row
+         +CalculateRowBase
+         sta   board_base_ptr2
+         ldx   #$00
+         ldy   #$0F
+@comparerowsloop
+         lda   (board_base_ptr2), y
+         cmp   #kPadding
+         bcs   +
+         and   #TILE_MASK
+         sta   tmpx
+         lda   (board_base_ptr), y
+         cmp   #kPadding
+         bcs   +
+         and   #TILE_MASK
+         cmp   tmpx
+         bne   @nextrow2
+         inx
++        dey
+         bpl   @comparerowsloop
+         txa
+         bne   @foundDuplicate
+@nextrow2
+         dec   row2
+         lda   row1
+         cmp   row2
+         bcc   @row2loop
+@nextrow1
+         dec   row1
+         bpl   @row1loop
+         sec
+         rts
+@foundDuplicate
+         lda   #<sUnique
+         sta   extended_message
+         lda   #>sUnique
+         sta   extended_message+1
+         lda   #kFocusEntireRow
+         sta   extended_type
+         ldx   row1
+         stx   extended_x
+         ldy   #$0F
+-        lda   (board_base_ptr), y
+         bpl   +
+         dey
+         bpl   -
++        clc
+         rts
+
 FindValidRule1
 ; find a tile in any row that must be a certain color due to the
 ; no-3-in-a-row rule
@@ -356,7 +365,7 @@ FindValidRule1
          dex
          stx   board_base_shift_minus_1+1
          stx   board_base_shift_minus_2+1
-         ldx   #0
+         ldx   #$00
          stx   board_base_ptr
          ldy   start_y
 @loop
@@ -505,7 +514,7 @@ FindValidRule3
 @row2loop
          ldx   row2
          lda   row_empty_counts, x
-         cmp   #2
+         cmp   #$02
          bne   @nextrow2
          ; found a row with 2 empty tiles
          stx   extended_x
@@ -535,10 +544,11 @@ FindValidRule3
          lda   (board_base_ptr), y
          and   #TILE_MASK
          cmp   #kWhiteTile
-         beq   @makeit3
+         beq   @make_it_blue
          lda   #kWhiteTile
          +HIDE_NEXT_2_BYTES
-@makeit3 lda   #kBlueTile
+@make_it_blue
+         lda   #kBlueTile
          pha
          lda   #<sUnique
          sta   extended_message
@@ -565,6 +575,7 @@ FindValidRule3
          rts
 
 CountColorsInRow
+; out:   preserves X
          lda   #$00
          sta   colorcount2
          sta   colorcount3

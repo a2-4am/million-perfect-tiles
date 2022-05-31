@@ -325,25 +325,13 @@ PlayEventB
 
 PlayEventH
          jsr   FindInvalidMoveForUser
-         bcc   @showInvalidHint
-         jsr   TransposeBoard
-         jsr   FindInvalidMoveForUser
-         jsr   TransposeBoard
-         jsr   SwapXY
-         bcs   @findValidHint
-@showInvalidHint
-         ; FIXME
-         ldx   #kKeepPlaying
-         clc
-         rts
-@findValidHint
+         bcc   @showHint
          jsr   FindValidMoveForUser
-         bcc   @showValidHint
-         ; no valid or invalid moves, which means you won
-         jsr   AWinnerIsYou
+         bcc   @showHint
+         jsr   AWinnerIsYou          ; no valid or invalid moves, which means you won
          ldx   #kCompletedPuzzle     ; caller will exit event loop
          rts
-@showValidHint
+@showHint
          jsr   HidePointer
          txa
          pha
