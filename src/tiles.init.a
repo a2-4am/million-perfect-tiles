@@ -32,13 +32,25 @@
          dex
          bpl   -
 
+         ; relocate music to $800
+         ldy   #5                               ; hardcoded to 0x500 bytes
+         ldx   #0
+MSRC     lda   music_raw, x
+MDST     sta   PT3_LOC, x
+         inx
+         bne   MSRC
+         inc   MSRC+2
+         inc   MDST+2
+         dey
+         bne   MSRC
+
          ; relocate rest of program code to $4000
 -        inc   FM+2
          inc   FMDEST+2
          lda   FM+2
          cmp   #>LastMover
          bcc   -
-         ldx   #$00
+         ;X=0
 FM       lda   FirstMover, x
 FMDEST   sta   $4000, x
          inx
@@ -100,10 +112,9 @@ FMDEST   sta   $4000, x
          ; but also leave it disabled for duration of play
          jsr   DisableAccelerator
 
-         ; detect Mockingboard
-         ; TODO replace this with TR code
+         ; now safe to detect Mockingboard
          jsr   mockingboard_detect
-         ;clc   ; DEBUG uncomment to pretend there's no Mockingboard
+         ;clc                                   ; DEBUG uncomment to pretend there's no Mockingboard
          php
          ror   gMockingboardAvailable
          plp
@@ -114,3 +125,10 @@ FMDEST   sta   $4000, x
          jmp   Start
 
          !source "src/hw.vbl.init.a"
+!ifdef PT3_ENABLE_APPLE_IIC {
+         !source "src/pt3/pt3_lib_detect_model.s"
+}
+         !source "src/pt3/pt3_lib_mockingboard_detect.s"
+         !source "src/pt3/pt3_lib_init.s"
+music_raw
+         !binary "res/SMALLBLUES.PT3"

@@ -119,6 +119,8 @@ string_ptr                = $FC      ; word (used by DrawLargeString)
 tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindValidMove)
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
 
+PT3_LOC                   = $0800    ; 0x4BA bytes (lifetime, music data)
+
 maybe_xx0                 = $1600
 maybe_x0x                 = $1601
 maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove)

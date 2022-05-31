@@ -47,16 +47,8 @@ Start
          !source "src/ui.font.condensed.a"
          !source "src/ui.font.wide.data.a"
          !source "src/ui.font.condensed.data.a"
-!ifdef PT3_ENABLE_APPLE_IIC {
-         !source "src/pt3/pt3_lib_detect_model.s"
-}
          !source "src/pt3/pt3_lib_core.s"
-         !source "src/pt3/pt3_lib_init.s"
          !source "src/pt3/pt3_lib_mockingboard_setup.s"
          !source "src/pt3/pt3_lib_irq_handler.s"
-         !source "src/pt3/pt3_lib_mockingboard_detect.s"
-*=(*+255)&-256 ;!align  256             ; must be on page boundary
-PT3_LOC
-         !binary "res/SMALLBLUES.PT3"
 }
 LastMover
