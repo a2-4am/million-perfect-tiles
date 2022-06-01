@@ -144,6 +144,9 @@ EnableAccelerator         = DisableAccelerator+3
 kTitleBoardSize           = 16
 kDemoBoardSize            = 6
 
+; bitmask to compare tile values (high bit is used to indicate whether tile is modifiable)
+TILE_MASK                 = %01111111
+
 ; character codes for game-specific characters (wide font)
 kEmptyTile                = 0
 kSelectionIndicator       = 1

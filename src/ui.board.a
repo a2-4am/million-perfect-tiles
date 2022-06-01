@@ -8,7 +8,6 @@
 ; - DrawBoardForUser
 ; - DrawBoardAt
 ; - SolveBoardAt
-; - FindEmptyCoordinatesForUser
 
 DrawBoardForTitle
          ldx   #>kTitleBoardBuffer
@@ -47,9 +46,16 @@ DrawBoardAt
          bpl   -
          rts
 
-SolveBoardAt
+;------------------------------------------------------------------------------
+; SolveBoardAt
+; visually solve game board on screen
+;
 ; in:    X = high byte of page-aligned board buffer
 ;        Y = logical board size (6,8,10,12,14,16)
+;        pointer is hidden
+; out:   all flags and registers clobbered
+;------------------------------------------------------------------------------
+SolveBoardAt
          stx   board_base_ptr_original
          stx   @a+2
          sty   logical_board_size
@@ -57,12 +63,17 @@ SolveBoardAt
          ; create transposed board buffer to speed up solving
          jsr   TransposeBoardIntoBackupBuffer
 
-@loop
+         ; find first move, if any
          jsr   FindValidMove
          bcs   @exit
 
-         ; draw tile
+         ; some callers start in text mode and only want to switch to
+         ; graphics mode if the board is not already solved, so we
+         ; check for one valid move outside the loop so we only have
+         ; to switch modes once
          bit   GFXMODE
+@loop
+         ; draw tile
          jsr   DrawLargeCharacter
 
          ; update board buffer and transposed board buffer
@@ -74,40 +85,9 @@ SolveBoardAt
          pla
 @a       sta   $FDFD, y              ; SMC
 @b       sta   kTransposedBoardBuffer, x ; SMC
-         bne   @loop                 ; always branches
-@exit
-         rts
 
-;------------------------------------------------------------------------------
-; FindEmptyCoordinatesForUser
-; find the top-left-most board coordinates with no tile
-;
-; in:    none
-; out:   C = 0 if found empty coordinates, then
-;          X = logical row (0x00..0x0F)
-;          Y = logical column (0x00..0x0F)
-;        C = 1 if no empty coordinates found (board is full)
-;------------------------------------------------------------------------------
-FindEmptyCoordinatesForUser
-         ldx   #>kUserBoardBuffer
-         stx   board_base_ptr+1
-         ldy   #0
-         sty   board_base_ptr
--        lda   (board_base_ptr), y
-         beq   YIndexToXYCoordinates
-         iny
-         bne   -
-         sec
-         rts
-YIndexToXYCoordinates
-         tya
-         lsr
-         lsr
-         lsr
-         lsr
-         tax
-         tya
-         and   #$0F
-         tay
-         clc
+         ; find next move, if any
+         jsr   FindValidMove
+         bcc   @loop
+@exit
          rts

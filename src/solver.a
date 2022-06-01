@@ -7,29 +7,17 @@
 ; - FindValidMoveForUser
 ; - FindValidMove
 ; - TransposeBoardIntoBackupBuffer
-
-TILE_MASK = %01111111
+; - FindEmptyCoordinatesForUser
 
 kTransposeFocusTypes
          !byte kFocusEntireColumn, kFocusEntireRow, kFocus1x1, kFocus3x1, kFocus1x3
 
-FindInvalidMoveForUser
-         ldx   #>kUserBoardBuffer
-         jsr   TransposeBoardIntoBackupBuffer
-         ldx   #>kUserBoardBuffer
-         stx   board_base_ptr_original
-         ldx   #>kUserBoardBuffer
-         ldy   gLastSelectedBoardSize
-         sty   logical_board_size
-         ; /!\ execution falls through here to FindInvalidMove
-
 ;------------------------------------------------------------------------------
-; FindInvalidMove
+; FindInvalidMoveForUser
 ; find a tile, row, or column that does not adhere to game rules
 ;
-; in:    $board_base_ptr_original = high byte of board buffer
-;        $logical_board_size = logical board size (6,8,10,12,14,16)
-;        $kTransposedBoardBuffer contains a copy of the board buffer but transposed
+; in:    $kUserBoardBuffer contains game board
+;        gLastSelectedBoardSize contains logical board size (6,8,10,12,14,16)
 ; out:   C = 0 if found invalid move, then
 ;          X = tile row (0x00..0x0F)
 ;          Y = tile column (0x00..0x0F)
@@ -41,8 +29,13 @@ FindInvalidMoveForUser
 ;          $extended_type
 ;        C = 1 if no invalid move found
 ;------------------------------------------------------------------------------
-;FindInvalidMove
-         ldx   board_base_ptr_original
+FindInvalidMoveForUser
+         ldx   #>kUserBoardBuffer
+         jsr   TransposeBoardIntoBackupBuffer
+         ldy   gLastSelectedBoardSize
+         sty   logical_board_size
+
+         ldx   #>kUserBoardBuffer
          jsr   FindInvalidRule1
          bcc   @foundInOriginal
 
@@ -50,7 +43,7 @@ FindInvalidMoveForUser
          jsr   FindInvalidRule1
          bcc   foundInTransposed
 
-         ldx   board_base_ptr_original
+         ldx   #>kUserBoardBuffer
          jsr   FindInvalidRule2
          bcc   @foundInOriginal
 
@@ -58,7 +51,7 @@ FindInvalidMoveForUser
          jsr   FindInvalidRule2
          bcc   foundInTransposed
 
-         ldx   board_base_ptr_original
+         ldx   #>kUserBoardBuffer
          jsr   FindInvalidRule3
          bcc   @foundInOriginal
 
@@ -69,11 +62,19 @@ FindInvalidMoveForUser
 @foundInOriginal
          rts
 
+;------------------------------------------------------------------------------
+; FindValidMoveForUser
+; find empty coordinates on user board where a tile could be placed
+; in accordance with game rules, based on current board state
+;
+; in:    $kUserBoardBuffer contains game board
+;        gLastSelectedBoardSize contains logical board size (6,8,10,12,14,16)
+; out:   see FindValidMove
+;------------------------------------------------------------------------------
 FindValidMoveForUser
          ldx   #>kUserBoardBuffer
-         jsr   TransposeBoardIntoBackupBuffer
-         ldx   #>kUserBoardBuffer
          stx   board_base_ptr_original
+         jsr   TransposeBoardIntoBackupBuffer
          lda   #$48                  ; PHA opcode
          sta   FindValidRule1_SetExtendedInfo_Patch
          ldy   #$00
@@ -143,11 +144,16 @@ foundInTransposed
          ldy   tmpx
          rts
 
-TransposeBoardIntoBackupBuffer
-; transposes game board into kTransposedBoardBuffer
+;------------------------------------------------------------------------------
+; TransposeBoardIntoBackupBuffer
+; transpose game board into kTransposedBoardBuffer (like a matrix, so row N
+; becomes column N and column M becomes row M)
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   all registers & flags clobbered
 ;        $tmpy clobbered
+;------------------------------------------------------------------------------
+TransposeBoardIntoBackupBuffer
          stx   @a+2
          stx   @b+2
          ldx   #$00
@@ -178,13 +184,51 @@ TransposeBoardIntoBackupBuffer
 ++       rts
 
 ;------------------------------------------------------------------------------
+; FindEmptyCoordinatesForUser
+; find the top-left-most board coordinates with no tile
+;
+; in:    none
+; out:   C = 0 if found empty coordinates, then
+;          X = logical row (0x00..0x0F)
+;          Y = logical column (0x00..0x0F)
+;        C = 1 if no empty coordinates found (board is full)
+;------------------------------------------------------------------------------
+FindEmptyCoordinatesForUser
+         ldx   #>kUserBoardBuffer
+         stx   board_base_ptr+1
+         ldy   #0
+         sty   board_base_ptr
+-        lda   (board_base_ptr), y
+         beq   YIndexToXYCoordinates
+         iny
+         bne   -
+         sec
+         rts
+YIndexToXYCoordinates
+         tya
+         lsr
+         lsr
+         lsr
+         lsr
+         tax
+         tya
+         and   #$0F
+         tay
+         clc
+         rts
+
+;------------------------------------------------------------------------------
 ; private
 
-FindInvalidRule1
+;------------------------------------------------------------------------------
+; FindInvalidRule1
 ; find a tile in any row that violates the no-3-in-a-row rule
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if tile was found (+ all the things listed in FindInvalidMove)
 ;        C = 1 if no tile was found
+;------------------------------------------------------------------------------
+FindInvalidRule1
          stx   board_base_ptr+1
          stx   board_base_shift_plus_1+1
          stx   board_base_shift_plus_2+1
@@ -242,11 +286,15 @@ FindInvalidRule1
          clc
          rts
 
-FindInvalidRule2
+;------------------------------------------------------------------------------
+; FindInvalidRule2
 ; find a row that violates the equal-colors-in-each-row rule
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if row was found (+ all the things listed in FindInvalidMove)
 ;        C = 1 if no row was found
+;------------------------------------------------------------------------------
+FindInvalidRule2
          stx   board_base_ptr+1
          ldx   #$0F                  ; tile row
 @CheckRow
@@ -283,11 +331,15 @@ FindInvalidRule2
 +        clc
          rts
 
-FindInvalidRule3
-; find a tile in any row that violates the every-row-is-unique rule
+;------------------------------------------------------------------------------
+; FindInvalidRule3
+; find a row that violates the every-row-is-unique rule
+;
 ; in:    X = high byte of page-aligned board buffer
-; out:   C = 0 if tile was found (+ all the things listed in FindInvalidMove)
-;        C = 1 if no tile was found
+; out:   C = 0 if row was found (+ all the things listed in FindInvalidMove)
+;        C = 1 if no row was found
+;------------------------------------------------------------------------------
+FindInvalidRule3
          stx   board_base_ptr+1
          stx   board_base_ptr2+1
          jsr   CountEmptyPerRow
@@ -353,12 +405,19 @@ FindInvalidRule3
 +        clc
          rts
 
-FindValidRule1
+;------------------------------------------------------------------------------
+; FindValidRule1
 ; find a tile in any row that must be a certain color due to the
 ; no-3-in-a-row rule
+;
+; This routine is performance-sensitive since it is called so many times while
+; auto-solving the title board at startup. Cycle-count all modifications.
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
+;------------------------------------------------------------------------------
+FindValidRule1
          stx   board_base_ptr+1
          stx   board_base_shift_plus_1+1
          stx   board_base_shift_plus_2+1
@@ -442,12 +501,16 @@ FindValidRule1_SetExtendedInfo_Patch
          clc
          rts
 
-FindValidRule2
+;------------------------------------------------------------------------------
+; FindValidRule2
 ; find a tile in any row that must be a certain color due to the
 ; equal-colors-in-each-row rule
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
+;------------------------------------------------------------------------------
+FindValidRule2
          stx   board_base_ptr+1
          ldx   #$0F                  ; tile row
 @CheckRow
@@ -493,12 +556,16 @@ FindValidRule2
          clc
          rts
 
-FindValidRule3
+;------------------------------------------------------------------------------
+; FindValidRule3
 ; find a tile in any row that must be a certain color due to the
 ; no-duplicate-rows rule
+;
 ; in:    X = high byte of page-aligned board buffer
 ; out:   C = 0 if tile was found (+ all the things listed in FindValidMove)
 ;        C = 1 if no tile was found
+;------------------------------------------------------------------------------
+FindValidRule3
          stx   board_base_ptr+1
          stx   board_base_ptr2+1
          jsr   CountEmptyPerRow
@@ -574,8 +641,16 @@ FindValidRule3
          sec
          rts
 
+;------------------------------------------------------------------------------
+; CountColorsInRow
+; count white and blue tiles in one row
+;
+; in:    (board_base_ptr) points to a specific row in a game board
+; out:   $colorcount2 (white), $colorcount3 (blue) populated
+;        preserves X
+;        clobbers A/Y/flags
+;------------------------------------------------------------------------------
 CountColorsInRow
-; out:   preserves X
          lda   #$00
          sta   colorcount2
          sta   colorcount3
@@ -598,6 +673,16 @@ CountColorsInRow
          bpl   -
          rts
 
+;------------------------------------------------------------------------------
+; CountEmptyPerRow
+; count number of empty tiles in every row of a game board
+;
+; in:    $board_base_ptr+1 = high byte of board buffer
+; out:   $row_empty_counts populated
+;        $row1 clobbered
+;        $tile_column clobbered
+;        all registers and flags clobbered
+;------------------------------------------------------------------------------
 CountEmptyPerRow
          ldx   #$0E
          stx   row1

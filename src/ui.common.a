@@ -112,23 +112,3 @@ GridFizzle
          ; /!\ execution falls through here to draw final coordinates (0,0)
 @draw    lda   $FDFD                 ; SMC
          jmp   DrawLargeCharacter
-
-StartMusic
-         bit   gMockingboardAvailable
-         bpl   +                     ; no Mockingboard -> no music
-         ldx   PT3_PRODOS_ALLOC+1
-         bne   +                     ; Mockingboard interrupt already installed
-         stx   DONE_PLAYING
-         inx
-         stx   LOOP
-         jsr   mockingboard_init
-         jsr   mockingboard_setup_interrupt     ; exits with I=1
-         jsr   mockingboard_shut_up
-         cli                         ; I=0, will immediately start playing music
-+
--        rts
-
-StopMusic
-         bit   gMockingboardAvailable
-         bpl   -
-         jmp   mockingboard_shut_down

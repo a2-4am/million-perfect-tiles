@@ -1,0 +1,49 @@
+;license:MIT
+;(c) 2022 by 4am
+;
+; high-level sound routines
+;
+; Public functions:
+; - StartMusic
+; - StopMusic
+
+;------------------------------------------------------------------------------
+; StartMusic
+; start music, if available and desired and not already started
+;
+; safe to call whenever you want, as often as you want, after program init
+; (no need to balance calls with StopMusic)
+;
+; in:    gMockingboardAvailable populated
+;        PT3lib initialized
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+StartMusic
+         bit   gMockingboardAvailable
+         bpl   MUSIC_RTS             ; no Mockingboard -> no music
+         ldx   PT3_PRODOS_ALLOC+1
+         bne   MUSIC_RTS             ; Mockingboard interrupt already installed
+         stx   DONE_PLAYING
+         inx
+         stx   LOOP
+         jsr   mockingboard_init
+         jsr   mockingboard_setup_interrupt     ; exits with I=1
+         jsr   mockingboard_shut_up
+         cli                         ; I=0, will immediately start playing music
+MUSIC_RTS
+         rts
+
+;------------------------------------------------------------------------------
+; StopMusic
+; stop music, if playing
+;
+; safe to call whenever you want, as often as you want, after program init
+; (no need to balance calls with StartMusic)
+;
+; in:    gMockingboardAvailable populated
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+StopMusic
+         bit   gMockingboardAvailable
+         bpl   MUSIC_RTS
+         jmp   mockingboard_shut_down
