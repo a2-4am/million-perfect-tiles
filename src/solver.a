@@ -382,7 +382,7 @@ FindValidRule1
          lda   maybe_xx0, y
          bne   @not_xx0
          lda   (board_base_shift_minus_1), y
-         beq   @not_xx0
+         beq   @not_x0x                         ; can skip x0x section too
          and   #TILE_MASK
          sta   tile_a
          lda   (board_base_shift_minus_2), y
@@ -392,11 +392,11 @@ FindValidRule1
 @not_xx0
          lda   maybe_x0x, y
          bne   @not_x0x
-         lda   (board_base_shift_minus_1), y
-         beq   @not_x0x
+         lda   (board_base_shift_plus_1), y
+         beq   @next_tile                       ; can skip 0xx section too
          and   #TILE_MASK
          sta   tile_a
-         lda   (board_base_shift_plus_1), y
+         lda   (board_base_shift_minus_1), y
          and   #TILE_MASK
          cmp   tile_a
          beq   @tile_found_shift_minus_1
