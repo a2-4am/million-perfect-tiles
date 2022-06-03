@@ -84,6 +84,17 @@ ShowPointer
          ror   gPointerVisible
          rts
 
+;------------------------------------------------------------------------------
+; ClickPositionToLogicalCoordinates
+; calculate tile coordinates of most recent mouse click
+;
+; in:    mouse driver enabled
+;        WG_MOUSECLICK_X/Y populated, presumably because of a mouse click
+; out:   X = logical row (0x00..0x0F)
+;        Y = logical column (0x00..0x0F)
+;        A clobbered
+;        flags preserved
+;------------------------------------------------------------------------------
 ClickPositionToLogicalCoordinates
          php
          sei
@@ -91,6 +102,18 @@ ClickPositionToLogicalCoordinates
          +ST16 pointer_tmp_x
          +LD16 WG_MOUSECLICK_Y
          jmp   +
+
+;------------------------------------------------------------------------------
+; MousePositionToLogicalCoordinates
+; calculate tile coordinates of current mouse position
+;
+; in:    mouse driver enabled
+;        WG_MOUSEPOS_X/Y populated
+; out:   X = logical row (0x00..0x0F)
+;        Y = logical column (0x00..0x0F)
+;        A clobbered
+;        flags preserved
+;------------------------------------------------------------------------------
 MousePositionToLogicalCoordinates
          php
          sei
@@ -130,6 +153,15 @@ MousePositionToLogicalCoordinates
          plp
          rts
 
+;------------------------------------------------------------------------------
+; DrawPointer
+; draw a pointer on screen based on the current mouse position
+;
+; in:    mouse driver enabled
+;        WG_MOUSEPOS_X/Y populated
+; out:   all registers clobbered
+;        flags preserved
+;------------------------------------------------------------------------------
 DrawPointer
          php
          sei
@@ -226,6 +258,15 @@ DrawPointer
          plp
          rts
 
+;------------------------------------------------------------------------------
+; UndrawPointer
+; undraw pointer, redraw whatever was covered up by the pointer when we drew it
+;
+; safe to call repeatedly without balancing calls to DrawPointer
+;
+; in:    none
+; out:   all registers and flags preserved
+;------------------------------------------------------------------------------
 UndrawPointer
          php
          sei
