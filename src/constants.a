@@ -120,6 +120,7 @@ tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindVal
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
 
 PT3_LOC                   = $0800    ; 0x4BA bytes (lifetime, music data)
+gCurrentMessage           = $0CBA    ; 0x29 bytes
 
 maybe_xx0                 = $1600
 maybe_x0x                 = $1601

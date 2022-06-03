@@ -122,6 +122,10 @@ FMDEST   sta   $4000, x
          jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
          jsr   pt3_init_song                    ; prepare song data
 +
+
+         lda   #40
+         sta   gCurrentMessage
+
          jmp   Start
 
          !source "src/hw.vbl.init.a"

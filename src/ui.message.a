@@ -86,10 +86,3 @@ ShowMessage
          sec
          ror   gMessageVisible
 +        rts
-
-;------------------------------------------------------------------------------
-; private
-
-gCurrentMessage
-         !byte 40
-         !raw  "                                        "
