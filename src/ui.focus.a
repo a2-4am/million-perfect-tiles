@@ -18,6 +18,13 @@ kFocus1x1                 = 2
 kFocus1x3                 = 3
 kFocus3x1                 = 4
 
+;------------------------------------------------------------------------------
+; DrawFocusRectangle
+; draw 1x1 focus rectangle around current tile
+;
+; in:    pointer is hidden
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
 DrawFocusRectangle
          jsr   GetFocusCoordinates
          lda   #kFocus1x1
@@ -99,6 +106,13 @@ DrawFocusRectangleAt
          bne   @drawRowLoop
          rts
 
+;------------------------------------------------------------------------------
+; ClearFocusRectangle
+; clear 1x1 focus rectangle around current tile
+;
+; in:    pointer is hidden
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
 ClearFocusRectangle
          jsr   GetFocusCoordinates
          lda   #kFocus1x1
