@@ -132,8 +132,12 @@ GetNextEvent
 WaitNextEvent
          jsr   GetNextEvent
          cpx   #kNoEvent
-         beq   WaitNextEvent
-         rts
+         bne   @exit
+         bit   RNDSEED+1
+         bne   WaitNextEvent
+         bit   RNDSEED
+         bne   WaitNextEvent
+@exit    rts
 
 ClearPendingEvents
          bit   CLEARKBD
