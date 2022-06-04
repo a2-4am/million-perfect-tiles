@@ -35,12 +35,27 @@ WaitForKeyWithTimeout
          pla
          bit   $C000
          bmi   @exit
-         jsr   WGPollMouse
+         bit   WG_MOUSEACTIVE
+         bmi   @pollmouse
+         ; burn 206 cycles to match how long it would take
+         ; to poll the mouse if we had one
+         bit   WG_MOUSEACTIVE
+         pha
+         pla
+         jsr   @burn
+         jmp   @next
+@pollmouse
+         jsr   WGPollMouse_MouseIsActive
          bit   gPointerClicked
          bmi   @exit
-         sbc   #1
+@next    sbc   #1
          bne   @wait1
 @exit    rts
+@burn    jsr   +
++        jsr   +
++        jsr   +
++        jsr   +
+         rts
 
 ;------------------------------------------------------------------------------
 ; LongWaitForKeyWithTimeout

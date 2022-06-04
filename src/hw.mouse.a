@@ -376,7 +376,8 @@ WGUndrawPointer:
 
 WGPollMouse:
          bit   WG_MOUSEACTIVE
-         bpl   @exit
+         bpl   WGPollMouseExit
+WGPollMouse_MouseIsActive
          php
          +SAVE_AXY
          sei
@@ -421,7 +422,8 @@ WGPollMouse:
 @donePoll
          +RESTORE_AXY
          plp
-@exit    rts
+WGPollMouseExit
+         rts
 
 ; Mouse API state
 WG_MOUSEACTIVE:
