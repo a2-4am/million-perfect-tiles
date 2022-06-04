@@ -6,6 +6,31 @@
 ; Public functions:
 ; - StartMusic
 ; - StopMusic
+;
+; Public variables:
+; - gSoundPref
+;
+
+gSoundPref
+         !byte $80                   ; USE BIT 7 ONLY
+
+;------------------------------------------------------------------------------
+; ToggleSoundPref
+; toggle sound preference and stop music immediately if sound is now off
+;
+; safe to call whenever you want, as often as you want, after program init
+;
+; in:    gMockingboardAvailable populated
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+ToggleSoundPref
+         lda   gSoundPref
+         and   #$80
+         eor   #$80
+         sta   gSoundPref
+         bne   +
+         jsr   StopMusic
++        jmp   SavePrefs
 
 ;------------------------------------------------------------------------------
 ; StartMusic
@@ -21,6 +46,8 @@
 StartMusic
          bit   gMockingboardAvailable
          bpl   MUSIC_RTS             ; no Mockingboard -> no music
+         bit   gSoundPref
+         bpl   MUSIC_RTS             ; user turned off sound -> no music
          ldx   PT3_PRODOS_ALLOC+1
          bne   MUSIC_RTS             ; Mockingboard interrupt already installed
          stx   DONE_PLAYING

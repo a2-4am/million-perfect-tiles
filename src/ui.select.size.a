@@ -72,6 +72,9 @@ kSelectSizeKeys                      ; must keep in sync with kSelectSizeKeyHand
          !byte $95                   ; right arrow
          !byte $A0                   ; space
          !byte $9B                   ; Esc
+         !byte $93                   ; Ctrl-S
+         !byte $D3                   ; S
+         !byte $F3                   ; s
          !byte $00
 
 kSelectSizeKeyHandlersLo
@@ -82,6 +85,9 @@ kSelectSizeKeyHandlersLo
          !byte <SelectSizeEventDown
          !byte <SelectSizeEventDown
          !byte <SelectSizeEventEsc
+         !byte <SelectSizeEventCtrlS
+         !byte <SelectSizeEventCtrlS
+         !byte <SelectSizeEventCtrlS
 
 kSelectSizeKeyHandlersHi
          !byte >SelectSizeEventReturn
@@ -91,6 +97,9 @@ kSelectSizeKeyHandlersHi
          !byte >SelectSizeEventDown
          !byte >SelectSizeEventDown
          !byte >SelectSizeEventEsc
+         !byte >SelectSizeEventCtrlS
+         !byte >SelectSizeEventCtrlS
+         !byte >SelectSizeEventCtrlS
 
 StayOnSelectSizeNoRefresh0
          jmp   StayOnSelectSizeNoRefresh
@@ -191,6 +200,13 @@ StayOnSelectSizeNoRefresh
 SelectSizeEventEsc
          ldx   #kReturnToMainMenu
          rts
+
+SelectSizeEventCtrlS
+         jsr   ToggleSoundPref
+         bit   gSoundPref
+         bpl   +
+         jsr   StartMusic
++        jmp   StayOnSelectSizeNoRefresh
 
 DrawSelectSize
          +LDADDR SelectSizeScript

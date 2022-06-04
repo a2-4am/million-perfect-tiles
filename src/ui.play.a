@@ -100,6 +100,8 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $8E                   ; Ctrl-N
          !byte $92                   ; Ctrl-R
          !byte $93                   ; Ctrl-S
+         !byte $D3                   ; S
+         !byte $F3                   ; s
          !byte $AF                   ; /
          !byte $BF                   ; ?
          !byte $80                   ; Ctrl-@
@@ -131,6 +133,8 @@ kPlayKeyHandlersLo
          !byte <PlayEventCtrlN
          !byte <PlayEventCtrlR
          !byte <PlayEventCtrlS
+         !byte <PlayEventCtrlS
+         !byte <PlayEventCtrlS
          !byte <PlayEventQuestion
          !byte <PlayEventQuestion
          !byte <PlayEventDevExit
@@ -160,6 +164,8 @@ kPlayKeyHandlersHi
          !byte >PlayEventEsc
          !byte >PlayEventCtrlN
          !byte >PlayEventCtrlR
+         !byte >PlayEventCtrlS
+         !byte >PlayEventCtrlS
          !byte >PlayEventCtrlS
          !byte >PlayEventQuestion
          !byte >PlayEventQuestion
@@ -234,8 +240,10 @@ PlayEventCtrlN
          rts
 
 PlayEventCtrlS
-         ; TODO
-         brk
+         jsr   ToggleSoundPref
+         ldx   #kKeepPlaying
+         clc
+         rts
 
 PlayEventUpArrow
          jsr   GetFocusCoordinates

@@ -91,10 +91,11 @@ FMDEST   sta   $4000, x
          ; build model-specific VBL code (used for drawing pointer)
          jsr   BuildVBLFunction
 
+         ; load preferences
+         jsr   LoadPrefs
+
          ; load random board for title (out of first 512 16x16 boards)
-         jsr   MLI
-         !byte $82                   ; GET_TIME
-         !word 0
+         jsr   GetTime
          lda   $BF93
          and   #%00000001
          tay

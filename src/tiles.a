@@ -19,13 +19,11 @@ Start
          jsr   StopMusic
          jsr   PointerOnShutdown
          jsr   EnableAccelerator
-         jsr   MLI
-         !byte $65
-         !word +
-+        !byte 4,0,0,0,0
+         jmp   Quit
 
          !source "src/common.a"
          !source "src/tilescript.a"
+         !source "src/prefs.a"
          !source "src/solver.a"
          !source "src/unpack.a"
          !source "src/events.a"
@@ -47,6 +45,7 @@ Start
          !source "src/ui.font.condensed.a"
          !source "src/ui.font.wide.data.a"
          !source "src/ui.font.condensed.data.a"
+         !source "src/glue.mli.a"
          !source "src/glue.sound.a"
          !source "src/pt3/pt3_lib_core.s"
          !source "src/pt3/pt3_lib_mockingboard_setup.s"

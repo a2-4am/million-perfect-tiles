@@ -55,16 +55,16 @@ nth
          sta   .offset
          sty   .offset + 1
          jsr   MLI
-         !byte $c8
+         !byte MLI_OPEN
          !word .c8_parms
          jsr   MLI
-         !byte $ce
+         !byte MLI_SETMARK
          !word .ce_parms
          jsr   MLI
-         !byte $ca
+         !byte MLI_READ
          !word .ca_parms
          jsr   MLI
-         !byte $cc
+         !byte MLI_CLOSE
          !word .cc_parms
          jsr   .unpack
          sty   unpack_ptr

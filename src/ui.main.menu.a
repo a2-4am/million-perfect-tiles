@@ -90,6 +90,9 @@ kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandle
          !byte $E6                   ; f
          !byte $F1                   ; q
          !byte $9B                   ; Esc
+         !byte $93                   ; Ctrl-S
+         !byte $D3                   ; S
+         !byte $F3                   ; s
          !byte $00
 
 kMainMenuKeyHandlersLo
@@ -108,6 +111,9 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventF
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
+         !byte <MainMenuEventCtrlS
+         !byte <MainMenuEventCtrlS
+         !byte <MainMenuEventCtrlS
 
 kMainMenuKeyHandlersHi
          !byte >MainMenuEventP
@@ -125,6 +131,9 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventF
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
+         !byte >MainMenuEventCtrlS
+         !byte >MainMenuEventCtrlS
+         !byte >MainMenuEventCtrlS
 
 MainMenuEventMouseMove
          jsr   MousePositionToLogicalCoordinates
@@ -209,6 +218,13 @@ MainMenuEventF
 MainMenuEventQ
          ldx   #kQuit
          rts
+
+MainMenuEventCtrlS
+         jsr   ToggleSoundPref
+         bit   gSoundPref
+         bpl   +
+         jsr   StartMusic
++        jmp   StayOnMainMenuNoRefresh
 
 DrawMainMenuBackground
          jsr   DrawBoardForTitle

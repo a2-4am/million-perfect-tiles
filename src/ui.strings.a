@@ -357,6 +357,10 @@ sPressQuestionForHelp
          !byte 16
          !raw  "Press ? for help"
 
+sPressHForHint
+         !byte 16
+         !raw  "Press H for hint"
+
 sPerfection
          !byte 10
          !raw  "PERFECTION"
