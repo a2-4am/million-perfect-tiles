@@ -2,25 +2,6 @@
 ;(c) 2022 by 4am
 ;
 
-;------------------------------------------------------------------------------
-; YE OLDE GRAND UNIFIED MEMORY MAP
-;
-; MAIN MEMORY
-; 0400..07FF - text page (kept black for switching)
-;
-; 1700..18BF - HGR base address table
-; 18C0..18EC - used by nth() when reading puzzles from disk
-; 1900..19FF - board buffer for gameplay
-; 1A00..1AFF - board buffer for main menu
-; 1B00..1BFF - used by nth() when decompressing puzzles read from disk
-;              board buffer for self-running demo
-;              board buffer for credits
-; 1C00..1FFF - ProDOS file buffer
-; 2000..3FFF - hi-res page
-; 4000+      - program code (relocated to here at startup)
-; BEB4..BEFF - DisableAccelerator/EnableAccelerator (relocated to here at startup)
-;------------------------------------------------------------------------------
-
 ; soft switches
 KBD =          $C000      ; last key pressed (if any)
 STOREOFF =     $C000      ; STA then use the following 4 flags:
@@ -124,16 +105,20 @@ string_ptr                = $FC      ; word (used by DrawLargeString)
 tmpx                      = $FE      ; byte (used by DrawLargeCharacter, FindValidMove)
 tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindValidMove)
 
-PT3_LOC                   = $0800    ; 0x4BA bytes (lifetime, music data)
-gCurrentMessage           = $0CBA    ; 0x29 bytes (code expects this to be immediately after music data)
-
-maybe_xx0                 = $1600
-maybe_x0x                 = $1601
-maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove)
-                                     ; 0x11 free bytes here if anyone needs any
+NoteTable_high            = $0300    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
+NoteTable_low             = $0360    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
+VolumeTable               = $0800    ; 0x100 bytes, should be page-aligned (lifetime, used by pt3lib)
+PT3_LOC                   = $0900    ; 0x4BA bytes, must be page-aligned (lifetime, music data used by pt3lib)
+gCurrentMessage           = $0DBA    ; 0x29 bytes (code expects this to be immediately after music data)
+                                     ; 0x81D free here
+maybe_xx0                 = $1600    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_x0x and maybe_0xx)
+maybe_x0x                 = $1601    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_0xx)
+maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_x0x)
+                                     ; 0x11 free here
 HGRLO                     = $1713    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
 read_buffer               = $17D3    ; 0x2D bytes (used by nth, free before and after)
 HGRHI                     = $1800    ; 0xC0 bytes (lifetime, used by DrawLargeCharacter)
+                                     ; 0x40 free here
 kUserBoardBuffer          = $1900    ; 0x0100 bytes, page-aligned (used by PlayEventLoop, free before and after)
 kTitleBoardBuffer         = $1A00    ; 0x0100 bytes, page-aligned (lifetime, used by DrawMainMenuBackground)
 

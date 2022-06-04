@@ -1981,13 +1981,13 @@ done_do_frame:
 ; note, you might have slightly better performance if these are aligned
 ; so that loads don't have to cross page boundaries
 
-NoteTable_high:
-        !fill 96,0
-NoteTable_low:
-        !fill 96,0
+;NoteTable_high:
+;        !fill 96,0
+;NoteTable_low:
+;        !fill 96,0
 
-VolumeTable:
-        !fill 256,0
+;VolumeTable:
+;        !fill 256,0
 
 
 pt3_lib_end:
