@@ -220,11 +220,8 @@ MainMenuEventQ
          rts
 
 MainMenuEventCtrlS
-         jsr   ToggleSoundPref
-         bit   gSoundPref
-         bpl   +
-         jsr   StartMusic
-+        jmp   StayOnMainMenuNoRefresh
+         jsr   ToggleSoundPrefAndStartMusic
+         jmp   StayOnMainMenuNoRefresh
 
 DrawMainMenuBackground
          jsr   DrawBoardForTitle

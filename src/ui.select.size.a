@@ -202,11 +202,8 @@ SelectSizeEventEsc
          rts
 
 SelectSizeEventCtrlS
-         jsr   ToggleSoundPref
-         bit   gSoundPref
-         bpl   +
-         jsr   StartMusic
-+        jmp   StayOnSelectSizeNoRefresh
+         jsr   ToggleSoundPrefAndStartMusic
+         jmp   StayOnSelectSizeNoRefresh
 
 DrawSelectSize
          +LDADDR SelectSizeScript

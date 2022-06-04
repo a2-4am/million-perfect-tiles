@@ -4,6 +4,8 @@
 ; high-level sound routines
 ;
 ; Public functions:
+; - ToggleSoundPref
+; - ToggleSoundPrefAndStartMusic
 ; - StartMusic
 ; - StopMusic
 ;
@@ -31,6 +33,22 @@ ToggleSoundPref
          bne   +
          jsr   StopMusic
 +        jmp   SavePrefs
+
+;------------------------------------------------------------------------------
+; ToggleSoundPrefAndStartMusic
+; toggle sound preference and stop music immediately if sound is now off, or
+; start music immediately if sound is now on
+;
+; safe to call whenever you want, as often as you want, after program init
+;
+; in:    gMockingboardAvailable populated
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+ToggleSoundPrefAndStartMusic
+         jsr   ToggleSoundPref
+         bit   gSoundPref
+         bpl   MUSIC_RTS
+         ; /!\ execution falls through here to StartMusic
 
 ;------------------------------------------------------------------------------
 ; StartMusic
