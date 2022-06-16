@@ -442,7 +442,14 @@ GetValueAt
 
 AWinnerIsYou
          +LDADDR WinScript
-         jmp   TileScript
+         jsr   TileScript
+         jsr   StartWinMusic
+-        jsr   WaitNextEvent
+         cpx   #kEventClick
+         beq   +
+         cpx   #kEventKeypress
+         bne   -
++        rts
 
 WinScript
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kBlueTile, kWhiteTile
@@ -451,7 +458,6 @@ WinScript
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kWhiteTile, kBlueTile
          !byte CALL, <ColorCycleFizzle, >ColorCycleFizzle, kEmptyTile, kEmptyTile
          +WPRINT  7, 3, sPerfection
-         !byte WAIT, 40
          !byte EXIT
 
 ColorCycleFizzle

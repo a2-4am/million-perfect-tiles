@@ -1,5 +1,10 @@
 ;; Zero page addresses used by PT3 library
 
+PT3_SONG_PTR    = $50
+PT3_SAMPLE_PTR  = $52
+PT3_ORNAMENT_PTR= $54
+PT3_PATTERN_TABLE_PTR = $56
+
 ORNAMENT_L      = $60
 ORNAMENT_H      = $61
 SAMPLE_L        = $62

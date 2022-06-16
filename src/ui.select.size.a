@@ -18,7 +18,7 @@ SelectSizeEventLoop
          bcc   @loop
          jsr   DrawSelectSize
          jsr   ClearPendingEvents
-         jsr   StartMusic
+         jsr   StartMainMusic
 @loop
          jsr   WaitNextEvent
          cpx   #kEventMouseMove

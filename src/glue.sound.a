@@ -92,3 +92,17 @@ StopMusic
          bit   gMockingboardAvailable
          bpl   MUSIC_RTS
          jmp   mockingboard_shut_down
+
+StartMainMusic
+         lda   #>MainMusic
+         cmp   PT3_SONG_PTR+1
+         beq   +
+         jsr   pt3_switch_song
++        jmp   StartMusic
+
+StartWinMusic
+         lda   #>WinMusic
+         cmp   PT3_SONG_PTR+1
+         beq   +
+         jsr   pt3_switch_song
++        jmp   StartMusic

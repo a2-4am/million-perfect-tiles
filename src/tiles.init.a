@@ -32,17 +32,29 @@
          dex
          bpl   -
 
-         ; relocate music to $800
+         ; relocate main music to $900
          ldy   #5                               ; hardcoded to 0x500 bytes
          ldx   #0
-MSRC     lda   music_raw, x
-MDST     sta   PT3_LOC, x
+MSRC     lda   main_music_raw, x
+MDST     sta   MainMusic, x
          inx
          bne   MSRC
          inc   MSRC+2
          inc   MDST+2
          dey
          bne   MSRC
+
+         ; relocate win music to $E00
+         ldy   #6                               ; hardcoded to 0x600 bytes
+         ldx   #0
+WSRC     lda   win_music_raw, x
+WDST     sta   WinMusic, x
+         inx
+         bne   WSRC
+         inc   WSRC+2
+         inc   WDST+2
+         dey
+         bne   WSRC
 
          ; relocate rest of program code to $4000
 -        inc   FM+2
@@ -121,6 +133,7 @@ FMDEST   sta   $4000, x
          plp
          bcc   +
          jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
+         lda   #>MainMusic
          jsr   pt3_init_song                    ; prepare song data
 +
 
@@ -132,6 +145,8 @@ FMDEST   sta   $4000, x
 }
          !source "src/pt3/pt3_lib_mockingboard_detect.s"
          !source "src/pt3/pt3_lib_init.s"
-music_raw
+main_music_raw
          !binary "res/SMALLBLUES.PT3"
          !byte 40                               ; ends up as the length prefix for gCurrentMessage
+win_music_raw
+         !binary "res/EASYWINNERS.PT3"

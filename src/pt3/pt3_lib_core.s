@@ -270,13 +270,14 @@ load_sample:
         ; Set the initial sample pointer
         ;     a->sample_pointer=pt3->sample_patterns[a->sample];
 
-        lda     PT3_LOC+PT3_SAMPLE_LOC_L,Y                              ; 4+
+        lda     (PT3_SAMPLE_PTR), y
         sta     SAMPLE_L                                                ; 3
 
-        lda     PT3_LOC+PT3_SAMPLE_LOC_L+1,Y                            ; 4+
+        iny
+        lda     (PT3_SAMPLE_PTR), y
 
         ; assume pt3 file is at page boundary
-        adc     #>PT3_LOC                                               ; 2
+        adc     PT3_SONG_PTR+1
         sta     SAMPLE_H                                                ; 3
 
         ; Set the loop value
@@ -341,14 +342,16 @@ load_ornament:
 
         ; a->ornament_pointer=pt3->ornament_patterns[a->ornament];
 
-        lda     PT3_LOC+PT3_ORNAMENT_LOC_L,Y                            ; 4+
+        lda     (PT3_ORNAMENT_PTR), y
         sta     ORNAMENT_L                                              ; 3
 
-        lda     PT3_LOC+PT3_ORNAMENT_LOC_L+1,Y                          ; 4+
+        iny
+        lda     (PT3_ORNAMENT_PTR), y
 
         ; we're assuming PT3 is loaded to a page boundary
 
-        adc     #>PT3_LOC                                               ; 2
+        ;adc     #>PT3_LOC                                               ; 2
+        adc     PT3_SONG_PTR+1
         sta     ORNAMENT_H                                              ; 3
 
         lda     #0                                                      ; 2
@@ -1528,7 +1531,7 @@ pt3_set_pattern:
         ; Lookup current pattern in pattern table
 current_pattern_smc:
         ldy     #$d1                                                    ; 2
-        lda     PT3_LOC+PT3_PATTERN_TABLE,Y                             ; 4+
+        lda     (PT3_PATTERN_TABLE_PTR), y
 
         ; if value is $FF we are at the end of the song
         cmp     #$ff                                                    ; 2
@@ -1542,23 +1545,27 @@ not_done:
         ; set up the three pattern address pointers
 
         asl             ; mul pattern offset by two, as word sized      ; 2
-        tay                                                             ; 2
+        pha
 
         ; point PATTERN_H/PATTERN_L to the pattern address table
 
         clc                                                             ; 2
-        lda     PT3_LOC+PT3_PATTERN_LOC_L                               ; 4
+        ldy     #PT3_PATTERN_LOC_L
+        lda     (PT3_SONG_PTR), y
         sta     PATTERN_L                                               ; 3
-        lda     PT3_LOC+PT3_PATTERN_LOC_H                               ; 4
-        adc     #>PT3_LOC               ; assume page boundary          ; 2
+        ldy     #PT3_PATTERN_LOC_H
+        lda     (PT3_SONG_PTR), y
+        adc     PT3_SONG_PTR+1               ; assume page boundary
         sta     PATTERN_H                                               ; 3
 
+        pla
+        tay                                                             ; 2
         ; First 16-bits points to the Channel A address
         lda     (PATTERN_L),Y                                           ; 5+
         sta     note_a+NOTE_ADDR_L                                      ; 4
         iny                                                             ; 2
         lda     (PATTERN_L),Y                                           ; 5+
-        adc     #>PT3_LOC               ; assume page boundary          ; 2
+        adc     PT3_SONG_PTR+1               ; assume page boundary
         sta     note_a+NOTE_ADDR_H                                      ; 4
         iny                                                             ; 2
 
@@ -1567,7 +1574,7 @@ not_done:
         sta     note_b+NOTE_ADDR_L                                      ; 4
         iny                                                             ; 2
         lda     (PATTERN_L),Y                                           ; 5+
-        adc     #>PT3_LOC               ; assume page boundary          ; 2
+        adc     PT3_SONG_PTR+1               ; assume page boundary
         sta     note_b+NOTE_ADDR_H                                      ; 4
         iny                                                             ; 2
 
@@ -1576,7 +1583,7 @@ not_done:
         sta     note_c+NOTE_ADDR_L                                      ; 4
         iny                                                             ; 2
         lda     (PATTERN_L),Y                                           ; 5+
-        adc     #>PT3_LOC               ; assume page boundary          ; 2
+        adc     PT3_SONG_PTR+1               ; assume page boundary
         sta     note_c+NOTE_ADDR_H                                      ; 4
 
         ; clear out the noise channel
@@ -1977,6 +1984,83 @@ done_do_frame:
 
         rts                                                             ; 6
 
+
+pt3_switch_song:
+        sta     PT3_SONG_PTR+1
+        sta     PT3_SAMPLE_PTR+1
+        sta     PT3_ORNAMENT_PTR+1
+        sta     PT3_PATTERN_TABLE_PTR+1
+        lda     #0
+        sta     PT3_SONG_PTR
+        lda     #PT3_SAMPLE_LOC_L
+        sta     PT3_SAMPLE_PTR
+        lda     #PT3_ORNAMENT_LOC_L
+        sta     PT3_ORNAMENT_PTR
+        lda     #PT3_PATTERN_TABLE
+        sta     PT3_PATTERN_TABLE_PTR
+
+        lda     #$0
+        sta     DONE_SONG                                               ; 3
+        ldx     #(end_vars-begin_vars)
+zero_song_structs_loop:
+        dex
+        sta     note_a,X
+        bne     zero_song_structs_loop
+
+        sta     pt3_noise_period_smc+1                                  ; 4
+        sta     pt3_noise_add_smc+1                                     ; 4
+
+        sta     pt3_envelope_period_l_smc+1                             ; 4
+        sta     pt3_envelope_period_h_smc+1                             ; 4
+        sta     pt3_envelope_slide_l_smc+1                              ; 4
+        sta     pt3_envelope_slide_h_smc+1                              ; 4
+        sta     pt3_envelope_slide_add_l_smc+1                          ; 4
+        sta     pt3_envelope_slide_add_h_smc+1                          ; 4
+        sta     pt3_envelope_add_smc+1                                  ; 4
+        sta     pt3_envelope_type_smc+1                                 ; 4
+        sta     pt3_envelope_type_old_smc+1                             ; 4
+        sta     pt3_envelope_delay_smc+1                                ; 4
+        sta     pt3_envelope_delay_orig_smc+1                           ; 4
+
+        sta     PT3_MIXER_VAL                                           ; 3
+
+        sta     current_pattern_smc+1                                   ; 4
+        sta     current_line_smc+1                                      ; 4
+        sta     current_subframe_smc+1                                  ; 4
+
+        lda     #$f                                                     ; 2
+        sta     note_a+NOTE_VOLUME                                      ; 4
+        sta     note_b+NOTE_VOLUME                                      ; 4
+        sta     note_c+NOTE_VOLUME                                      ; 4
+
+        ; default ornament/sample in A
+        ;       X is zero coming in here
+        ;ldx    #(NOTE_STRUCT_SIZE*0)                                   ; 2
+        jsr     load_ornament0_sample1                                  ; 6+93
+
+        ; default ornament/sample in B
+        ldx     #(NOTE_STRUCT_SIZE*1)                                   ; 2
+        jsr     load_ornament0_sample1                                  ; 6+93
+
+        ; default ornament/sample in C
+        ldx     #(NOTE_STRUCT_SIZE*2)                                   ; 2
+        jsr     load_ornament0_sample1                                  ; 6+93
+
+                                ;=======================
+                                ; load default speed
+
+         ldy     #PT3_SPEED
+         lda     (PT3_SONG_PTR), y
+         sta     pt3_speed_smc+1                                         ; 4
+
+                                ;=======================
+                                ; load loop
+
+         ldy     #PT3_LOOP
+         lda     (PT3_SONG_PTR), y
+         sta     pt3_loop_smc+1                                          ; 4
+
+        rts
 
 ; note, you might have slightly better performance if these are aligned
 ; so that loads don't have to cross page boundaries

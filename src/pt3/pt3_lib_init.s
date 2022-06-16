@@ -10,66 +10,7 @@
         ;====================================
         ;
 pt3_init_song:
-
-        lda     #$0
-        sta     DONE_SONG                                               ; 3
-        ldx     #(end_vars-begin_vars)
-zero_song_structs_loop:
-        dex
-        sta     note_a,X
-        bne     zero_song_structs_loop
-
-        sta     pt3_noise_period_smc+1                                  ; 4
-        sta     pt3_noise_add_smc+1                                     ; 4
-
-        sta     pt3_envelope_period_l_smc+1                             ; 4
-        sta     pt3_envelope_period_h_smc+1                             ; 4
-        sta     pt3_envelope_slide_l_smc+1                              ; 4
-        sta     pt3_envelope_slide_h_smc+1                              ; 4
-        sta     pt3_envelope_slide_add_l_smc+1                          ; 4
-        sta     pt3_envelope_slide_add_h_smc+1                          ; 4
-        sta     pt3_envelope_add_smc+1                                  ; 4
-        sta     pt3_envelope_type_smc+1                                 ; 4
-        sta     pt3_envelope_type_old_smc+1                             ; 4
-        sta     pt3_envelope_delay_smc+1                                ; 4
-        sta     pt3_envelope_delay_orig_smc+1                           ; 4
-
-        sta     PT3_MIXER_VAL                                           ; 3
-
-        sta     current_pattern_smc+1                                   ; 4
-        sta     current_line_smc+1                                      ; 4
-        sta     current_subframe_smc+1                                  ; 4
-
-        lda     #$f                                                     ; 2
-        sta     note_a+NOTE_VOLUME                                      ; 4
-        sta     note_b+NOTE_VOLUME                                      ; 4
-        sta     note_c+NOTE_VOLUME                                      ; 4
-
-        ; default ornament/sample in A
-        ;       X is zero coming in here
-        ;ldx    #(NOTE_STRUCT_SIZE*0)                                   ; 2
-        jsr     load_ornament0_sample1                                  ; 6+93
-
-        ; default ornament/sample in B
-        ldx     #(NOTE_STRUCT_SIZE*1)                                   ; 2
-        jsr     load_ornament0_sample1                                  ; 6+93
-
-        ; default ornament/sample in C
-        ldx     #(NOTE_STRUCT_SIZE*2)                                   ; 2
-        jsr     load_ornament0_sample1                                  ; 6+93
-
-        ;=======================
-        ; load default speed
-
-        lda     PT3_LOC+PT3_SPEED                                       ; 4
-        sta     pt3_speed_smc+1                                         ; 4
-
-        ;=======================
-        ; load loop
-
-        lda     PT3_LOC+PT3_LOOP                                        ; 4
-        sta     pt3_loop_smc+1                                          ; 4
-
+        jsr     pt3_switch_song
 
         ;========================
         ;========================
@@ -81,7 +22,9 @@ zero_song_structs_loop:
         ; but we are going to assume we are only going to be playing
         ; newer 3.4+ version files so only need the newer tables
 
-        ldx     PT3_LOC+PT3_HEADER_FREQUENCY                            ; 4
+        ldy     #PT3_HEADER_FREQUENCY
+        lda     (PT3_SONG_PTR), y
+        tax
         beq     use_freq_table_0
         dex
         beq     use_freq_table_1
@@ -200,7 +143,8 @@ done_set_freq_table:
         ;======================
         ; calculate version
         ldx     #6                                                      ; 2
-        lda     PT3_LOC+PT3_VERSION                                     ; 4
+        ldy     #PT3_VERSION
+        lda     (PT3_SONG_PTR), y
         sec                                                             ; 2
         sbc     #'0'                                                    ; 2
         cmp     #9                                                      ; 2

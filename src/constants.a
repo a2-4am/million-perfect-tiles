@@ -46,7 +46,7 @@ MLI_SETMARK               = $CE
 
 ; application-specific addresses
 PARAM                     = $00      ; word
-!source "src/pt3/zp.inc" ; $60-$7F
+!source "src/pt3/zp.inc" ; $50-$7F
 y_shift                   = $A5      ; byte (used by FindValidMove)
 board_base_shift_minus_2  = $A6      ; word (used by FindValidMove)
 board_base_shift_minus_1  = $A8      ; word (used by FindValidMove)
@@ -108,9 +108,10 @@ tmpy                      = $FF      ; byte (used by DrawLargeCharacter, FindVal
 NoteTable_high            = $0300    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
 NoteTable_low             = $0360    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
 VolumeTable               = $0800    ; 0x100 bytes, should be page-aligned (lifetime, used by pt3lib)
-PT3_LOC                   = $0900    ; 0x4BA bytes, must be page-aligned (lifetime, music data used by pt3lib)
+MainMusic                 = $0900    ; 0x4BA bytes, must be page-aligned (lifetime, music data used by pt3lib)
 gCurrentMessage           = $0DBA    ; 0x29 bytes (code expects this to be immediately after music data)
-                                     ; 0x81D free here
+WinMusic                  = $0E00    ; 0x5A3 bytes, must be page-aligned (lifetime, music data used by pt3lib)
+                                     ; 0x27A free here
 maybe_xx0                 = $1600    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_x0x and maybe_0xx)
 maybe_x0x                 = $1601    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_0xx)
 maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_x0x)
