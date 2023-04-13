@@ -22,7 +22,7 @@ gSoundPref
 ;
 ; safe to call whenever you want, as often as you want, after program init
 ;
-; in:    gMockingboardAvailable populated
+; in:    gSoundAvailable populated
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 ToggleSoundPref
@@ -41,7 +41,7 @@ ToggleSoundPref
 ;
 ; safe to call whenever you want, as often as you want, after program init
 ;
-; in:    gMockingboardAvailable populated
+; in:    gSoundAvailable populated
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 ToggleSoundPrefAndStartMusic
@@ -57,12 +57,12 @@ ToggleSoundPrefAndStartMusic
 ; safe to call whenever you want, as often as you want, after program init
 ; (no need to balance calls with StopMusic)
 ;
-; in:    gMockingboardAvailable populated
+; in:    gSoundAvailable populated
 ;        PT3lib initialized
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 StartMusic
-         bit   gMockingboardAvailable
+         bit   gSoundAvailable
          bpl   MUSIC_RTS             ; no Mockingboard -> no music
          bit   gSoundPref
          bpl   MUSIC_RTS             ; user turned off sound -> no music
@@ -85,11 +85,11 @@ MUSIC_RTS
 ; safe to call whenever you want, as often as you want, after program init
 ; (no need to balance calls with StartMusic)
 ;
-; in:    gMockingboardAvailable populated
+; in:    gSoundAvailable populated
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 StopMusic
-         bit   gMockingboardAvailable
+         bit   gSoundAvailable
          bpl   MUSIC_RTS
          jmp   mockingboard_shut_down
 

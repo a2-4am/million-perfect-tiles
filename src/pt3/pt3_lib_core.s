@@ -88,8 +88,8 @@ NOTE_SLIDE_TO_NOTE      =36
 NOTE_TONE_DELTA_L       =37
 NOTE_TONE_DELTA_H       =38
 NOTE_TONE_SLIDE_TO_STEP =39
-
-NOTE_STRUCT_SIZE=40
+NOTE_RAW_INDEX          =40
+NOTE_STRUCT_SIZE=41
 
 !ifdef PT3_USE_ZERO_PAGE {
 note_a  =       $80
@@ -145,6 +145,7 @@ note_a:                                                                 ; reset?
         !byte   $0      ; NOTE_TONE_DELTA_L                     ; 37
         !byte   $0      ; NOTE_TONE_DELTA_H                     ; 38
         !byte   $0      ; NOTE_TONE_SLIDE_TO_STEP               ; 39
+        !byte   $0      ; NOTE_RAW_INDEX                        ; 40
 
 note_b:
         !byte   $0      ; NOTE_VOLUME
@@ -187,6 +188,7 @@ note_b:
         !byte   $0      ; NOTE_TONE_DELTA_L
         !byte   $0      ; NOTE_TONE_DELTA_H
         !byte   $0      ; NOTE_TONE_SLIDE_TO_STEP
+        !byte   $0      ; NOTE_RAW_INDEX                        ; 40
 
 note_c:
         !byte   $0      ; NOTE_VOLUME
@@ -229,6 +231,7 @@ note_c:
         !byte   $0      ; NOTE_TONE_DELTA_L
         !byte   $0      ; NOTE_TONE_DELTA_H
         !byte   $0      ; NOTE_TONE_SLIDE_TO_STEP
+        !byte   $0      ; NOTE_RAW_INDEX                        ; 40
 end_vars:
 }
 
@@ -474,6 +477,8 @@ note_not_negative:
         lda     #95
 
 note_not_too_high:
+
+        sta     note_a+NOTE_RAW_INDEX,X ; [4am] store raw note index (0..95) for visualizations
 
         ;  w = GetNoteFreq(j,pt3->frequency_table);
 
@@ -1664,6 +1669,7 @@ pt3_speed_smc:
 next_line:
         sta     current_subframe_smc+1  ; reset subframe to 0           ; 4
 
+        inc     PT3_CHANGED_LINE
         inc     current_line_smc+1      ; and increment line            ; 6
         lda     current_line_smc+1                                      ; 4
 

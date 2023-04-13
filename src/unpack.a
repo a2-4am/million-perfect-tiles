@@ -24,9 +24,9 @@ nth
          ora   tmpy
          ldy   #0
          ldx   logical_board_size
-         cpx   #16
-         bne   +
-         iny
+;         cpx   #16
+;         bne   +
+;         iny
 +        sty   .offset + 2
          cmp   #1
          lda   .packed_length - 6, x
@@ -134,8 +134,8 @@ nth
 .packed_length
          !word 8, 13, 20, 26, 34, 45
 
-.board_base
-         !word 0, 5600, 14700, 28700, 46900, 70700 and 65535
+.board_base ; must match STARTING_OFFSET_PER_BOARD_SIZE in bin/packer.py
+         !word 0, 4096, 10752, 20992, 34304, 51712
 
 .c8_parms
          !byte 3

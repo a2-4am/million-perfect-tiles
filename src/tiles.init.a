@@ -32,37 +32,13 @@
          dex
          bpl   -
 
-         ; relocate main music to $900
-         ldy   #5                               ; hardcoded to 0x500 bytes
-         ldx   #0
-MSRC     lda   main_music_raw, x
-MDST     sta   MainMusic, x
-         inx
-         bne   MSRC
-         inc   MSRC+2
-         inc   MDST+2
-         dey
-         bne   MSRC
-
-         ; relocate win music to $E00
-         ldy   #6                               ; hardcoded to 0x600 bytes
-         ldx   #0
-WSRC     lda   win_music_raw, x
-WDST     sta   WinMusic, x
-         inx
-         bne   WSRC
-         inc   WSRC+2
-         inc   WDST+2
-         dey
-         bne   WSRC
-
-         ; relocate rest of program code to $4000
+         ; relocate program code to $4000
 -        inc   FM+2
          inc   FMDEST+2
          lda   FM+2
          cmp   #>LastMover
          bcc   -
-         ;X=0
+         ldx   #0
 FM       lda   FirstMover, x
 FMDEST   sta   $4000, x
          inx
@@ -73,8 +49,40 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
+         ; build model-specific VBL code (used for drawing pointer)
+         jsr   BuildVBLFunction
+
+         ; load preferences
+         jsr   LoadPrefs
+
+         sec
+         ror   gSoundAvailable                  ; assume sound is available
+
+         ; load main music
+         jsr   LoadFile1Shot
+         !word MAIN_MUSIC_FILE
+         !word MainMusic
+         !word WinMusic-MainMusic
+         !word file_buffer
+         bcc   +
+
+@musicLoadError
+         clc
+         ror   gSoundAvailable                  ; can't load music file, disable sound
+         jmp   ++
+
++
+         ; load win music
+         jsr   LoadFile1Shot
+         !word WIN_MUSIC_FILE
+         !word WinMusic
+         !word EndWinMusic-WinMusic
+         !word file_buffer
+         bcs   @musicLoadError
+
+++
          ; set up some globals used by FindValidMove
-         ;X=0
+         ldx   #0
          stx   start_y
          dex
          stx   board_base_shift_minus_1
@@ -100,12 +108,6 @@ FMDEST   sta   $4000, x
          iny
          bne   --
 
-         ; build model-specific VBL code (used for drawing pointer)
-         jsr   BuildVBLFunction
-
-         ; load preferences
-         jsr   LoadPrefs
-
          ; load random board for title (out of first 512 16x16 boards)
          jsr   GetTime
          lda   $BF93
@@ -126,17 +128,20 @@ FMDEST   sta   $4000, x
          jsr   DisableAccelerator
 
          ; now safe to detect Mockingboard
+         bit   gSoundAvailable
+         bpl   +                                ; if music file load failed earlier, don't bother initializing Mockingboard
          jsr   mockingboard_detect
          ;clc                                   ; DEBUG uncomment to pretend there's no Mockingboard
          php
-         ror   gMockingboardAvailable
+         ror   gSoundAvailable
          plp
          bcc   +
          jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
          lda   #>MainMusic
          jsr   pt3_init_song                    ; prepare song data
 +
-
+         lda   #40
+         sta   gCurrentMessage
          jmp   Start
 
          !source "src/hw.vbl.init.a"
@@ -145,8 +150,13 @@ FMDEST   sta   $4000, x
 }
          !source "src/pt3/pt3_lib_mockingboard_detect.s"
          !source "src/pt3/pt3_lib_init.s"
-main_music_raw
-         !binary "res/SMALLBLUES.PT3"
-         !byte 40                               ; ends up as the length prefix for gCurrentMessage
-win_music_raw
-         !binary "res/EASYWINNERS.PT3"
+MAIN_MUSIC_FILE
+         !byte @end-@start
+@start
+         !text "SMALLBLUES.PT3"
+@end
+WIN_MUSIC_FILE
+         !byte @end-@start
+@start
+         !text "EASYWINNERS.PT3"
+@end

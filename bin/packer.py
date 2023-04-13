@@ -21,9 +21,10 @@ import sys
 # these constants are hard-coded, not stored in the file
 INPUT_FILES = ('puzzles06.txt', 'puzzles08.txt', 'puzzles10.txt', 'puzzles12.txt', 'puzzles14.txt', 'puzzles16.txt')
 BOARD_SIZES = (6, 8, 10, 12, 14, 16)
-STARTING_OFFSET_PER_BOARD_SIZE = {6:0, 8:5600*8, 10:14700*8, 12:28700*8, 14:46900*8, 16:70700*8}
+# starting offsets must match .board_base array in src/unpack.a
+STARTING_OFFSET_PER_BOARD_SIZE = {6:0, 8:4096*8, 10:10752*8, 12:20992*8, 14:34304*8, 16:51712*8}
 BITS_PER_BOARD_SIZE = {6:8*8, 8:13*8, 10:20*8, 12:26*8, 14:34*8, 16:45*8}
-BOARDS_PER_SIZE = 700
+BOARDS_PER_SIZE = 512
 
 if __name__ == "__main__":
     all_bits = bitarray.bitarray(endian="big")

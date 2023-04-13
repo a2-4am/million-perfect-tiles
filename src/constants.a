@@ -54,7 +54,7 @@ board_base_shift_plus_1   = $AA      ; word (used by FindValidMove)
 board_base_shift_plus_2   = $AC      ; word (used by FindValidMove)
 start_y                   = $AE      ; byte (used by FindValidMove)
 tile_a                    = $AF      ; byte (used by FindValidMove)
-gMockingboardAvailable    = $B0      ; byte USE BIT 7 ONLY
+gSoundAvailable           = $B0      ; byte USE BIT 7 ONLY
 extended_message          = $B1      ; word
 extended_x                = $B3      ; byte
 extended_y                = $B4      ; byte
@@ -109,9 +109,10 @@ NoteTable_high            = $0300    ; 0x60 bytes, should not cross page boundar
 NoteTable_low             = $0360    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
 VolumeTable               = $0800    ; 0x100 bytes, should be page-aligned (lifetime, used by pt3lib)
 MainMusic                 = $0900    ; 0x4BA bytes, must be page-aligned (lifetime, music data used by pt3lib)
-gCurrentMessage           = $0DBA    ; 0x29 bytes (code expects this to be immediately after music data)
+gCurrentMessage           = $0DBA    ; 0x29 bytes
 WinMusic                  = $0E00    ; 0x5A3 bytes, must be page-aligned (lifetime, music data used by pt3lib)
-                                     ; 0x27A free here
+EndWinMusic               = $1400
+                                     ; 0x200 free here
 maybe_xx0                 = $1600    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_x0x and maybe_0xx)
 maybe_x0x                 = $1601    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_0xx)
 maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_x0x)

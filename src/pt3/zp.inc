@@ -38,3 +38,5 @@ ENVELOPE_SHAPE  = $7D
 
 PATTERN_L       = $7E
 PATTERN_H       = $7F
+
+PT3_CHANGED_LINE = $80
