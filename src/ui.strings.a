@@ -168,7 +168,7 @@ sAboutCopyright10
          !byte 6,0,0,0,0,0,0
 sAboutCopyright11
          !byte 6,0
-         !raw  "V1.0"
+         !raw  "BETA"
          !byte 0
 sAboutCopyright12=sAboutCopyright10
 sAboutCompression6=sAboutCopyright6
