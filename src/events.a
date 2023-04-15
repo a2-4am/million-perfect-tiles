@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 ; functions for keyboard and mouse events
 ;
@@ -92,7 +92,6 @@ GetNextEvent
          bne   +
          inc   RNDSEED+1
 +
-         jsr   UpdateFX
          jsr   WGPollMouse
          bit   gPointerClicked       ; TEST BIT 7 ONLY
          bmi   @onClick
@@ -145,146 +144,4 @@ ClearPendingEvents
          lda   #$00
          sta   gPointerMoved
          sta   gPointerClicked
--        rts
-
-FX_LEFT_MARGIN = 5
-FX_NOTE_OFFSET = 25
-UpdateFX
-; preserves Y
-         lda   PT3_CHANGED_LINE
-         beq   -
-
-         tya
-         pha
-
-         ldy   #$27
--
-         lda   fxline5, y
-         sta   fxline6, y
-
-         lda   fxline4, y
-         sta   fxline5, y
-
-         lda   fxline3, y
-         sta   fxline4, y
-
-         lda   fxline2, y
-         sta   fxline3, y
-
-         lda   fxline1, y
-         sta   fxline2, y
-
-         lda   fxline0, y
-         sta   fxline1, y
-
-         lda   #$00
-         sta   fxline0, y
-
-         dey
-         bpl   -
-
-         ldx   #0
-         jsr   PrintNote
-
-         ldx   #(NOTE_STRUCT_SIZE*1)   ; Note B
-         jsr   PrintNote
-
-         ldx   #(NOTE_STRUCT_SIZE*2)   ; Note C
-         jsr   PrintNote
-
-         ldy   #$27
--
-         lda   fxline0, y
-         sta   $23d0+FX_LEFT_MARGIN, y
-         lda   fxline1, y
-         sta   $27d0+FX_LEFT_MARGIN, y
-         lda   fxline2, y
-         sta   $2bd0+FX_LEFT_MARGIN, y
-         lda   fxline3, y
-         sta   $2fd0+FX_LEFT_MARGIN, y
-         lda   fxline4, y
-         sta   $33d0+FX_LEFT_MARGIN, y
-         lda   fxline5, y
-         sta   $37d0+FX_LEFT_MARGIN, y
-         lda   fxline6, y
-         sta   $3bd0+FX_LEFT_MARGIN, y
-         dey
-         bpl   -
-
-         lda   #$00
-         sta   PT3_CHANGED_LINE
-
-         pla
-         tay
-
          rts
-
-PrintNote
-         lda   note_a+NOTE_ENABLED, x
-         beq   @exit
-         lda   note_a+NOTE_SAMPLE_POSITION, x
-         cmp   #4
-         beq   +
-         cmp   note_a+NOTE_SAMPLE_LOOP, x
-         beq   @exit
-+
-         lda   note_a+NOTE_RAW_INDEX, x
-         sec
-         sbc   #FX_NOTE_OFFSET
-         bpl   +
-         lda   #0
-+        cmp   #31
-         bcc   +
-         lda   #31
-+
-         tay
-;         and   #1
-;         beq   +
-;         lda   #%10001010
-;         !byte $2C
-;+
-         lda   #%00001111
-         sta   fxline0, y
-         sta   fxline1, y
-         sta   fxline2, y
-         sta   fxline3, y
-         sta   fxline4, y
-         sta   fxline5, y
-         sta   fxline6, y
-@exit    rts
-
-fxline0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline1
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline2
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline3
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline4
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline5
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-fxline6
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0
-         !byte 0,0,0,0,0,0,0,0,0,0

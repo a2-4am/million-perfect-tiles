@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 ; initialize program, generate lookup tables and dynamically generated code
 ;
@@ -55,32 +55,6 @@ FMDEST   sta   $4000, x
          ; load preferences
          jsr   LoadPrefs
 
-         sec
-         ror   gSoundAvailable                  ; assume sound is available
-
-         ; load main music
-         jsr   LoadFile1Shot
-         !word MAIN_MUSIC_FILE
-         !word MainMusic
-         !word WinMusic-MainMusic
-         !word file_buffer
-         bcc   +
-
-@musicLoadError
-         clc
-         ror   gSoundAvailable                  ; can't load music file, disable sound
-         jmp   ++
-
-+
-         ; load win music
-         jsr   LoadFile1Shot
-         !word WIN_MUSIC_FILE
-         !word WinMusic
-         !word EndWinMusic-WinMusic
-         !word file_buffer
-         bcs   @musicLoadError
-
-++
          ; set up some globals used by FindValidMove
          ldx   #0
          stx   start_y
@@ -128,18 +102,40 @@ FMDEST   sta   $4000, x
          jsr   DisableAccelerator
 
          ; now safe to detect Mockingboard
-         bit   gSoundAvailable
-         bpl   +                                ; if music file load failed earlier, don't bother initializing Mockingboard
          jsr   mockingboard_detect
          ;clc                                   ; DEBUG uncomment to pretend there's no Mockingboard
          php
          ror   gSoundAvailable
          plp
-         bcc   +
+         bcc   ++
          jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
+
+         ; load main music
+         jsr   LoadFile1Shot
+         !word MAIN_MUSIC_FILE
+         !word MainMusic
+         !word EndMainMusic-MainMusic
+         !word file_buffer
+         bcc   +
+
+@musicLoadError
+         clc
+         ror   gSoundAvailable                  ; can't load music file, disable sound
+         jmp   ++
+
++
+         ; load win music
+         jsr   LoadFile1Shot
+         !word WIN_MUSIC_FILE
+         !word WinMusic
+         !word EndWinMusic-WinMusic
+         !word file_buffer
+         bcs   -
+
          lda   #>MainMusic
          jsr   pt3_init_song                    ; prepare song data
-+
+
+++
          lda   #40
          sta   gCurrentMessage
          jmp   Start
@@ -158,5 +154,5 @@ MAIN_MUSIC_FILE
 WIN_MUSIC_FILE
          !byte @end-@start
 @start
-         !text "EASYWINNERS.PT3"
+         !text "RUSHHOUR.PT3"
 @end

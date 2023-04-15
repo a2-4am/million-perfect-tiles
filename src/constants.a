@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 
 ; soft switches
@@ -109,10 +109,11 @@ NoteTable_high            = $0300    ; 0x60 bytes, should not cross page boundar
 NoteTable_low             = $0360    ; 0x60 bytes, should not cross page boundary (lifetime, used by pt3lib)
 VolumeTable               = $0800    ; 0x100 bytes, should be page-aligned (lifetime, used by pt3lib)
 MainMusic                 = $0900    ; 0x4BA bytes, must be page-aligned (lifetime, music data used by pt3lib)
-gCurrentMessage           = $0DBA    ; 0x29 bytes
-WinMusic                  = $0E00    ; 0x5A3 bytes, must be page-aligned (lifetime, music data used by pt3lib)
-EndWinMusic               = $1400
-                                     ; 0x200 free here
+EndMainMusic              = $0DBA
+gCurrentMessage           = EndMainMusic ; 0x29 bytes
+WinMusic                  = $0E00    ; 0x362 bytes, must be page-aligned (lifetime, music data used by pt3lib)
+EndWinMusic               = $1162
+                                     ; 0x49E free here
 maybe_xx0                 = $1600    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_x0x and maybe_0xx)
 maybe_x0x                 = $1601    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_0xx)
 maybe_0xx                 = $1602    ; 0x100 bytes (lifetime, used by FindValidMove, overlaps with maybe_xx0 and maybe_x0x)

@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 ; display help screen
 ;
@@ -33,7 +33,6 @@ HelpScript
          +CPRINT  8, 4, sHelp8
          +CPRINT  9, 4, sHelp9
          +CPRINT 10, 4, sHelp10
-         +CPRINT 12, 4, sHelp12
          +CPRINT 13, 4, sHelp13
          +CPRINT 14, 4, sHelp14
          +CPRINT 15, 4, sHelp15

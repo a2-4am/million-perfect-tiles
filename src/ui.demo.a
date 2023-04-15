@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 ; self-running demo
 ;
@@ -103,6 +103,8 @@ DemoScript
          !byte WAIT , 1
 
          +CPRINT  0,17, sRule2
+         +CPRINT  2, 3, s4Spaces
+         +CPRINT  2,33, s4Spaces
          +CPRINT  2, 7, sSame
          !byte WAIT ,20
 
@@ -115,6 +117,8 @@ DemoScript
          !byte WAIT , 2
 
          +CPRINT  0,17, sRule3
+         +CPRINT  2, 7, s4Spaces
+         +CPRINT  2,29, s4Spaces
          +CPRINT  2,11, sUnique
          !byte WAIT ,20
 

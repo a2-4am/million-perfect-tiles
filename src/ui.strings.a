@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2022 by 4am
+;(c) 2023 by 4am
 ;
 
 sMainMenuLine1
@@ -156,7 +156,7 @@ sAboutCopyright4
          !byte 0,0,0,0
 sAboutCopyright5
          !byte 14,0,0
-         !raw  "2022"
+         !raw  "2023"
          !byte 0
          !raw  "BY"
          !byte 0
@@ -288,9 +288,6 @@ sRule2
 sRule3
          !byte 6
          !raw  "RULE 3"
-
-
-
 sNever
          !byte 34
          !raw  "Never 3 in a row of the same color"
@@ -300,18 +297,18 @@ sSame
 sUnique
          !byte 18
          !raw  "Each row is unique"
-
+s4Spaces
+         !byte 4
+         !raw  "    "
 sHelp0
          !byte 21
          !raw  "Million Perfect Tiles"
-
 sBluePointyThing
          !byte 1
          !raw  ">"
 sWhitePointyThing
          !byte 1
          !raw  "%"
-
 sHelp8
          !byte 32
          !raw  " I        "
@@ -331,12 +328,6 @@ sHelp10
          !raw  " M        "
          !byte cDownArrow
          !raw "         Space to cycle"
-
-sHelp12
-         !byte 34
-         !raw  "Ctrl-Z "
-         !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
-         !raw  " undo move"
 sHelp13
          !byte 34
          !raw  "H"
@@ -352,7 +343,6 @@ sHelp15
          !raw  "Esc"
          !byte cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot,$20,cDot
          !raw  "quit level"
-
 sPressQuestionForHelp
          !byte 16
          !raw  "Press ? for help"
@@ -360,7 +350,6 @@ sPressQuestionForHelp
 sPressHForHint
          !byte 16
          !raw  "Press H for hint"
-
 sPerfection
          !byte 10
          !raw  "PERFECTION"
