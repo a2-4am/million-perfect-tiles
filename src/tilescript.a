@@ -19,6 +19,7 @@ TILE     = 7   ; draw tile
 BOARD    = 8   ; draw board
 CALL     = 9   ; call assembly routine
 
+; macros (public)
 !macro CPRINT v, h, s {
          !byte CPR, v, h
          !word s

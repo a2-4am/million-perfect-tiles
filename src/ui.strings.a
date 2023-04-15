@@ -300,6 +300,9 @@ sUnique
 s4Spaces
          !byte 4
          !raw  "    "
+s40Spaces
+         !byte 40
+         !raw  "                                        "
 sHelp0
          !byte 21
          !raw  "Million Perfect Tiles"
