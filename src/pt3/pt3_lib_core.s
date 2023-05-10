@@ -460,9 +460,11 @@ no_accum:
         ;============================
         ; Calculate tone
         ;  j = a->note + (pt3->data[a->ornament_pointer + a->ornament_position]
-        clc     ;;can be removed if ADC ACCUMULATOR_H cannot overflow
         ldy     note_a+NOTE_ORNAMENT_POSITION,X
         lda     (ORNAMENT_L),Y
+        sec
+        sbc     #1
+        clc
         adc     note_a+NOTE_NOTE,X
 
         ;  if (j < 0) j = 0;
@@ -478,7 +480,7 @@ note_not_negative:
 
 note_not_too_high:
 
-        sta     note_a+NOTE_RAW_INDEX,X ; [4am] store raw note index (0..95) for visualizations
+        ;sta     note_a+NOTE_RAW_INDEX,X ; [4am] store raw note index (0..95) for visualizations
 
         ;  w = GetNoteFreq(j,pt3->frequency_table);
 
