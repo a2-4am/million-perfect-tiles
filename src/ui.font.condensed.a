@@ -27,7 +27,7 @@ DrawCondensedString
          tax
          inc   string_ptr
          bne   +
-         inc   string_ptr
+         inc   string_ptr+1
 +
          +LD16 string_ptr
          ; /!\ execution falls through here to DrawCondensedBuffer
