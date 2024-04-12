@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2023 by 4am
+;(c) 2024 by 4am
 ;
 ; display help screen
 ;
@@ -23,18 +23,19 @@ ShowHelp
 
 HelpScript
          !byte HOME
-         +CPRINT  0,10, sHelp0
-         +CPRINT  2, 2, sBluePointyThing
-         +CPRINT  2, 4, sNever
-         +CPRINT  4, 2, sWhitePointyThing
-         +CPRINT  4, 4, sSame
-         +CPRINT  6, 2, sBluePointyThing
-         +CPRINT  6, 4, sUnique
-         +CPRINT  8, 4, sHelp8
-         +CPRINT  9, 4, sHelp9
-         +CPRINT 10, 4, sHelp10
-         +CPRINT 13, 4, sHelp13
-         +CPRINT 14, 4, sHelp14
+         +CPRINT  0, 2, sBluePointyThing
+         +CPRINT  0, 4, sNever
+         +CPRINT  2, 2, sWhitePointyThing
+         +CPRINT  2, 4, sSame
+         +CPRINT  4, 2, sBluePointyThing
+         +CPRINT  4, 4, sUnique
+         +CPRINT  6, 4, sHelp8
+         +CPRINT  7, 4, sHelp9
+         +CPRINT  8, 4, sHelp10
+         +CPRINT 10, 4, sHelp12
+         +CPRINT 12, 4, sHelp13
+         +CPRINT 13, 4, sHelp14
+         +CPRINT 14, 4, sHelpSound
          +CPRINT 15, 4, sHelp15
          !byte WAIT, 255
          !byte EXIT

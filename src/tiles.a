@@ -1,8 +1,8 @@
 ;license:MIT
-;(c) 2023 by 4am
+;(c) 2024 by 4am
 ;
 !cpu 6502
-!to "build/TILES.SYSTEM",plain
+!to "build/MPT.SYSTEM#FF0000",plain
 *=$2000
 
          !source "src/constants.a"              ; no code

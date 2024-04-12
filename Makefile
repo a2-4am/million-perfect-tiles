@@ -18,26 +18,28 @@ ACME=acme
 # version 1.4.4 or later
 CADIUS=cadius
 
-BUILDDISK=build/tiles
+BUILDDISK=build/tiles.po
+DISKVOLUME=MILLION.TILES
 
-asm:
-	mkdir -p build
-	$(ACME) -r build/tiles.lst src/tiles.a 2>build/log
-	cp res/work.po "$(BUILDDISK)".po >>build/log
-	cp res/_FileInformation.txt build/ >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "build/TILES.SYSTEM" >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "res/SMALLBLUES.PT3" >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "res/RUSHHOUR.PT3" >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/TILES/" "res/PUZZLES.BIN" >>build/log
-	bin/po2do.py build/ build/
-	rm "$(BUILDDISK)".po
+asm: dirs
+	$(ACME) -r build/tiles.lst src/tiles.a
+
+dsk: asm
+	$(CADIUS) CREATEVOLUME "$(BUILDDISK)" "$(DISKVOLUME)" 140KB -C
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/PRODOS#FF0000" -C
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/CLOCK.SYSTEM#FF0000" -C
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "build/MPT.SYSTEM#FF0000" -C
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/PUZZLES.BIN#060000" -C
 
 clean:
 	rm -rf build/
 
-mount:
-	open "$(BUILDDISK)".dsk
+dirs:
+	mkdir -p build
 
-all: clean asm mount
+mount:
+	open "$(BUILDDISK)"
+
+all: clean dsk mount
 
 al: all

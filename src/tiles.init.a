@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2023 by 4am
+;(c) 2024 by 4am
 ;
 ; initialize program, generate lookup tables and dynamically generated code
 ;
@@ -107,35 +107,38 @@ FMDEST   sta   $4000, x
          php
          ror   gSoundAvailable
          plp
-         bcc   ++
+         bcc   @no_music
          jsr   mockingboard_patch               ; self-modify Mockingboard code for slot independence
 
-         ; load main music
-         jsr   LoadFile1Shot
-         !word MAIN_MUSIC_FILE
-         !word MainMusic
-         !word EndMainMusic-MainMusic
-         !word file_buffer
-         bcc   +
+         ; move main music into place
+         ldx   #>(EndMainMusic-MainMusic+$FF)
+         ldy   #$00
+@msrc    lda   MAIN_MUSIC_FILE, y
+@mdst    sta   MainMusic, y
+         iny
+         bne   @msrc
+         inc   @msrc+2
+         inc   @mdst+2
+         dex
+         bne   @msrc
 
-@musicLoadError
-         clc
-         ror   gSoundAvailable                  ; can't load music file, disable sound
-         jmp   ++
+         ; move win music into place
+         ldx   #>(EndWinMusic-WinMusic+$FF)
+         ;Y=0
+@wsrc    lda   WIN_MUSIC_FILE, y
+@wdst    sta   WinMusic, y
+         iny
+         bne   @wsrc
+         inc   @wsrc+2
+         inc   @wdst+2
+         dex
+         bne   @wsrc
 
-+
-         ; load win music
-         jsr   LoadFile1Shot
-         !word WIN_MUSIC_FILE
-         !word WinMusic
-         !word EndWinMusic-WinMusic
-         !word file_buffer
-         bcs   -
-
+         ; prepare song data
          lda   #>MainMusic
-         jsr   pt3_init_song                    ; prepare song data
+         jsr   pt3_init_song
 
-++
+@no_music
          lda   #40
          sta   gCurrentMessage
          jmp   Start
@@ -147,12 +150,6 @@ FMDEST   sta   $4000, x
          !source "src/pt3/pt3_lib_mockingboard_detect.s"
          !source "src/pt3/pt3_lib_init.s"
 MAIN_MUSIC_FILE
-         !byte @end-@start
-@start
-         !text "SMALLBLUES.PT3"
-@end
+         !bin  "res/SMALLBLUES.PT3"
 WIN_MUSIC_FILE
-         !byte @end-@start
-@start
-         !text "RUSHHOUR.PT3"
-@end
+         !bin  "res/RUSHHOUR.PT3"
