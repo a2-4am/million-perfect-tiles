@@ -164,7 +164,7 @@ nth
 .filename
          !byte .filename_e - .filename_b
 .filename_b
-         !text  "PUZZLES.BIN"
+         !text  "MPT.PUZZLES"
 .filename_e
 
 ;------------------------------------------------------------------------------

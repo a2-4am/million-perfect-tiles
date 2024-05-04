@@ -4,7 +4,7 @@
 
 PREFSFILE !byte prefs_e-prefs_b
 prefs_b
-          !text "PREFS"
+          !text "MPT.PREFS"
 prefs_e
 
 PREFSVER !byte $31
@@ -19,7 +19,7 @@ PREFSWRITELEN = *-PREFSVER
 PREFSREADLEN = $0003
 CURRENTVER   = $31                   ; ASCII '1'
 DEFAULTSOUND = $31                   ; ASCII '1'
-DEFAULTCHEAT = $31                   ; ASCII '1'
+DEFAULTCHEAT = $30                   ; ASCII '0'
 
 ;------------------------------------------------------------------------------
 ; LoadPrefs
